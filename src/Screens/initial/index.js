@@ -133,6 +133,8 @@ const Initial = props => {
 
     setTimeout(() => {
       getData('userDetails').then(respSuccess => {
+        //console.log('user data check');
+        //console.log(respSuccess);
         if (respSuccess) {
           dispatch(localstorage_UserdetailsAdd(JSON.parse(respSuccess)));
           const userData = JSON.parse(respSuccess);

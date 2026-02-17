@@ -35,6 +35,7 @@ import {
   AppTextInput,
   AppButton,
 } from 'react-native-basic-elements';
+import Loader from '../../Component/loader';
 
 const Login = ({props, route, navigation}) => {
   const styles = Styles();
@@ -106,23 +107,31 @@ const Login = ({props, route, navigation}) => {
 
     if (flg == true) {
       setLoader(true);
-      postWithOutToken(baseUrl, 'module/user/rest-user', {
+      /* postWithOutToken(baseUrl, 'module/user/rest-user', {
         f: 'login',
         email: email,
         pass: password,
         langId: langId,
         level: 1,
         device_id: deviceToken,
+      })*/
+
+      postWithOutToken(baseUrl, 'business/login', {
+        email: email,
+        password: password,
+        lang_id: langId,
+        level: 1,
+        device_id: deviceToken,
       })
         .then(response => {
-          console.log(response);
+          //console.log(response);
           setLoader(false);
           if (response.status == true) {
             setEmail('');
             setPassword('');
             dispatch(setUserData(response));
-            setData('userDetails', JSON.stringify(response.result));
-            //setData("userToken", JSON.stringify(response.token));
+            setData('userDetails', JSON.stringify(response.data));
+            setData('userToken', JSON.stringify(response.token));
 
             setTimeout(() => {
               navigation.navigate('Main');
@@ -141,7 +150,7 @@ const Login = ({props, route, navigation}) => {
 
   return (
     <Container style={styles.container}>
-      {viewloader === true ? (
+      {/*viewloader === true ? (
         <View
           style={{
             alignItems: 'center',
@@ -156,7 +165,9 @@ const Login = ({props, route, navigation}) => {
           }}>
           <ActivityIndicator size="large" color={Colors.activityIndicator} />
         </View>
-      ) : null}
+      ) : null*/}
+
+      {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
 
@@ -218,21 +229,35 @@ const Login = ({props, route, navigation}) => {
               autoCapitalize="none"
             />
 
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                handleLogin();
-              }}>
-              <Text
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: responsiveFontSize(1.5),
-                  color: '#fff',
-                  fontFamily: Inter.medium,
+            {viewloader === true ? (
+              <TouchableOpacity style={styles.button_dis}>
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: responsiveFontSize(1.5),
+                    color: '#000',
+                    fontFamily: Inter.medium,
+                  }}>
+                  Login
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  handleLogin();
                 }}>
-                Login
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: responsiveFontSize(1.5),
+                    color: '#fff',
+                    fontFamily: Inter.medium,
+                  }}>
+                  Login
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <Text
               onPress={() => navigation.navigate('Forgot')}

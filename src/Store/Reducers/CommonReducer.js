@@ -5,8 +5,12 @@ const initialState = {
   userData: null,
   userToken: '',
   deviceToken: '',
-  baseUrl: 'https://menuhuts.com/apiv/',
-  siteUrl: 'https://menuhuts.com/',
+  //baseUrl: 'https://menuhuts.com/apiv/',
+  //siteUrl: 'https://menuhuts.com/',
+  baseUrl: 'https://staging-api.acuitysoftware.in/api/',
+  siteUrl: 'https://staging-api.acuitysoftware.in/',
+  //baseUrl: 'https://staging-api.nexordr.com/api/',
+  //siteUrl: 'https://staging-api.nexordr.com/',
   tempEmailorMobile: '',
   google_api_key: '',
   //Navigation state
@@ -50,8 +54,8 @@ export const commonReducer = createSlice({
 
     setUserData: (state, action) => {
       //console.log("action data : ", action.payload);
-      state.userData = action.payload.result;
-      //state.userToken = action.payload.token;
+      state.userData = action.payload.data;
+      state.userToken = action.payload.token;
     },
     setUserDataAfterLogin: (state, action) => {
       state.userData = action.payload.data;

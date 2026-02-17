@@ -198,7 +198,7 @@ const Home = ({props, route, navigation}) => {
     }
   }, [userData]);
 
-  const ActiveBusiness = () => {
+  /*const ActiveBusiness = () => {
     postWithOutToken(baseUrl, 'module/business/rest-business-pos', {
       f: 'react_getbusinessid',
       langId: langId,
@@ -208,6 +208,68 @@ const Home = ({props, route, navigation}) => {
         //console.log(response);
         setActiveBusiness(response);
         dineIn(response);
+      })
+      .catch(error => {
+        console.log('Error : ', error);
+      });
+  };*/
+
+  const ActiveBusiness = () => {
+    postWithToken(
+      baseUrl,
+      'web-business/get-business-info',
+      {lang_id: langId, type: 1},
+      userToken,
+    )
+      .then(response => {
+        console.log(response);
+        console.log(response.category[0]);
+        //setActiveBusiness(response);
+        //dineIn(response);
+
+        if (response.status === true) {
+          setActiveBusiness(response.business);
+          if (Object.keys(response.menu).length === 0) {
+            Alert.alert('Sorry!', 'Not Have Active Menu Now', [
+              {
+                text: 'Ok',
+                onPress: () => console.log('Cancel Pressed'),
+                style: 'cancel',
+              },
+            ]);
+            setCategoryDetails({isLoading: false, list: []});
+            setCategoryMenu({isLoading: false, list: null});
+            setcategoryDetailsTemp([]);
+            setCategoryMenuTemp([]);
+            return false;
+          } else {
+            //console.log(response.category[0]);
+            setCategoryDetails({isLoading: false, list: response.category});
+            setcategoryDetailsTemp(response.category);
+
+            let menu_temp = null;
+
+            response.category.map((item, index) => {
+              if (menu_temp == null) {
+                menu_temp = item.dish;
+              } else {
+                menu_temp = [...menu_temp, ...item.dish];
+              }
+
+              if (item.subCat.length > 0) {
+                //menu_temp.concat(item.subCat.dish);
+
+                if (menu_temp == null) {
+                  menu_temp = item.dish;
+                } else {
+                  menu_temp = [...menu_temp, ...item.subCat.dish];
+                }
+              }
+            });
+
+            setCategoryMenuTemp(menu_temp);
+          }
+        }
       })
       .catch(error => {
         console.log('Error : ', error);
@@ -270,6 +332,10 @@ const Home = ({props, route, navigation}) => {
   };
 
   const openProduct = (cat_id, cat, cat_index) => {
+    console.log('on click category');
+    console.log(cat_id);
+    console.log(cat);
+
     setSelectedCategory(cat_id);
     setCategoryMenu({isLoading: false, list: cat});
   };
@@ -426,10 +492,11 @@ const Home = ({props, route, navigation}) => {
     let activeIngredients;
     activeIngredients = new Array();
     for (const ingre of dishItem.ingredientsarray) {
-      if (ingre.status === false) {
-        activeIngredients.push(ingre.name);
-      }
+      /*if (ingre.status === false) {*/
+      activeIngredients.push(ingre);
+      /*}*/
     }
+
     let data;
     data = {
       id: dishItem.id,
@@ -1156,7 +1223,7 @@ const Home = ({props, route, navigation}) => {
                                   <Icon
                                     name="pluscircle"
                                     type="AntDesign"
-                                    size={25}
+                                    size={responsiveWidth(2)}
                                     color={Colors.green}
                                   />
                                 </View>
@@ -1213,7 +1280,7 @@ const Home = ({props, route, navigation}) => {
                                         color: Colors.green,
                                       }}>
                                       {activeBusiness.currency_symbol}
-                                      {dish.price} {'sub'}
+                                      {dish.price}
                                     </Text>
                                   </View>
                                   <View>

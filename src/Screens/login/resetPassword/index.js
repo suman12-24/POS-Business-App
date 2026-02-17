@@ -29,11 +29,15 @@ import {
   AppTextInput,
   AppButton,
 } from 'react-native-basic-elements';
+import Loader from '../../../Component/loader';
+import {useFocusEffect} from '@react-navigation/native';
 
 const ResetPassword = ({props, route, navigation}) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl} = useSelector(state => state.common);
+  const {baseUrl, siteUrl, deviceToken, langId} = useSelector(
+    state => state.common,
+  );
   const [newpass, setNewPass] = useState('');
   const [confirmpass, setConfirmpass] = useState('');
   const [version_code, setVersionCode] = useState(null);
@@ -48,7 +52,21 @@ const ResetPassword = ({props, route, navigation}) => {
     <Icon name="eye" type="Ionicon" color={Colors.black} />,
   );
 
-  const [resetPassword, setResetPassword] = useState(true);
+  const [resetPasswordstatus, setResetPassword] = useState(false);
+
+  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params != undefined) {
+        if (route.params.userId != undefined) {
+          setUserId(route.params.userId);
+          setEmail(route.params.email);
+        }
+      }
+    }, [route.params]),
+  );
 
   const changeFieldType = () => {
     if (password_field_type == true) {
@@ -98,7 +116,7 @@ const ResetPassword = ({props, route, navigation}) => {
         flg = false;
       }
       return false;
-    } else if (newpass.search(/\S/) != -1) {
+    } /*else if (newpass.search(/\S/) != -1) {
       const passwordLength = newpass.length;
       const uppercasePassword = uppercaseRegExp.test(newpass);
       const lowercasePassword = lowercaseRegExp.test(newpass);
@@ -134,7 +152,7 @@ const ResetPassword = ({props, route, navigation}) => {
         }
         return false;
       }
-    }
+    }*/
 
     if (confirmpass.search(/\S/) == -1) {
       showToastMsg('please enter confirm password');
@@ -154,7 +172,7 @@ const ResetPassword = ({props, route, navigation}) => {
 
     if (flg == true) {
       setLoader(true);
-      postWithOutToken(baseUrl, 'reset-password', {
+      /*postWithOutToken(baseUrl, 'reset-password', {
         email: route.params.email,
         password: newpass,
         password_confirmation: confirmpass,
@@ -173,13 +191,36 @@ const ResetPassword = ({props, route, navigation}) => {
         })
         .catch(error => {
           console.log('Error : ', error);
+        });*/
+
+      postWithOutToken(baseUrl, 'reset-password', {
+        password: newpass,
+        langId: langId,
+        device_id: deviceToken,
+        user: userId,
+        password_confirmation: confirmpass,
+      })
+        .then(response => {
+          console.log(response);
+          setLoader(false);
+          if (response.status == true) {
+            setResetPassword(true);
+            showToastMsg('Password Successfully Changed.');
+
+            /*setTimeout(() => {
+              navigation.navigate('Login');
+            }, 200);*/
+          }
+        })
+        .catch(error => {
+          console.log('Error : ', error);
         });
     }
   };
 
   return (
     <Container style={styles.container}>
-      {viewloader === true ? (
+      {/*viewloader === true ? (
         <View
           style={{
             alignItems: 'center',
@@ -194,7 +235,9 @@ const ResetPassword = ({props, route, navigation}) => {
           }}>
           <ActivityIndicator size="large" color={Colors.activityIndicator} />
         </View>
-      ) : null}
+      ) : null*/}
+
+      {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
 
@@ -213,7 +256,7 @@ const ResetPassword = ({props, route, navigation}) => {
               style={{width: '100%', height: '100%', objectFit: 'cover'}}
             />
           </View>
-          {resetPassword === false ? (
+          {resetPasswordstatus === false ? (
             <View>
               <View
                 style={{
@@ -256,7 +299,7 @@ const ResetPassword = ({props, route, navigation}) => {
                   secureTextEntry={password_field_type_con}
                   rightAction={password_eye_con}
                   onRightIconPress={changeFieldTypeCon}
-                  placeholder="Password"
+                  placeholder="Confirm Password"
                   leftIcon={{
                     name: 'lock',
                     type: 'AntDesign',
@@ -266,21 +309,35 @@ const ResetPassword = ({props, route, navigation}) => {
                   autoCapitalize="none"
                 />
 
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => {
-                    navigation.navigate('Main');
-                  }}>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: responsiveFontSize(1.5),
-                      color: '#fff',
-                      fontFamily: Inter.medium,
+                {viewloader === true ? (
+                  <TouchableOpacity style={styles.button_dis}>
+                    <Text
+                      style={{
+                        fontWeight: 'bold',
+                        fontSize: responsiveFontSize(1.5),
+                        color: '#000',
+                        fontFamily: Inter.medium,
+                      }}>
+                      Reset Password
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                      Reset();
                     }}>
-                    Reset Password
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      style={{
+                        fontWeight: 'bold',
+                        fontSize: responsiveFontSize(1.5),
+                        color: '#fff',
+                        fontFamily: Inter.medium,
+                      }}>
+                      Reset Password
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
                 <View
                   style={{alignSelf: 'center', marginTop: responsiveHeight(2)}}>

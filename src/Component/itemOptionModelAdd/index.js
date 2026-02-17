@@ -83,6 +83,9 @@ const OptionModelAdd = props => {
 
         let dish_value = JSON.parse(JSON.stringify(props.optionItem.dish));
 
+        console.log('dish item');
+        console.log(dish_value);
+
         setDish(dish_value);
         setItemNote(dish_value.notes);
         console.log(dish_value.notes);
@@ -467,9 +470,9 @@ const OptionModelAdd = props => {
     };
     let activeIngredients = new Array();
     for (const ingre of dish_val.ingredientsarray) {
-      if (ingre.status === false) {
-        activeIngredients.push(ingre.name);
-      }
+      /*if (ingre.status === false) {*/
+      activeIngredients.push(ingre);
+      /*}*/
     }
     let data;
     data = {
@@ -1210,6 +1213,7 @@ const OptionModelAdd = props => {
                   </View>
 
                   {dish.sets.map((sets, setindex) => {
+                    console.log(dish.sets);
                     return sets.options.map((option, optionindex) => {
                       return option.show === true ? (
                         <View

@@ -42,7 +42,7 @@ import {
   setCartQuantity,
 } from '../../Store/Reducers/CommonReducer';
 import {showToastMsg, getData, setData} from '../../Service/localStorage';
-import {postWithOutToken} from '../../Service/service';
+import {postWithOutToken, postWithToken} from '../../Service/service';
 import {useFocusEffect} from '@react-navigation/native';
 import {
   Container,
@@ -280,16 +280,20 @@ const HomeRight = props => {
   );
 
   const FetchPaymentMothod = (bid, orderType_val) => {
-    postWithOutToken(baseUrl, 'module/business/rest-business-pos', {
-      f: 'checkpayment',
-      langId: langId,
-      bid: bid,
-    })
+    postWithToken(
+      baseUrl,
+      'web-business/get-business-payment-methods',
+      {
+        lang_id: langId,
+      },
+      userToken,
+    )
       .then(response => {
         console.log(response);
-        let paymentResponse = response;
+        let paymentResponse = response.data;
         let payment_arr = [];
         for (let j = 0; j < paymentResponse.length; j++) {
+          console.log(paymentResponse[j].payment_method);
           let pflag = false;
           if (orderType_val == 1 && paymentResponse[j].is_delivery == 1) {
             pflag = true;
@@ -303,17 +307,19 @@ const HomeRight = props => {
             let paymentc = new Object();
             paymentc.id = paymentResponse[j].pid;
             paymentc.name = paymentResponse[j].name;
-            paymentc.displayName = response[j].displayName;
+            paymentc.displayName = paymentResponse[j].payment_method;
             paymentc.active = false;
             paymentc.credential = paymentResponse[j].credential;
 
-            if (paymentc.id === '1') {
+            if (paymentc.id == 1) {
               payment_arr.push(paymentc);
-            } else if (paymentc.id === '2') {
+            } /*else if (paymentc.id === '2') {
               payment_arr.push(paymentc);
-            }
+            }*/
           }
         }
+
+        console.log(payment_arr);
 
         setPaymentMethod({isLoading: false, list: payment_arr});
       })
@@ -408,6 +414,7 @@ const HomeRight = props => {
   };
   const addTocartDecrement = (index, dishindex, dishdataindex) => {
     let cart = JSON.parse(JSON.stringify(CartDish.list));
+
     cart[index].dish[dishindex].quantity =
       parseInt(cart[index].dish[dishindex].quantity) - 1;
     cart[index].dish[dishindex].data[dishdataindex].quantity =
@@ -427,20 +434,6 @@ const HomeRight = props => {
         cart.splice(index, 1);
       }
     }
-
-    console.log(
-      parseInt(cart[index].dish[dishindex].data[dishdataindex].quantity, 10),
-    );
-
-    console.log(
-      parseFloat(cart[index].dish[dishindex].data[dishdataindex].total).toFixed(
-        2,
-      ),
-    );
-    console.log(
-      parseFloat(cart[index].dish[dishindex].data[dishdataindex].totalprice) *
-        parseInt(cart[index].dish[dishindex].data[dishdataindex].quantity),
-    );
 
     if (cart.length == 0) {
       setBuyerDetails({
@@ -520,27 +513,32 @@ const HomeRight = props => {
         }
       }
 
-      postWithOutToken(baseUrl, 'module/business/rest-business-pos', {
-        f: 'checkoffer',
-        bid: activeBusiness_val.id,
-        price: CartSubTotal_val,
-        orderType: orderType,
-      })
+      postWithToken(
+        baseUrl,
+        'web-business/check-offer',
+        {
+          business_id: activeBusiness_val.id,
+          total: CartSubTotal_val,
+          orderType: orderType,
+          lang_id: langId,
+        },
+        userToken,
+      )
         .then(response => {
           let offerResponse = response;
           //console.log('checkoffer');
-          //console.log(offerResponse);
+          console.log(offerResponse);
           if (offerResponse.status === true) {
             discountInfo.discounttype = 'offer';
 
             setDiscountInfo(discountInfo);
 
-            if (offerResponse.d_type === '1') {
-              let discount = offerResponse.price;
+            if (offerResponse.data.d_type == '1') {
+              let discount = offerResponse.data.price;
               setDiscount(discount);
               CalDiscount(cart, discount, CartSubTotal_val);
             } else {
-              let percent = Number(offerResponse.percent) * 0.01;
+              let percent = Number(offerResponse.data.percent) * 0.01;
               let discount = parseFloat(CartSubTotal_val) * percent;
               discount = parseFloat(discount).toFixed(2);
               setDiscount(discount);
@@ -654,6 +652,7 @@ const HomeRight = props => {
         discount: parseFloat(discount_val).toFixed(2),
         tips: tips,
         total: total,
+        //autodiscount:
       };
 
       cartFee.push(fee);
@@ -676,9 +675,9 @@ const HomeRight = props => {
       setLoader(true);
       postWithOutToken(baseUrl, 'module/business/rest-business-pos', {
         f: 'checkdiscount',
-        code: discount_code,
-        bid: activeBusiness.id,
-        total: CartSubTotal,
+        discount_code: discount_code,
+        business_id: activeBusiness.id,
+        total_amount: CartSubTotal,
       })
         .then(response => {
           let offerResponse = response;
@@ -875,8 +874,8 @@ const HomeRight = props => {
       if (paymentId == 2) {
         linkly_pinpad_request();
       } else {
-        GetUsbDeviceList();
-        //placeOrder();
+        //GetUsbDeviceList();
+        placeOrder();
       }
     }
   };
