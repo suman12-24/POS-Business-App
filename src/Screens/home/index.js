@@ -376,6 +376,20 @@ const Home = ({props, route, navigation}) => {
   const productDetailsItem = async item => {
     let itemDish;
     itemDish = JSON.stringify(item);
+    if (item.sets !== undefined) {
+      if (item.sets.length > 0) {
+        for (let i = 0; i < item.sets.length; i++) {
+          for (let j = 0; j < item.sets[i].options.length; j++) {
+            for (let k = 0; k < item.sets[i].options[j].choice.length; k++) {
+              item.sets[i].options[j].choice[k].qty = 1;
+              item.sets[i].options[j].choice[k].checked = false;
+            }
+          }
+        }
+      }
+    }
+
+    itemDish = JSON.stringify(item);
 
     let dataItem;
     dataItem = {

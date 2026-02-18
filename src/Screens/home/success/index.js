@@ -29,7 +29,7 @@ import {
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {useDispatch, useSelector} from 'react-redux';
 import {showToastMsg, getData, setData} from '../../../Service/localStorage';
-import {postWithOutToken} from '../../../Service/service';
+import {postWithOutToken, postWithToken} from '../../../Service/service';
 import {useFocusEffect} from '@react-navigation/native';
 import {
   setCartDetails,
@@ -84,12 +84,12 @@ const OrderSuccess = ({props, route, navigation}) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      PrinterType();
+      //PrinterType();
     }, []),
   );
 
   useEffect(() => {
-    async function WifiPermission() {
+    /*async function WifiPermission() {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
@@ -107,11 +107,11 @@ const OrderSuccess = ({props, route, navigation}) => {
         // Permission denied
       }
     }
-    WifiPermission();
+    WifiPermission();*/
   }, []);
 
   useEffect(() => {
-    const fetchIPAddress = async () => {
+    /*const fetchIPAddress = async () => {
       try {
         const state = await NetInfo.fetch();
         if (state.details && state.details.ipAddress) {
@@ -122,11 +122,11 @@ const OrderSuccess = ({props, route, navigation}) => {
       }
     };
 
-    fetchIPAddress();
+    fetchIPAddress();*/
   }, []);
 
   const PrinterType = () => {
-    postWithOutToken(baseUrl, 'module/common/rest-common', {
+    /*postWithOutToken(baseUrl, 'module/common/rest-common', {
       f: 'printer_type',
     })
       .then(response => {
@@ -135,7 +135,7 @@ const OrderSuccess = ({props, route, navigation}) => {
       })
       .catch(error => {
         console.log('Error : ', error);
-      });
+      });*/
   };
 
   const Print_printer = () => {
@@ -266,18 +266,22 @@ const OrderSuccess = ({props, route, navigation}) => {
 
   const fetchOrderData = () => {
     setLoader(true); //31714
-    postWithOutToken(baseUrl, 'module/order/rest-order-pos', {
-      f: 'fetchbyorder',
-      orderId: route.params.orderId,
-      langId: langId,
-    })
+    postWithToken(
+      baseUrl,
+      'web-business/orders/view',
+      {
+        id: route.params.orderId,
+        lang_id: langId,
+      },
+      userToken,
+    )
       .then(response => {
-        console.log(response);
+        //console.log(response);
         setLoader(false);
 
-        setOrder({isLoading: false, list: response});
+        setOrder({isLoading: false, list: response.data});
 
-        let OrderDate = response.date;
+        /*let OrderDate = response.date;
         let Bname = response.bname;
         let OrderNo = response.id;
 
@@ -489,7 +493,7 @@ const OrderSuccess = ({props, route, navigation}) => {
           '\n' +
           '\n';
         setBillString(bill_text);
-        //console.log(bill_text);
+        //console.log(bill_text);*/
       })
       .catch(error => {
         console.log('Error : ', error);
@@ -888,8 +892,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                   color: '#000',
                                   fontSize: responsiveFontSize(1),
                                 }}>
-                                {order.currency_symbol}
-                                {dish.total}
+                                {order.list.currency_symbol}
+                                {parseFloat(dish.total).toFixed(2)}
                               </Text>
                             </View>
                           );
@@ -937,7 +941,7 @@ const OrderSuccess = ({props, route, navigation}) => {
               </SkeletonPlaceholder>
             )}
 
-            <TouchableOpacity
+            {/*<TouchableOpacity
               onPress={() => {
                 setvisiblemodal(true);
               }}
@@ -962,7 +966,7 @@ const OrderSuccess = ({props, route, navigation}) => {
                 color={'#fff'}
                 size={responsiveWidth(4)}
               />
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
 
             <TouchableOpacity
               style={styles.button}

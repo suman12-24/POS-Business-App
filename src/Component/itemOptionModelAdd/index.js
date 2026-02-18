@@ -84,7 +84,23 @@ const OptionModelAdd = props => {
         let dish_value = JSON.parse(JSON.stringify(props.optionItem.dish));
 
         console.log('dish item');
-        console.log(dish_value);
+        //console.log(dish_value.sets[0].options[4]);
+
+        for (let k = 0; k < dish_value.sets.length; k++) {
+          for (let i = 0; i < dish_value.sets[k].options.length; i++) {
+            if (dish_value.sets[k].options[i].show === true) {
+              for (
+                let j = 0;
+                j < dish_value.sets[k].options[i].choice.length;
+                j++
+              ) {
+                if (dish_value.sets[k].options[i].choice[j].checked === true) {
+                  console.log(dish_value.sets[k].options[i].choice[j].qty);
+                }
+              }
+            }
+          }
+        }
 
         setDish(dish_value);
         setItemNote(dish_value.notes);
@@ -114,6 +130,114 @@ const OptionModelAdd = props => {
     }, [props.optionItem]),
   );
 
+  const choiceQtyDecrement = (
+    setIndex,
+    optionIndex,
+    choiceIndex,
+    choice_id,
+  ) => {
+    let dish_val = JSON.parse(JSON.stringify(dish));
+
+    if (
+      dish_val.sets[setIndex].options[optionIndex].choice[choiceIndex].qty > 0
+    ) {
+      dish_val.sets[setIndex].options[optionIndex].choice[choiceIndex].qty =
+        dish_val.sets[setIndex].options[optionIndex].choice[choiceIndex].qty -
+        1;
+
+      let dishTotal_val = dish_val.price;
+
+      for (let k = 0; k < dish_val.sets.length; k++) {
+        for (let i = 0; i < dish_val.sets[k].options.length; i++) {
+          if (dish_val.sets[k].options[i].show === true) {
+            for (
+              let j = 0;
+              j < dish_val.sets[k].options[i].choice.length;
+              j++
+            ) {
+              if (dish_val.sets[k].options[i].choice[j].checked === true) {
+                dishTotal_val =
+                  parseFloat(dishTotal_val) +
+                  parseFloat(dish_val.sets[k].options[i].choice[j].price) *
+                    parseInt(dish_val.sets[k].options[i].choice[j].qty);
+                dishTotal_val = parseFloat(dishTotal_val).toFixed(2);
+
+                if (parseInt(dish_val.sets[k].options[i].choice[j].qty) == 0) {
+                  dish_val.sets[k].options[i].choice[j].checked = false;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      setDishTotal(dishTotal_val);
+      setDish(dish_val);
+
+      console.log('dish_val descripment');
+      console.log(dish_val.sets[0].options[0]);
+    }
+  };
+
+  const choiceQtyIncrement = (
+    setIndex,
+    optionIndex,
+    choiceIndex,
+    choice_id,
+  ) => {
+    let dish_val = JSON.parse(JSON.stringify(dish));
+    let trues = 0;
+
+    for (
+      let i = 0;
+      i < dish_val.sets[setIndex].options[optionIndex].choice.length;
+      i++
+    ) {
+      if (
+        dish_val.sets[setIndex].options[optionIndex].choice[i].checked === true
+      ) {
+        trues =
+          trues + dish_val.sets[setIndex].options[optionIndex].choice[i].qty;
+      }
+    }
+    console.log(trues);
+    if (trues >= dish_val.sets[setIndex].options[optionIndex].max) {
+      showToastMsg(
+        'Max number of selection is  ' +
+          dish_val.sets[setIndex].options[optionIndex].max,
+      );
+      return false;
+    } else {
+      dish_val.sets[setIndex].options[optionIndex].choice[choiceIndex].qty =
+        dish_val.sets[setIndex].options[optionIndex].choice[choiceIndex].qty +
+        1;
+    }
+
+    let dishTotal_val = dish_val.price;
+
+    for (let k = 0; k < dish_val.sets.length; k++) {
+      for (let i = 0; i < dish_val.sets[k].options.length; i++) {
+        if (dish_val.sets[k].options[i].show === true) {
+          for (let j = 0; j < dish_val.sets[k].options[i].choice.length; j++) {
+            if (dish_val.sets[k].options[i].choice[j].checked === true) {
+              dishTotal_val =
+                parseFloat(dishTotal_val) +
+                parseFloat(dish_val.sets[k].options[i].choice[j].price) *
+                  parseInt(dish_val.sets[k].options[i].choice[j].qty);
+              dishTotal_val = parseFloat(dishTotal_val).toFixed(2);
+            }
+          }
+        }
+      }
+    }
+
+    setDishTotal(dishTotal_val);
+    setDish(dish_val);
+
+    console.log('dish_val incurment');
+    console.log(dish_val.sets[0].options[0]);
+  };
+
   const checkProductOption = (
     setIndex,
     optionIndex,
@@ -138,10 +262,12 @@ const OptionModelAdd = props => {
       ) {
         if (checked_status === false && i == choiceIndex) {
           dish_val.sets[setIndex].options[optionIndex].choice[i].checked = true;
+          dish_val.sets[setIndex].options[optionIndex].choice[i].qty = 1;
         } else {
           dish_val.sets[setIndex].options[optionIndex].choice[
             i
           ].checked = false;
+          dish_val.sets[setIndex].options[optionIndex].choice[i].qty = 0;
         }
       }
 
@@ -149,10 +275,16 @@ const OptionModelAdd = props => {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].checked = true;
+        dish_val.sets[setIndex].options[optionIndex].choice[
+          choiceIndex
+        ].qty = 1;
       } else {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].checked = false;
+        dish_val.sets[setIndex].options[optionIndex].choice[
+          choiceIndex
+        ].qty = 0;
       }
 
       CheckType0(setIndex, optionIndex);
@@ -186,10 +318,16 @@ const OptionModelAdd = props => {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].checked = false;
+        dish_val.sets[setIndex].options[optionIndex].choice[
+          choiceIndex
+        ].qty = 0;
       } else {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].checked = true;
+        dish_val.sets[setIndex].options[optionIndex].choice[
+          choiceIndex
+        ].qty = 1;
       }
       for (
         let i = 0;
@@ -210,7 +348,7 @@ const OptionModelAdd = props => {
 
         showToastMsg(
           'Max number of selection is  ' +
-            dish.sets[setIndex].options[optionIndex].max,
+            dish_val.sets[setIndex].options[optionIndex].max,
         );
         return false;
       }
@@ -305,9 +443,11 @@ const OptionModelAdd = props => {
         if (dish_val.sets[k].options[i].show === true) {
           for (let j = 0; j < dish_val.sets[k].options[i].choice.length; j++) {
             if (dish_val.sets[k].options[i].choice[j].checked === true) {
+              console.log(dish_val.sets[k].options[i].choice[j]);
               dishTotal_val =
                 parseFloat(dishTotal_val) +
-                parseFloat(dish_val.sets[k].options[i].choice[j].price);
+                parseFloat(dish_val.sets[k].options[i].choice[j].price) *
+                  parseInt(dish_val.sets[k].options[i].choice[j].qty);
               dishTotal_val = parseFloat(dishTotal_val).toFixed(2);
             }
           }
@@ -317,6 +457,9 @@ const OptionModelAdd = props => {
 
     setDishTotal(dishTotal_val);
     setDish(dish_val);
+
+    console.log('dish_val');
+    console.log(dish_val.sets[0].options[0]);
   };
 
   const CheckType1 = (setIndex, optionIndex, choiceIndex, rest_op_id) => {
@@ -530,6 +673,7 @@ const OptionModelAdd = props => {
                   id: dish_val.sets[i].options[j].choice[k].id,
                   name: dish_val.sets[i].options[j].choice[k].name,
                   price: dish_val.sets[i].options[j].choice[k].price,
+                  qty: dish_val.sets[i].options[j].choice[k].qty,
                 };
 
                 choiceTextArray.push(
@@ -711,7 +855,7 @@ const OptionModelAdd = props => {
                 ) {
                   Alert.alert(
                     'Warning!',
-                    dishItem.sets[i].options[j].name + ' is required',
+                    dish_val.sets[i].options[j].name + ' is required',
                     [
                       {
                         text: 'Ok',
@@ -725,9 +869,9 @@ const OptionModelAdd = props => {
                 } else if (min < dish_val.sets[i].options[j].min) {
                   Alert.alert(
                     'Warning!',
-                    dishItem.sets[i].options[j].name +
+                    dish_val.sets[i].options[j].name +
                       ' minimum choice is ' +
-                      dishItem.sets[i].options[j].min,
+                      dish_val.sets[i].options[j].min,
                     [
                       {
                         text: 'Ok',
@@ -756,7 +900,7 @@ const OptionModelAdd = props => {
                 if (min === 0) {
                   Alert.alert(
                     'Warning!',
-                    dishItem.sets[i].options[j].name + ' is required ',
+                    dish_val.sets[i].options[j].name + ' is required ',
                     [
                       {
                         text: 'Ok',
@@ -853,6 +997,7 @@ const OptionModelAdd = props => {
                 id: dish_val.sets[i].options[j].choice[k].id,
                 name: dish_val.sets[i].options[j].choice[k].name,
                 price: dish_val.sets[i].options[j].choice[k].price,
+                qty: dish_val.sets[i].options[j].choice[k].qty,
               };
               choiceTextArray.push(dish_val.sets[i].options[j].choice[k].name);
               choicesarray.push(choice.id);
@@ -1169,6 +1314,7 @@ const OptionModelAdd = props => {
                 borderRadius: 20,
                 paddingHorizontal: responsiveWidth(2),
                 paddingVertical: responsiveHeight(2),
+                height: '100%',
               }}>
               <ScrollView>
                 <View
@@ -1246,9 +1392,10 @@ const OptionModelAdd = props => {
                           <View
                             style={{
                               display: 'flex',
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              gap: responsiveWidth(2),
+                              flexDirection: 'column',
+                              //alignItems: 'center',
+                              gap: responsiveWidth(1),
+                              marginTop: responsiveWidth(1),
                             }}>
                             {option.choice.map((choice, choiceindex) => {
                               return option.type == 0 ? (
@@ -1296,42 +1443,104 @@ const OptionModelAdd = props => {
                                 </View>
                               ) : option.type == 1 ? (
                                 <View
-                                  key={'choice_' + choiceindex}
                                   style={{
                                     display: 'flex',
                                     flexDirection: 'row',
-                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
                                   }}>
-                                  <CheckBox
-                                    checked={choice.checked}
-                                    onChange={() => {
-                                      checkProductOption(
-                                        setindex,
-                                        optionindex,
-                                        choiceindex,
-                                        choice.checked,
-                                      );
-                                    }}
-                                    size={22}
-                                    style={styles.checkbox}
-                                    activeColor={Colors.blue}
-                                    inactiveColor={Colors.blue}
-                                  />
-                                  <Text
+                                  <View
+                                    key={'choice_' + choiceindex}
                                     style={{
-                                      marginLeft: responsiveWidth(1),
-                                      fontFamily: Inter.regular,
-                                      fontSize: responsiveFontSize(1.2),
-                                      color: Colors.black,
+                                      display: 'flex',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
                                     }}>
-                                    {choice.name}{' '}
-                                    {choice.price > 0 ? (
+                                    <CheckBox
+                                      checked={choice.checked}
+                                      onChange={() => {
+                                        checkProductOption(
+                                          setindex,
+                                          optionindex,
+                                          choiceindex,
+                                          choice.checked,
+                                        );
+                                      }}
+                                      size={22}
+                                      style={styles.checkbox}
+                                      activeColor={Colors.blue}
+                                      inactiveColor={Colors.blue}
+                                    />
+                                    <Text
+                                      style={{
+                                        marginLeft: responsiveWidth(1),
+                                        fontFamily: Inter.regular,
+                                        fontSize: responsiveFontSize(1.2),
+                                        color: Colors.black,
+                                      }}>
+                                      {choice.name}{' '}
+                                      {choice.price > 0 ? (
+                                        <>
+                                          {activeBusiness.currency_symbol}{' '}
+                                          {choice.price}
+                                        </>
+                                      ) : null}
+                                    </Text>
+                                  </View>
+
+                                  <View
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      //justifyContent: 'space-between',
+                                    }}>
+                                    {choice.checked === true ? (
                                       <>
-                                        {activeBusiness.currency_symbol}{' '}
-                                        {choice.price}
+                                        <TouchableOpacity
+                                          onPress={() => {
+                                            choiceQtyDecrement(
+                                              setindex,
+                                              optionindex,
+                                              choiceindex,
+                                              choice.id,
+                                            );
+                                          }}>
+                                          <Icon
+                                            name="minuscircleo"
+                                            type="AntDesign"
+                                            size={responsiveWidth(2)}
+                                            color={Colors.blue}
+                                          />
+                                        </TouchableOpacity>
+                                        <Text
+                                          style={{
+                                            fontFamily: Inter.regular,
+                                            fontSize: responsiveFontSize(1),
+                                            color: Colors.black,
+                                            marginHorizontal:
+                                              responsiveWidth(0.5),
+                                          }}>
+                                          {choice.qty}
+                                        </Text>
+                                        <TouchableOpacity
+                                          onPress={() => {
+                                            choiceQtyIncrement(
+                                              setindex,
+                                              optionindex,
+                                              choiceindex,
+                                              choice.id,
+                                            );
+                                          }}>
+                                          <Icon
+                                            name="pluscircleo"
+                                            type="AntDesign"
+                                            size={responsiveWidth(2)}
+                                            color={Colors.blue}
+                                          />
+                                        </TouchableOpacity>
                                       </>
                                     ) : null}
-                                  </Text>
+                                  </View>
                                 </View>
                               ) : null;
                             })}
@@ -1365,46 +1574,46 @@ const OptionModelAdd = props => {
                     }}
                   />
                 </View>
+              </ScrollView>
 
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                  <View>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}>
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: Inter.bold,
+                      fontSize: responsiveFontSize(1.9),
+                      color: Colors.black,
+                    }}>
+                    Total {activeBusiness.currency_symbol}
+                    {dishTotal}
+                  </Text>
+                </View>
+                <View style={{paddingBottom: responsiveHeight(1)}}>
+                  <TouchableOpacity
+                    style={styles.add_button}
+                    onPress={() => {
+                      edit_product === false
+                        ? addToCart(dish)
+                        : editTocart(dish);
+                    }}>
                     <Text
                       style={{
-                        fontFamily: Inter.bold,
-                        fontSize: responsiveFontSize(1.9),
-                        color: Colors.black,
+                        fontWeight: 'bold',
+                        fontSize: responsiveFontSize(1.5),
+                        color: '#fff',
+                        fontFamily: Inter.medium,
                       }}>
-                      Total {activeBusiness.currency_symbol}
-                      {dishTotal}
+                      {dataItem.type == 1 ? 'Update' : 'Add'}
                     </Text>
-                  </View>
-                  <View style={{paddingBottom: responsiveHeight(1)}}>
-                    <TouchableOpacity
-                      style={styles.add_button}
-                      onPress={() => {
-                        edit_product === false
-                          ? addToCart(dish)
-                          : editTocart(dish);
-                      }}>
-                      <Text
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: responsiveFontSize(1.5),
-                          color: '#fff',
-                          fontFamily: Inter.medium,
-                        }}>
-                        {dataItem.type == 1 ? 'Update' : 'Add'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                  </TouchableOpacity>
                 </View>
-              </ScrollView>
+              </View>
             </View>
           </View>
         </Modal>
