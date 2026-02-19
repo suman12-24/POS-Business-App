@@ -41,6 +41,7 @@ import {
 
 import NetInfo from '@react-native-community/netinfo';
 import Thermalpriter from '../../../Component/prnterConnect';
+import Loader from '../../../Component/loader';
 
 // create a component
 const MyOrderComplete = ({props, route, navigation}) => {
@@ -92,12 +93,12 @@ const MyOrderComplete = ({props, route, navigation}) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      PrinterType();
+      //PrinterType();
     }, []),
   );
 
   useEffect(() => {
-    async function WifiPermission() {
+    /*async function WifiPermission() {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
@@ -115,11 +116,11 @@ const MyOrderComplete = ({props, route, navigation}) => {
         // Permission denied
       }
     }
-    WifiPermission();
+    WifiPermission();*/
   }, []);
 
   useEffect(() => {
-    const fetchIPAddress = async () => {
+    /*const fetchIPAddress = async () => {
       try {
         const state = await NetInfo.fetch();
         if (state.details && state.details.ipAddress) {
@@ -130,7 +131,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
       }
     };
 
-    fetchIPAddress();
+    fetchIPAddress();*/
   }, []);
 
   const PrinterType = () => {
@@ -148,16 +149,15 @@ const MyOrderComplete = ({props, route, navigation}) => {
 
   const fetchOrderData = id => {
     setLoader(true); //31714
-    postWithOutToken(baseUrl, 'module/order/rest-order-pos', {
-      f: 'fetchbyorder',
-      orderId: id,
-      langId: langId,
+    postWithOutToken(baseUrl, 'web-business/orders/view', {
+      lang_id: langId,
+      id: id,
     })
       .then(response => {
         //console.log(response);
         setLoader(false);
 
-        let OrderDate = response.date;
+        /*let OrderDate = response.date;
         let Bname = response.bname;
         let OrderNo = response.id;
 
@@ -371,7 +371,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
         setBillString(bill_text);
         //console.log(bill_text);
 
-        setvisiblemodal(true);
+        setvisiblemodal(true);*/
       })
       .catch(error => {
         console.log('Error : ', error);
@@ -386,51 +386,66 @@ const MyOrderComplete = ({props, route, navigation}) => {
   /*printer coce */
 
   const getOrderList = () => {
-    setMoreLoader(true);
+    //setMoreLoader(true);
+    let search_status = [4, 5];
     const nextPage = 1;
-    postWithOutToken(baseUrl, 'module/order/rest-order-pos.php', {
-      f: 'react_fetchcompleteorder',
-      userId: userData.id,
-      langId: langId,
-      pagenumber: nextPage,
-    })
+    postWithToken(
+      baseUrl,
+      'web-business/orders/list',
+      {
+        lang_id: langId,
+        pageNo: nextPage,
+        status: search_status,
+      },
+      userToken,
+    )
       .then(response => {
-        setMoreLoader(false);
-        setCurrentPage(nextPage);
-        //console.log(response)
-        if (response.length > 0) {
-          setOrderList({
-            isLoading: false,
-            list: response,
-          });
+        if (response.status == true) {
+          if (response.data.length > 0) {
+            setCurrentPage(nextPage);
+            setOrderList({
+              isLoading: false,
+              list: response.data,
+            });
+          } else {
+            setOrderList({isLoading: false, list: []});
+          }
         } else {
-          setOrderList({isLoading: false, list: orderlist.list});
+          setOrderList({isLoading: false, list: []});
         }
       })
       .catch(error => {
-        setMoreLoader(false);
+        //setMoreLoader(false);
         console.log('Error : ', error);
       });
   };
 
   const getOrderListRefresh = () => {
     setMoreLoader(true);
+    let search_status = [4, 5];
     const nextPage = currentPage + 1;
-    postWithOutToken(baseUrl, 'module/order/rest-order-pos.php', {
-      f: 'react_fetchcompleteorder',
-      userId: userData.id,
-      langId: langId,
-      pagenumber: nextPage,
-    })
+    postWithToken(
+      baseUrl,
+      'web-business/orders/list',
+      {
+        lang_id: langId,
+        pageNo: nextPage,
+        status: search_status,
+      },
+      userToken,
+    )
       .then(response => {
         setMoreLoader(false);
-        setCurrentPage(nextPage);
-        //console.log(response)
-        if (response.length > 0) {
-          setOrderList({
-            isLoading: false,
-            list: [...orderlist.list, ...response],
-          });
+        if (response.status == true) {
+          if (response.data.length > 0) {
+            setCurrentPage(nextPage);
+            setOrderList({
+              isLoading: false,
+              list: [...orderlist.list, ...response.data],
+            });
+          } else {
+            setOrderList({isLoading: false, list: orderlist.list});
+          }
         } else {
           setOrderList({isLoading: false, list: orderlist.list});
         }
@@ -443,18 +458,44 @@ const MyOrderComplete = ({props, route, navigation}) => {
 
   const renderLoader = () => {
     return (
-      <View
-        style={{
-          marginVertical: responsiveHeight(3),
-          marginLeft: responsiveWidth(-5),
-          marginRight: 'auto',
-          width: '100%',
-          height: responsiveHeight(10),
-        }}>
+      <>
         {viewmoreloader === true ? (
-          <ActivityIndicator size="large" color={Colors.activityIndicator} />
+          <View>
+            <SkeletonPlaceholder borderRadius={4}>
+              <View
+                style={{
+                  width: '95%',
+                  alignSelf: 'center',
+                  marginTop: responsiveHeight(2),
+                }}>
+                <View
+                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                />
+              </View>
+              <View
+                style={{
+                  width: '95%',
+                  alignSelf: 'center',
+                  marginTop: responsiveHeight(2),
+                }}>
+                <View
+                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                />
+              </View>
+              <View
+                style={{
+                  width: '95%',
+                  alignSelf: 'center',
+                  marginTop: responsiveHeight(2),
+                }}>
+                <View
+                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                />
+              </View>
+            </SkeletonPlaceholder>
+          </View>
         ) : null}
-      </View>
+      </>
     );
   };
 
@@ -464,92 +505,92 @@ const MyOrderComplete = ({props, route, navigation}) => {
   };
 
   const displayVal = val => {
-    if (val === '0') {
+    if (val == 0) {
       return 'Pending';
     }
-    if (val === '1') {
+    if (val == '1') {
       return 'Accepted By Restaurant';
     }
-    if (val === '2') {
+    if (val == 2) {
       return 'Accepted by Driver';
     }
-    if (val === '3') {
+    if (val == 3) {
       return 'Delivery Complete by Driver';
     }
-    if (val === '4') {
+    if (val == 4) {
       return 'Completed by Resturant';
     }
-    if (val === '5') {
+    if (val == 5) {
       return 'Complete';
     }
-    if (val === '6') {
+    if (val == 6) {
       return 'Cancelled by Resturant';
     }
-    if (val === '7') {
+    if (val == 7) {
       return 'Rejected by Driver';
     }
-    if (val === '8') {
+    if (val === 8) {
       return 'Cancelled';
     }
-    if (val === '9') {
+    if (val == 9) {
       return 'Pickup Complete by Driver';
     }
-    if (val === '10') {
+    if (val == 10) {
       return 'Pickup Complete from user by Driver';
     }
-    if (val === '11') {
+    if (val == 11) {
       return 'Delivery Complete to Business by Driver';
     }
-    if (val === '12') {
+    if (val == 12) {
       return 'Verified by Resturant';
     }
   };
 
   const displayValColor = val => {
-    if (val === '0') {
+    if (val === 0) {
       return '#ee4336';
     }
-    if (val === '1') {
+    if (val == 1) {
       return '#e6b90e';
     }
-    if (val === '2') {
+    if (val == 2) {
       return '#e6b90e';
     }
-    if (val === '3') {
+    if (val == 3) {
       return '#4ac112';
     }
-    if (val === '4') {
+    if (val == 4) {
       return '#4ac112';
     }
-    if (val === '5') {
+    if (val == 5) {
       return '#4ac112';
     }
-    if (val === '6') {
+    if (val == 6) {
       return '#888';
     }
-    if (val === '7') {
+    if (val == 7) {
       return '#888';
     }
-    if (val === '8') {
+    if (val == 8) {
       return '#888';
     }
-    if (val === '9') {
+    if (val == 9) {
       return '#4ac112';
     }
-    if (val === '10') {
+    if (val == 10) {
       return '#e6b90e';
     }
-    if (val === '11') {
+    if (val == 11) {
       return '#e6b90e';
     }
-    if (val === '12') {
+    if (val == 12) {
       return '#4ac112';
     }
   };
 
   return (
     <Container style={styles.container}>
-      {viewloader === true ? (
+      {/*viewloader === true ? (
         <View
           style={{
             alignItems: 'center',
@@ -564,7 +605,9 @@ const MyOrderComplete = ({props, route, navigation}) => {
           }}>
           <ActivityIndicator size="large" color={Colors.activityIndicator} />
         </View>
-      ) : null}
+      ) : null*/}
+
+      {viewloader === true ? <Loader /> : null}
 
       <View style={styles.main}>
         <View
@@ -712,10 +755,10 @@ const MyOrderComplete = ({props, route, navigation}) => {
                           color: Colors.black,
                           marginBottom: responsiveHeight(0.5),
                         }}>
-                        {item.bname}
+                        {item.buyername}
                       </Text>
 
-                      {item.is_img == 1 ? (
+                      {/*item.is_img == 1 ? (
                         <View
                           style={{
                             width: responsiveWidth(6),
@@ -747,7 +790,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
                             }}
                           />
                         </View>
-                      )}
+                      )*/}
 
                       <Text
                         style={{
@@ -783,7 +826,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
                         display: 'flex',
                         gap: 20,
                       }}>
-                      <TouchableOpacity
+                      {/*<TouchableOpacity
                         onPress={() => {
                           fetchOrderData(item.id);
                         }}
@@ -795,7 +838,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
                           color={'#fff'}
                           size={responsiveWidth(4)}
                         />
-                      </TouchableOpacity>
+                      </TouchableOpacity>*/}
                     </View>
                   </View>
                 </View>
@@ -1013,7 +1056,8 @@ const MyOrderComplete = ({props, route, navigation}) => {
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
                     }}>
-                    Name : {orderDetails != null ? orderDetails.bname : null}
+                    Name :{' '}
+                    {orderDetails != null ? orderDetails.business.name : null}
                   </Text>
                   <Text
                     style={{
@@ -1022,7 +1066,9 @@ const MyOrderComplete = ({props, route, navigation}) => {
                       color: Colors.black,
                     }}>
                     Address:{' '}
-                    {orderDetails != null ? orderDetails.baddress : null}
+                    {orderDetails != null
+                      ? orderDetails.business.address
+                      : null}
                   </Text>
                   <Text
                     style={{
@@ -1030,7 +1076,8 @@ const MyOrderComplete = ({props, route, navigation}) => {
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
                     }}>
-                    City : {orderDetails != null ? orderDetails.bcity : null}
+                    City :{' '}
+                    {orderDetails != null ? orderDetails.business.city : null}
                   </Text>
                   <Text
                     style={{
@@ -1039,7 +1086,9 @@ const MyOrderComplete = ({props, route, navigation}) => {
                       color: Colors.black,
                     }}>
                     Country:{' '}
-                    {orderDetails != null ? orderDetails.bcountry : null}
+                    {orderDetails != null
+                      ? orderDetails.business.country
+                      : null}
                   </Text>
                   <Text
                     style={{
@@ -1048,7 +1097,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
                       color: Colors.black,
                     }}>
                     Phone Number :{' '}
-                    {orderDetails != null ? orderDetails.bphone : null}
+                    {orderDetails != null ? orderDetails.business.phone : null}
                   </Text>
                   <Text
                     style={{
@@ -1057,7 +1106,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
                       color: Colors.black,
                     }}>
                     Mobile Number:{' '}
-                    {orderDetails != null ? orderDetails.bmobile : null}
+                    {orderDetails != null ? orderDetails.business.mobile : null}
                   </Text>
                 </View>
               </View>
@@ -1187,6 +1236,7 @@ const MyOrderComplete = ({props, route, navigation}) => {
                                 ? dish.sets.map((set, set_index) => {
                                     return (
                                       <Text
+                                        key={'set_' + set_index}
                                         style={{
                                           fontFamily: Inter.regular,
                                           color: '#000',

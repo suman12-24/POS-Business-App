@@ -128,6 +128,8 @@ const HomeRight = props => {
   const [color_theme, setColorTheme] = useState('#000000');
   const [color_theme_selected, setColorThemeSelected] = useState('#000000');
 
+  const [update_action_status, setUpdateActionStatus] = useState(false);
+
   useEffect(() => {
     if (colorScheme == 'dark') {
       setColorTheme('#ffffff');
@@ -833,6 +835,7 @@ const HomeRight = props => {
       return false;
     } else {
       setLoader(true);
+      setUpdateActionStatus(true);
       postWithToken(
         baseUrl,
         'web-business/check-discount-code',
@@ -845,6 +848,7 @@ const HomeRight = props => {
         userToken,
       )
         .then(response => {
+          setUpdateActionStatus(false);
           let offerResponse = response;
           //console.log('checkoffer');
           console.log(offerResponse);
@@ -1160,6 +1164,7 @@ const HomeRight = props => {
     return false;*/
 
     setLoader(true);
+    setUpdateActionStatus(true);
 
     postWithToken(baseUrl, 'web-business/order-placed', postData, userToken)
       .then(response => {
@@ -1168,6 +1173,7 @@ const HomeRight = props => {
         }*/
 
         setLoader(false);
+        setUpdateActionStatus(false);
         //console.log(response);
         setSelectedTime('');
         setBuyerDetails({
@@ -1465,19 +1471,35 @@ const HomeRight = props => {
                         width: '33%',
                         paddingTop: responsiveHeight(3),
                       }}>
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={viewloader === false ? CheckDiscount : null}>
-                        <Text
-                          style={{
-                            fontWeight: 'bold',
-                            fontSize: responsiveFontSize(1.5),
-                            color: '#fff',
-                            fontFamily: Inter.medium,
+                      {update_action_status === true ? (
+                        <TouchableOpacity style={styles.button_disable}>
+                          <Text
+                            style={{
+                              fontWeight: 'bold',
+                              fontSize: responsiveFontSize(1.5),
+                              color: '#000',
+                              fontFamily: Inter.medium,
+                            }}>
+                            {'APPLY'}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.button}
+                          onPress={() => {
+                            CheckDiscount();
                           }}>
-                          {'APPLY'}
-                        </Text>
-                      </TouchableOpacity>
+                          <Text
+                            style={{
+                              fontWeight: 'bold',
+                              fontSize: responsiveFontSize(1.5),
+                              color: '#fff',
+                              fontFamily: Inter.medium,
+                            }}>
+                            {'APPLY'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 ) : null}
@@ -2119,19 +2141,35 @@ const HomeRight = props => {
                     </View>
                   ) : null}
                   {PendingMinimumFee <= 0.0 ? (
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={viewloader === false ? CheckallDetails : null}>
-                      <Text
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: responsiveFontSize(1.5),
-                          color: '#fff',
-                          fontFamily: Inter.medium,
+                    update_action_status === true ? (
+                      <TouchableOpacity style={styles.button_disable}>
+                        <Text
+                          style={{
+                            fontWeight: 'bold',
+                            fontSize: responsiveFontSize(1.5),
+                            color: '#000',
+                            fontFamily: Inter.medium,
+                          }}>
+                          Pay Now
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                          CheckallDetails();
                         }}>
-                        Pay Now
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          style={{
+                            fontWeight: 'bold',
+                            fontSize: responsiveFontSize(1.5),
+                            color: '#fff',
+                            fontFamily: Inter.medium,
+                          }}>
+                          Pay Now
+                        </Text>
+                      </TouchableOpacity>
+                    )
                   ) : PendingMinimumFee > 0.0 ? (
                     <TouchableOpacity style={styles.button}>
                       <Text

@@ -44,6 +44,16 @@ const Styles = () => {
       borderRadius: 10,
       marginTop: responsiveHeight(3),
     },
+    button_disable: {
+      height: responsiveWidth(4),
+      width: responsiveWidth(12),
+      backgroundColor: Colors.grey,
+      alignItems: 'center',
+      justifyContent: 'center',
+      // alignSelf: "center",
+      borderRadius: 10,
+      marginTop: responsiveHeight(3),
+    },
     button_left: {
       height: responsiveWidth(4),
       width: '100%',
