@@ -1,5 +1,5 @@
 //import liraries
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Image,
@@ -10,24 +10,24 @@ import {
   StatusBar,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../Constants/Colors';
-import {Images} from '../../Constants/ImageIconContant';
-import {useDispatch, useSelector} from 'react-redux';
-import {getData, setData, removeData} from '../../Service/localStorage';
+import { Colors } from '../../Constants/Colors';
+import { Images } from '../../Constants/ImageIconContant';
+import { useDispatch, useSelector } from 'react-redux';
+import { getData, setData, removeData } from '../../Service/localStorage';
 import {
   clearUserData,
   localstorage_TokenAdd,
   localstorage_UserdetailsAdd,
   localstorage_DeviceTokenAdd,
 } from '../../Store/Reducers/CommonReducer';
-import {PERMISSIONS, request} from 'react-native-permissions';
+import { PERMISSIONS, request } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 
 // create a component
 const Initial = props => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, userData, userToken} = useSelector(state => state.common);
+  const { baseUrl, userData, userToken } = useSelector(state => state.common);
 
   useEffect(() => {
     (async () => {

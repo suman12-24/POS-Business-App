@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -27,23 +27,23 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 
 import Styles from './Styles';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
-import {Images} from '../../Constants/ImageIconContant';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
+import { Images } from '../../Constants/ImageIconContant';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setCartDetails,
   setCartQuantity,
 } from '../../Store/Reducers/CommonReducer';
-import {showToastMsg, getData, setData} from '../../Service/localStorage';
-import {postWithOutToken, postWithToken} from '../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { showToastMsg, getData, setData } from '../../Service/localStorage';
+import { postWithOutToken, postWithToken } from '../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Container,
   Icon,
@@ -52,13 +52,15 @@ import {
   RadioButton,
   CheckBox,
 } from 'react-native-basic-elements';
-import {useNavigation} from '@react-navigation/native';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {Element} from 'react-native-render-html';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { Element } from 'react-native-render-html';
 import Thermalpriter from '../prnterConnect';
-import EbPrinter from 'react-native-ebprinter';
-import {Picker} from '@react-native-picker/picker';
+//import EbPrinter from 'react-native-ebprinter';
+import { Picker } from '@react-native-picker/picker';
 import Loader from '../../Component/loader';
+import { Dropdown } from 'react-native-element-dropdown';
+import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 
 // create a component
 const HomeRight = props => {
@@ -66,11 +68,11 @@ const HomeRight = props => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const colorScheme = useColorScheme();
-  const {baseUrl, siteUrl, userToken, userData, langId, cartDetails} =
+  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [categoryDetails, setCategoryDetails] = useState([]);
-  const [CartDish, setCartDish] = useState({isLoading: true, list: []});
+  const [CartDish, setCartDish] = useState({ isLoading: true, list: [] });
   const [cartQuantity, setcartQuantity] = useState(0);
   const [activeBusiness, setActiveBusiness] = useState(null);
   const [orderType, setOrderType] = useState(0);
@@ -112,17 +114,26 @@ const HomeRight = props => {
     list: [],
   });
   const [paymentId, setPaymentId] = useState('');
+  const [paymentIndex, setPaymentIndex] = useState('');
 
   const [paircode, setPaircode] = useState('');
   const [displaypaircode, setDisplayPairCode] = useState(false);
 
   const [selectedTime, setSelectedTime] = useState('');
+  /*const timeOptions = [
+    { label: '10 min', val: '00:10' },
+    { label: '20 min', val: '00:20' },
+    { label: '30 min', val: '00:30' },
+    { label: '40 min', val: '00:40' },
+    { label: '50 min', val: '00:50' },
+  ];*/
+
   const timeOptions = [
-    {label: '10 min', val: '00:10'},
-    {label: '20 min', val: '00:20'},
-    {label: '30 min', val: '00:30'},
-    {label: '40 min', val: '00:40'},
-    {label: '50 min', val: '00:50'},
+    { label: '10 min', value: '00:10' },
+    { label: '20 min', value: '00:20' },
+    { label: '30 min', value: '00:30' },
+    { label: '40 min', value: '00:40' },
+    { label: '50 min', value: '00:50' },
   ];
 
   const [color_theme, setColorTheme] = useState('#000000');
@@ -266,7 +277,7 @@ const HomeRight = props => {
         setCategoryDetails(props.categoryDetails);
         setActiveBusiness(props.activeBusiness);
         setOrderType(props.orderType);
-        setCartDish({isLoading: false, list: props.cartDish.list});
+        setCartDish({ isLoading: false, list: props.cartDish.list });
         setPreorderDetails(props.preorderDetails);
         FetchPaymentMothod(props.activeBusiness.id, props.orderType);
         let cartQty = 0;
@@ -281,6 +292,80 @@ const HomeRight = props => {
       }
     }, [props.cartDish]),
   );
+
+  const DropdownComponent = () => {
+    const [value, setValue] = useState(selectedTime ? selectedTime : null);
+
+    // Update value when selectedtablenumber prop changes
+    useEffect(() => {
+      if (selectedTime) {
+        setValue(selectedTime);
+      }
+    }, [selectedTime]);
+
+    const renderItem = item => {
+      // Check if the current item's value exists in the tableNumbers array
+      const isTableBooked = timeOptions.includes(item.value);
+      // Check if this item is currently selected
+      const isSelected = item.value === value;
+
+      return (
+        <View style={[styles.item, isSelected && styles.selectedItem]}>
+          <Text style={[styles.textItem, isSelected && styles.selectedText]}>
+            {item.label}
+          </Text>
+          <View style={styles.iconContainer}>
+            {isTableBooked && (
+              <AntDesignIcon
+                style={styles.icon}
+                color={Colors.blue}
+                name="Safety"
+                size={20}
+              />
+            )}
+            {isSelected && (
+              <AntDesignIcon
+                style={styles.icon}
+                color={Colors.blue}
+                name="checkcircle"
+                size={20}
+              />
+            )}
+          </View>
+        </View>
+      );
+    };
+
+    return (
+      <Dropdown
+        style={styles.dropdown}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        inputSearchStyle={styles.inputSearchStyle}
+        iconStyle={styles.iconStyle}
+        data={timeOptions}
+        search
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        placeholder="Select Estimate Time"
+        searchPlaceholder="Search..."
+        value={value}
+        onChange={item => {
+          setSelectedTime(item.value);
+        }}
+        renderLeftIcon={() => (
+          <AntDesignIcon
+            style={styles.icon}
+            color="black"
+            name="Safety"
+            size={20}
+          />
+        )}
+        renderItem={renderItem}
+      />
+    );
+  };
 
   const FetchPaymentMothod = (bid, orderType_val) => {
     postWithToken(
@@ -310,7 +395,7 @@ const HomeRight = props => {
             let paymentc = new Object();
             paymentc.id = paymentResponse[j].pid;
             paymentc.name = paymentResponse[j].name;
-            paymentc.displayName = paymentResponse[j].payment_method;
+            paymentc.payment_method = paymentResponse[j].payment_method;
             paymentc.active = false;
             paymentc.credential = paymentResponse[j].credential;
 
@@ -324,7 +409,7 @@ const HomeRight = props => {
 
         console.log(payment_arr);
 
-        setPaymentMethod({isLoading: false, list: payment_arr});
+        setPaymentMethod({ isLoading: false, list: payment_arr });
       })
       .catch(error => {
         console.log('Error : ', error);
@@ -914,7 +999,7 @@ const HomeRight = props => {
       setDisplayPairCode(false);
     }
 
-    setPaymentMethod({isLoading: false, list: payment_arr});
+    setPaymentMethod({ isLoading: false, list: payment_arr });
   };
 
   const [CodeRun, setCodeRun] = useState('');
@@ -924,12 +1009,12 @@ const HomeRight = props => {
 
   const OpenCashDrawer = async () => {
     console.log('openCashBox');
-    EbPrinter.openCashBox();
+    //EbPrinter.openCashBox();
     setCodeRun('Code Is Run');
   };
 
   const GetUsbDeviceList = async () => {
-    const usbdevicelist = await EbPrinter.getUsbDeviceList();
+    /*const usbdevicelist = await EbPrinter.getUsbDeviceList();
 
     if (usbdevicelist) {
       setPrinterList(usbdevicelist);
@@ -939,12 +1024,12 @@ const HomeRight = props => {
     console.log(usbdevicelist);
 
     //setPrinterList(['Devin', 'Dan']);
-    //setvisiblemodal(true);
+    //setvisiblemodal(true);*/
   };
 
   const selectDevice = item => {
     setSelectedUsb(item);
-    EbPrinter.selectUsbPrinter(item);
+    //EbPrinter.selectUsbPrinter(item);
     setvisiblemodal(false);
     placeOrder();
   };
@@ -1109,10 +1194,15 @@ const HomeRight = props => {
       cartfee: cartFee[0],
       buyerdata: buyerDetails,
       deliverydetails: [
-        {id: '0', name: '', delivery: '0', minimum: activeBusiness.minimumfee},
+        {
+          id: '0',
+          name: '',
+          delivery: '0',
+          minimum: activeBusiness.minimumfee,
+        },
       ],
       search: Search,
-      paymentmethod: paymentMethod.list,
+      paymentmethod: [paymentMethod.list[paymentIndex]],
       rewardWallet: {},
       sourcetype: 'Pos App',
       sourcetypename: {},
@@ -1134,9 +1224,12 @@ const HomeRight = props => {
       total: total,
     };
 
-    //console.log(postData);
+    /*console.log(CartDish.list[0].dish);
+    return false;*/
 
-    //return false;
+    /*console.log(postData);
+
+    return false;*/
 
     /*setBuyerDetails({
       id: 0,
@@ -1154,9 +1247,11 @@ const HomeRight = props => {
     setTips(0.0);
     setCartFee([]);
     setSelectedTime('');
+    
 
     setPaymentMethod({isLoading: true, list: []});
     setPaymentId('');
+    setPaymentIndex('');
     setCartDish({isLoading: true, list: []});
 
     navigation.navigate('OrderSuccess', {orderId: '194'});
@@ -1187,17 +1282,18 @@ const HomeRight = props => {
           delievryaddress: '',
           notes: '',
         });
-        setDiscountInfo({discounttext: '', discounttype: '', discountid: ''});
+        setDiscountInfo({ discounttext: '', discounttype: '', discountid: '' });
         setDiscount(0.0);
         setTips(0.0);
         setCartFee([]);
 
-        setPaymentMethod({isLoading: true, list: []});
+        setPaymentMethod({ isLoading: true, list: [] });
         setPaymentId('');
+        setPaymentIndex('');
         setDiscountCode('');
-        setCartDish({isLoading: true, list: []});
+        setCartDish({ isLoading: true, list: [] });
 
-        navigation.navigate('OrderSuccess', {orderId: response.data.id});
+        navigation.navigate('OrderSuccess', { orderId: response.data.id });
       })
       .catch(error => {
         setLoader(false);
@@ -1207,13 +1303,13 @@ const HomeRight = props => {
 
   const setBuyerInfo = (val, type) => {
     if (type == 'name') {
-      setBuyerDetails({...buyerDetails, name: val});
+      setBuyerDetails({ ...buyerDetails, name: val });
     } else if (type == 'last_name') {
-      setBuyerDetails({...buyerDetails, last_name: val});
+      setBuyerDetails({ ...buyerDetails, last_name: val });
     } else if (type == 'email') {
-      setBuyerDetails({...buyerDetails, email: val});
+      setBuyerDetails({ ...buyerDetails, email: val });
     } else if (type == 'cel') {
-      setBuyerDetails({...buyerDetails, cel: val});
+      setBuyerDetails({ ...buyerDetails, cel: val });
     }
   };
 
@@ -1248,7 +1344,8 @@ const HomeRight = props => {
           <Modal
             animationType="slide"
             transparent={true}
-            visible={visiblemodal}>
+            visible={visiblemodal}
+          >
             <View
               style={{
                 flex: 1,
@@ -1256,7 +1353,8 @@ const HomeRight = props => {
                 alignItems: 'center',
                 backgroundColor: 'rgba(0,0,0,0.5)',
                 position: 'relative',
-              }}>
+              }}
+            >
               <TouchableOpacity
                 onPress={() => {
                   setvisiblemodal(false);
@@ -1266,7 +1364,8 @@ const HomeRight = props => {
                   right: responsiveWidth(1),
                   top: responsiveHeight(1.5),
                   zIndex: 1,
-                }}>
+                }}
+              >
                 <Icon
                   name="closecircleo"
                   type="AntDesign"
@@ -1280,19 +1379,21 @@ const HomeRight = props => {
                   width: responsiveWidth(35),
                   backgroundColor: '#ffffff',
                   borderRadius: 5,
-                }}>
+                }}
+              >
                 <ScrollView showsVerticalScrollIndicator={false}>
                   <View
                     style={{
                       flex: 1,
                       backgroundColor: Colors.backgroundColor,
                       position: 'relative',
-                    }}>
+                    }}
+                  >
                     <View style={{}}>
                       <FlatList
                         data={printerlist}
                         keyExtractor={(item, index) => item + index}
-                        renderItem={({item}) => (
+                        renderItem={({ item }) => (
                           <TouchableOpacity
                             style={{
                               paddingVertical: 10,
@@ -1300,12 +1401,14 @@ const HomeRight = props => {
                               borderColor: '#ddd',
                               paddingHorizontal: 10,
                             }}
-                            onPress={() => selectDevice(item)}>
+                            onPress={() => selectDevice(item)}
+                          >
                             <Text
                               style={{
                                 fontSize: responsiveFontSize(1.8),
                                 color: Colors.blue,
-                              }}>
+                              }}
+                            >
                               {item}
                             </Text>
                           </TouchableOpacity>
@@ -1344,7 +1447,8 @@ const HomeRight = props => {
                   borderRadius: 15,
                   paddingHorizontal: responsiveWidth(1),
                   paddingVertical: responsiveHeight(2),
-                }}>
+                }}
+              >
                 {/*<View  style={{marginTop: responsiveHeight(0.5), display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between'}}>
                       <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black}}>Sanjeev Kumar Saha</Text>
                       <TouchableOpacity >
@@ -1354,9 +1458,10 @@ const HomeRight = props => {
                     </View>*/}
 
                 <View
-                  style={{marginTop: responsiveHeight(0.5), display: 'flex'}}>
+                  style={{ marginTop: responsiveHeight(0.5), display: 'flex' }}
+                >
                   <AppTextInput
-                    inputStyle={{paddingLeft: 10}}
+                    inputStyle={{ paddingLeft: 10 }}
                     onChangeText={text => {
                       setBuyerInfo(text, 'name');
                     }}
@@ -1375,9 +1480,10 @@ const HomeRight = props => {
                 </View>
 
                 <View
-                  style={{marginTop: responsiveHeight(0.5), display: 'flex'}}>
+                  style={{ marginTop: responsiveHeight(0.5), display: 'flex' }}
+                >
                   <AppTextInput
-                    inputStyle={{paddingLeft: 10}}
+                    inputStyle={{ paddingLeft: 10 }}
                     onChangeText={text => {
                       setBuyerInfo(text, 'last_name');
                     }}
@@ -1417,9 +1523,10 @@ const HomeRight = props => {
                 </View>*/}
 
                 <View
-                  style={{marginTop: responsiveHeight(0.5), display: 'flex'}}>
+                  style={{ marginTop: responsiveHeight(0.5), display: 'flex' }}
+                >
                   <AppTextInput
-                    inputStyle={{paddingLeft: 10}}
+                    inputStyle={{ paddingLeft: 10 }}
                     onChangeText={text => {
                       setBuyerInfo(text, 'cel');
                     }}
@@ -1445,11 +1552,13 @@ const HomeRight = props => {
                       marginTop: responsiveHeight(0.5),
                       display: 'flex',
                       flexDirection: 'row',
-                    }}>
+                    }}
+                  >
                     <View
-                      style={{width: '65%', marginRight: responsiveWidth(1)}}>
+                      style={{ width: '65%', marginRight: responsiveWidth(1) }}
+                    >
                       <AppTextInput
-                        inputStyle={{paddingLeft: 10}}
+                        inputStyle={{ paddingLeft: 10 }}
                         onChangeText={text => {
                           setDiscountCode(text);
                         }}
@@ -1470,7 +1579,8 @@ const HomeRight = props => {
                       style={{
                         width: '33%',
                         paddingTop: responsiveHeight(3),
-                      }}>
+                      }}
+                    >
                       {update_action_status === true ? (
                         <TouchableOpacity style={styles.button_disable}>
                           <Text
@@ -1479,7 +1589,8 @@ const HomeRight = props => {
                               fontSize: responsiveFontSize(1.5),
                               color: '#000',
                               fontFamily: Inter.medium,
-                            }}>
+                            }}
+                          >
                             {'APPLY'}
                           </Text>
                         </TouchableOpacity>
@@ -1488,14 +1599,16 @@ const HomeRight = props => {
                           style={styles.button}
                           onPress={() => {
                             CheckDiscount();
-                          }}>
+                          }}
+                        >
                           <Text
                             style={{
                               fontWeight: 'bold',
                               fontSize: responsiveFontSize(1.5),
                               color: '#fff',
                               fontFamily: Inter.medium,
-                            }}>
+                            }}
+                          >
                             {'APPLY'}
                           </Text>
                         </TouchableOpacity>
@@ -1504,14 +1617,15 @@ const HomeRight = props => {
                   </View>
                 ) : null}
 
-                <View
+                {/*<View
                   style={{
                     overflow: 'hidden',
                     borderWidth: 2,
                     borderColor: Colors.grey,
                     borderRadius: 10,
                     marginVertical: responsiveHeight(1.5),
-                  }}>
+                  }}
+                >
                   <Picker
                     selectedValue={selectedTime}
                     onValueChange={(itemValue, itemIndex) =>
@@ -1521,7 +1635,8 @@ const HomeRight = props => {
                       backgroundColor: Colors.white,
                       color: color_theme_selected,
                     }}
-                    dropdownIconColor={color_theme_selected}>
+                    dropdownIconColor={color_theme_selected}
+                  >
                     <Picker.Item
                       style={{
                         color: color_theme,
@@ -1547,6 +1662,14 @@ const HomeRight = props => {
                       );
                     })}
                   </Picker>
+                </View>*/}
+
+                <View
+                  style={{
+                    marginBottom: responsiveHeight(2),
+                  }}
+                >
+                  <DropdownComponent />
                 </View>
 
                 {CartDish.list.map((cartdish, cartindex) => {
@@ -1561,7 +1684,8 @@ const HomeRight = props => {
                             borderRadius: 10,
                             paddingHorizontal: responsiveWidth(0.5),
                             marginVertical: responsiveHeight(1),
-                          }}>
+                          }}
+                        >
                           <View
                             style={{
                               marginTop: responsiveHeight(0.5),
@@ -1569,14 +1693,16 @@ const HomeRight = props => {
                               flexDirection: 'row',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                            }}>
-                            <View style={{width: responsiveWidth(15)}}>
+                            }}
+                          >
+                            <View style={{ width: responsiveWidth(15) }}>
                               <Text
                                 style={{
                                   fontFamily: Inter.regular,
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.black,
-                                }}>
+                                }}
+                              >
                                 {dish.name}
                               </Text>
                             </View>
@@ -1586,7 +1712,8 @@ const HomeRight = props => {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
-                              }}>
+                              }}
+                            >
                               <TouchableOpacity
                                 onPress={() => {
                                   addTocartDecrement(
@@ -1594,7 +1721,8 @@ const HomeRight = props => {
                                     dishindex,
                                     dataindex,
                                   );
-                                }}>
+                                }}
+                              >
                                 <Icon
                                   name="minuscircleo"
                                   type="AntDesign"
@@ -1608,7 +1736,8 @@ const HomeRight = props => {
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.black,
                                   marginHorizontal: responsiveWidth(0.5),
-                                }}>
+                                }}
+                              >
                                 {dish.quantity}
                               </Text>
                               <TouchableOpacity
@@ -1618,7 +1747,8 @@ const HomeRight = props => {
                                     dishindex,
                                     dataindex,
                                   );
-                                }}>
+                                }}
+                              >
                                 <Icon
                                   name="pluscircleo"
                                   type="AntDesign"
@@ -1633,13 +1763,15 @@ const HomeRight = props => {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                              }}>
+                              }}
+                            >
                               <Text
                                 style={{
                                   fontFamily: Inter.regular,
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.green,
-                                }}>
+                                }}
+                              >
                                 {activeBusiness != null
                                   ? activeBusiness.currency_symbol
                                   : null}
@@ -1653,7 +1785,8 @@ const HomeRight = props => {
                                       dishindex,
                                       dataindex,
                                     );
-                                  }}>
+                                  }}
+                                >
                                   <Icon
                                     name="edit"
                                     type="AntDesign"
@@ -1674,7 +1807,8 @@ const HomeRight = props => {
                                         fontFamily: Inter.bold,
                                         fontSize: responsiveFontSize(1),
                                         color: Colors.blue,
-                                      }}>
+                                      }}
+                                    >
                                       {set.name}
                                     </Text>
                                     {set.choice.length > 0
@@ -1688,7 +1822,8 @@ const HomeRight = props => {
                                                   display: 'flex',
                                                   flexDirection: 'row',
                                                   alignItems: 'center',
-                                                }}>
+                                                }}
+                                              >
                                                 <Icon
                                                   name="dot-single"
                                                   type="Entypo"
@@ -1701,7 +1836,8 @@ const HomeRight = props => {
                                                     fontSize:
                                                       responsiveFontSize(1),
                                                     color: Colors.black,
-                                                  }}>
+                                                  }}
+                                                >
                                                   {choice.name}
                                                   {' x '}
                                                   {choice.qty}
@@ -1747,7 +1883,8 @@ const HomeRight = props => {
                                         display: 'flex',
                                         flexDirection: 'row',
                                         alignItems: 'center',
-                                      }}>
+                                      }}
+                                    >
                                       <Icon
                                         name="dot-single"
                                         type="Entypo"
@@ -1765,7 +1902,8 @@ const HomeRight = props => {
                                           fontFamily: Inter.regular,
                                           fontSize: responsiveFontSize(1),
                                           color: Colors.black,
-                                        }}>
+                                        }}
+                                      >
                                         {ingre}
                                       </Text>
                                     </View>
@@ -1789,12 +1927,14 @@ const HomeRight = props => {
                         paddingHorizontal: responsiveWidth(1),
                         paddingVertical: responsiveHeight(1),
                         marginVertical: responsiveHeight(1),
-                      }}>
+                      }}
+                    >
                       <View
                         style={{
                           flexDirection: 'row',
                           justifyContent: 'space-between',
-                        }}>
+                        }}
+                      >
                         {/*<Text
                           style={{
                             fontFamily: Inter.bold,
@@ -1817,13 +1957,15 @@ const HomeRight = props => {
                         style={{
                           flexDirection: 'row',
                           justifyContent: 'space-between',
-                        }}>
+                        }}
+                      >
                         <Text
                           style={{
                             fontFamily: Inter.bold,
                             fontSize: responsiveFontSize(1),
                             color: Colors.white,
-                          }}>
+                          }}
+                        >
                           Sub Total{' '}
                         </Text>
                         <Text
@@ -1831,7 +1973,8 @@ const HomeRight = props => {
                             fontFamily: Inter.bold,
                             fontSize: responsiveFontSize(1),
                             color: Colors.white,
-                          }}>
+                          }}
+                        >
                           {activeBusiness.currency_symbol}
                           {CartSubTotal}
                         </Text>
@@ -1857,13 +2000,15 @@ const HomeRight = props => {
                                   style={{
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
-                                  }}>
+                                  }}
+                                >
                                   <Text
                                     style={{
                                       fontFamily: Inter.bold,
                                       fontSize: responsiveFontSize(1),
                                       color: Colors.white,
-                                    }}>
+                                    }}
+                                  >
                                     Tax ({cartfee.tax}%)
                                   </Text>
                                   <Text
@@ -1871,7 +2016,8 @@ const HomeRight = props => {
                                       fontFamily: Inter.bold,
                                       fontSize: responsiveFontSize(1),
                                       color: Colors.white,
-                                    }}>
+                                    }}
+                                  >
                                     {activeBusiness.currency_symbol}
                                     {parseFloat(cartfee.taxprice).toFixed(2)}
                                   </Text>
@@ -1909,13 +2055,15 @@ const HomeRight = props => {
                                 style={{
                                   flexDirection: 'row',
                                   justifyContent: 'space-between',
-                                }}>
+                                }}
+                              >
                                 <Text
                                   style={{
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.white,
-                                  }}>
+                                  }}
+                                >
                                   Service Fee ({cartfee.servicefee}%)
                                 </Text>
                                 <Text
@@ -1923,7 +2071,8 @@ const HomeRight = props => {
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.white,
-                                  }}>
+                                  }}
+                                >
                                   {activeBusiness.currency_symbol}
                                   {parseFloat(cartfee.servicefeeprice).toFixed(
                                     2,
@@ -1937,13 +2086,15 @@ const HomeRight = props => {
                                 style={{
                                   flexDirection: 'row',
                                   justifyContent: 'space-between',
-                                }}>
+                                }}
+                              >
                                 <Text
                                   style={{
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.white,
-                                  }}>
+                                  }}
+                                >
                                   Tips{' '}
                                 </Text>
                                 <Text
@@ -1951,7 +2102,8 @@ const HomeRight = props => {
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.white,
-                                  }}>
+                                  }}
+                                >
                                   {activeBusiness.currency_symbol}
                                   {parseFloat(cartfee.tips).toFixed(2)}
                                 </Text>
@@ -1963,13 +2115,15 @@ const HomeRight = props => {
                                 style={{
                                   flexDirection: 'row',
                                   justifyContent: 'space-between',
-                                }}>
+                                }}
+                              >
                                 <Text
                                   style={{
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.white,
-                                  }}>
+                                  }}
+                                >
                                   Discount{' '}
                                 </Text>
                                 <Text
@@ -1977,7 +2131,8 @@ const HomeRight = props => {
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.red,
-                                  }}>
+                                  }}
+                                >
                                   {'-'}
                                   {activeBusiness.currency_symbol}
                                   {parseFloat(cartfee.discount).toFixed(2)}
@@ -1990,13 +2145,15 @@ const HomeRight = props => {
                                 style={{
                                   flexDirection: 'row',
                                   justifyContent: 'space-between',
-                                }}>
+                                }}
+                              >
                                 <Text
                                   style={{
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.white,
-                                  }}>
+                                  }}
+                                >
                                   {cartfee?.firstoffer?.message}(
                                   {cartfee?.firstoffer?.data[0]?.distext}){' '}
                                 </Text>
@@ -2005,7 +2162,8 @@ const HomeRight = props => {
                                     fontFamily: Inter.bold,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.red,
-                                  }}>
+                                  }}
+                                >
                                   {'-'}
                                   {activeBusiness.currency_symbol}
                                   {parseFloat(cartfee.autodiscount).toFixed(2)}
@@ -2017,13 +2175,15 @@ const HomeRight = props => {
                               style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
-                              }}>
+                              }}
+                            >
                               <Text
                                 style={{
                                   fontFamily: Inter.bold,
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.white,
-                                }}>
+                                }}
+                              >
                                 Total{' '}
                               </Text>
                               <Text
@@ -2031,7 +2191,8 @@ const HomeRight = props => {
                                   fontFamily: Inter.bold,
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.white,
-                                }}>
+                                }}
+                              >
                                 {activeBusiness.currency_symbol}
                                 {parseFloat(cartfee.total).toFixed(2)}
                               </Text>
@@ -2046,9 +2207,10 @@ const HomeRight = props => {
                         style={{
                           marginTop: responsiveHeight(0.5),
                           display: 'flex',
-                        }}>
+                        }}
+                      >
                         <AppTextInput
-                          inputStyle={{paddingLeft: 10}}
+                          inputStyle={{ paddingLeft: 10 }}
                           onChangeText={text => {
                             setPaircode(text);
                           }}
@@ -2069,13 +2231,14 @@ const HomeRight = props => {
                       </View>
                     ) : null}
 
-                    <View style={{marginVertical: responsiveHeight(2)}}>
+                    <View style={{ marginVertical: responsiveHeight(2) }}>
                       <View
                         style={{
                           display: 'flex',
                           flexDirection: 'row',
                           alignItems: 'center',
-                        }}>
+                        }}
+                      >
                         {paymentMethod.isLoading === false &&
                         paymentMethod.list.length > 0
                           ? paymentMethod.list.map((item, index) => {
@@ -2087,11 +2250,13 @@ const HomeRight = props => {
                                     alignItems: 'center',
                                     marginRight: responsiveWidth(1),
                                   }}
-                                  key={'pay_' + index}>
+                                  key={'pay_' + index}
+                                >
                                   <RadioButton
                                     selected={item.active}
                                     onChange={() => {
                                       SelectPayment(item);
+                                      setPaymentIndex(index);
                                     }}
                                     size={22}
                                     style={[styles.radioButton, {}]}
@@ -2105,8 +2270,9 @@ const HomeRight = props => {
                                       fontSize: responsiveFontSize(1),
                                       color: Colors.black,
                                       textTransform: 'capitalize',
-                                    }}>
-                                    {item.displayName}
+                                    }}
+                                  >
+                                    {item.payment_method}
                                   </Text>
                                 </View>
                               );
@@ -2121,19 +2287,22 @@ const HomeRight = props => {
                   style={{
                     paddingBottom: responsiveHeight(1),
                     marginBottom: responsiveHeight(20),
-                  }}>
+                  }}
+                >
                   {PendingMinimumFee > 0.0 ? (
                     <View
                       style={{
                         alignItems: 'center',
                         paddingVertical: responsiveHeight(1),
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.2),
                           color: Colors.red,
-                        }}>
+                        }}
+                      >
                         minimum price need to add{' '}
                         {activeBusiness.currency_symbol}
                         {PendingMinimumFee}
@@ -2149,7 +2318,8 @@ const HomeRight = props => {
                             fontSize: responsiveFontSize(1.5),
                             color: '#000',
                             fontFamily: Inter.medium,
-                          }}>
+                          }}
+                        >
                           Pay Now
                         </Text>
                       </TouchableOpacity>
@@ -2158,14 +2328,16 @@ const HomeRight = props => {
                         style={styles.button}
                         onPress={() => {
                           CheckallDetails();
-                        }}>
+                        }}
+                      >
                         <Text
                           style={{
                             fontWeight: 'bold',
                             fontSize: responsiveFontSize(1.5),
                             color: '#fff',
                             fontFamily: Inter.medium,
-                          }}>
+                          }}
+                        >
                           Pay Now
                         </Text>
                       </TouchableOpacity>
@@ -2178,7 +2350,8 @@ const HomeRight = props => {
                           fontSize: responsiveFontSize(1.5),
                           color: '#fff',
                           fontFamily: Inter.medium,
-                        }}>
+                        }}
+                      >
                         {'Minumum Order'}:{activeBusiness.currency_symbol}
                         {activeBusiness.minimumfee}
                       </Text>

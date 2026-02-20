@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -16,33 +16,35 @@ import {
   NativeEventEmitter,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
-import {Images} from '../../Constants/ImageIconContant';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
+import { Images } from '../../Constants/ImageIconContant';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../../Service/localStorage';
-import {postWithToken, postWithOutToken} from '../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../../Service/localStorage';
+import { postWithToken, postWithOutToken } from '../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import Moment from 'moment';
 import Modal from 'react-native-modal';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 import {
   Container,
   Icon,
   AppTextInput,
   CheckBox,
 } from 'react-native-basic-elements';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import NetInfo from '@react-native-community/netinfo';
 import Thermalpriter from '../../Component/prnterConnect';
 import Loader from '../../Component/loader';
+import { Dropdown } from 'react-native-element-dropdown';
+import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 
 // create a component
 const MyOrder = () => {
@@ -52,7 +54,7 @@ const MyOrder = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
-  const {baseUrl, siteUrl, userToken, userData, post_data, langId} =
+  const { baseUrl, siteUrl, userToken, userData, post_data, langId } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [color_theme, setColorTheme] = useState('#000000');
@@ -467,10 +469,10 @@ const MyOrder = () => {
               list: response.data,
             });
           } else {
-            setOrderList({isLoading: false, list: []});
+            setOrderList({ isLoading: false, list: [] });
           }
         } else {
-          setOrderList({isLoading: false, list: []});
+          setOrderList({ isLoading: false, list: [] });
         }
       })
       .catch(error => {
@@ -506,10 +508,10 @@ const MyOrder = () => {
               list: [...orderlist.list, ...response.data],
             });
           } else {
-            setOrderList({isLoading: false, list: orderlist.list});
+            setOrderList({ isLoading: false, list: orderlist.list });
           }
         } else {
-          setOrderList({isLoading: false, list: orderlist.list});
+          setOrderList({ isLoading: false, list: orderlist.list });
         }
       })
       .catch(error => {
@@ -529,9 +531,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -539,9 +542,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -549,9 +553,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
             </SkeletonPlaceholder>
@@ -562,6 +567,7 @@ const MyOrder = () => {
   };
 
   const openDetails = item => {
+    //console.log(item);
     setOrderDetails(item);
     toggleModal();
   };
@@ -661,13 +667,97 @@ const MyOrder = () => {
     toggleModal_Reject();
   };
 
+  /* const minutes_list = [
+    { id: 1, time: '00:10' },
+    { id: 2, time: '00:20' },
+    { id: 3, time: '00:30' },
+    { id: 4, time: '00:40' },
+    { id: 5, time: '00:50' },
+  ];*/
+
   const minutes_list = [
-    {id: 1, time: '00:10'},
-    {id: 2, time: '00:20'},
-    {id: 3, time: '00:30'},
-    {id: 4, time: '00:40'},
-    {id: 5, time: '00:50'},
+    { label: '10 min', value: '00:10' },
+    { label: '20 min', value: '00:20' },
+    { label: '30 min', value: '00:30' },
+    { label: '40 min', value: '00:40' },
+    { label: '50 min', value: '00:50' },
   ];
+
+  const DropdownComponent = () => {
+    const [value, setValue] = useState(
+      accept_delivery_time ? accept_delivery_time : null,
+    );
+
+    // Update value when selectedtablenumber prop changes
+    useEffect(() => {
+      if (accept_delivery_time) {
+        setValue(accept_delivery_time);
+      }
+    }, [accept_delivery_time]);
+
+    const renderItem = item => {
+      // Check if the current item's value exists in the tableNumbers array
+      const isTableBooked = minutes_list.includes(item.value);
+      // Check if this item is currently selected
+      const isSelected = item.value === value;
+
+      return (
+        <View style={[styles.item, isSelected && styles.selectedItem]}>
+          <Text style={[styles.textItem, isSelected && styles.selectedText]}>
+            {item.label}
+          </Text>
+          <View style={styles.iconContainer}>
+            {isTableBooked && (
+              <AntDesignIcon
+                style={styles.icon}
+                color={Colors.blue}
+                name="Safety"
+                size={20}
+              />
+            )}
+            {isSelected && (
+              <AntDesignIcon
+                style={styles.icon}
+                color={Colors.blue}
+                name="checkcircle"
+                size={20}
+              />
+            )}
+          </View>
+        </View>
+      );
+    };
+
+    return (
+      <Dropdown
+        style={styles.dropdown}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        inputSearchStyle={styles.inputSearchStyle}
+        iconStyle={styles.iconStyle}
+        data={minutes_list}
+        search
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        placeholder="Order Delivery Time (In Minutes)"
+        searchPlaceholder="Search..."
+        value={value}
+        onChange={item => {
+          setAcceptDeliveryTime(item.value);
+        }}
+        renderLeftIcon={() => (
+          <AntDesignIcon
+            style={styles.icon}
+            color="black"
+            name="Safety"
+            size={20}
+          />
+        )}
+        renderItem={renderItem}
+      />
+    );
+  };
 
   const AcceptOrder = order_id => {
     setLoaderModel(true);
@@ -691,7 +781,7 @@ const MyOrder = () => {
         orderlist.list.splice(actionOrderIndex, 1);
 
         setTimeout(() => {
-          setOrderList({isLoading: false, list: orderlist.list});
+          setOrderList({ isLoading: false, list: orderlist.list });
         }, 1000);
       })
       .catch(error => {
@@ -721,7 +811,7 @@ const MyOrder = () => {
         orderlist.list.splice(actionOrderIndex, 1);
 
         setTimeout(() => {
-          setOrderList({isLoading: false, list: orderlist.list});
+          setOrderList({ isLoading: false, list: orderlist.list });
         }, 1000);
       })
       .catch(error => {
@@ -761,7 +851,8 @@ const MyOrder = () => {
             gap: 10,
             borderBottomWidth: 1.5,
             borderBottomColor: Colors.blue,
-          }}>
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('MyOrder');
@@ -775,14 +866,16 @@ const MyOrder = () => {
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
-            ]}>
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.white,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Current
             </Text>
           </TouchableOpacity>
@@ -800,14 +893,16 @@ const MyOrder = () => {
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
-            ]}>
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.blue,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Inprogress
             </Text>
           </TouchableOpacity>
@@ -825,14 +920,16 @@ const MyOrder = () => {
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
-            ]}>
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.blue,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Complete
             </Text>
           </TouchableOpacity>
@@ -851,7 +948,7 @@ const MyOrder = () => {
             }}
             onEndReachedThreshold={0.1}
             keyExtractor={(item, index) => index.toString()}
-            renderItem={({item, index}) => {
+            renderItem={({ item, index }) => {
               return (
                 <View key={index}>
                   <View
@@ -862,7 +959,8 @@ const MyOrder = () => {
                       paddingTop: responsiveHeight(2),
                       borderBottomColor: Colors.grey,
                       borderBottomWidth: 1,
-                    }}>
+                    }}
+                  >
                     <TouchableOpacity
                       onPress={() => {
                         openDetails(item);
@@ -871,13 +969,15 @@ const MyOrder = () => {
                         flexDirection: 'column',
                         display: 'flex',
                         flex: 1,
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.3),
                           color: Colors.black,
-                        }}>
+                        }}
+                      >
                         Order Id: #{item.id}
                         {'    '}
                         <Text
@@ -886,7 +986,8 @@ const MyOrder = () => {
                             fontSize: responsiveFontSize(1.3),
                             color: Colors.red,
                             marginLeft: responsiveWidth(10),
-                          }}>
+                          }}
+                        >
                           {item.sourcetype == 'Uber' ? 'UberEats' : null}
                         </Text>
                       </Text>
@@ -896,7 +997,8 @@ const MyOrder = () => {
                           fontSize: responsiveFontSize(1.3),
                           color: Colors.black,
                           marginBottom: responsiveHeight(0.5),
-                        }}>
+                        }}
+                      >
                         {item.buyername}
                       </Text>
 
@@ -940,7 +1042,8 @@ const MyOrder = () => {
                           fontSize: responsiveFontSize(1),
                           color: Colors.black,
                           marginTop: responsiveHeight(0.5),
-                        }}>
+                        }}
+                      >
                         {item.date}
                       </Text>
                     </TouchableOpacity>
@@ -949,13 +1052,15 @@ const MyOrder = () => {
                         flexDirection: 'row',
                         alignItems: 'center',
                         display: 'flex',
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.3),
                           color: Colors.black,
-                        }}>
+                        }}
+                      >
                         {item.currency_symbol}
                         {item.total}
                       </Text>
@@ -966,19 +1071,22 @@ const MyOrder = () => {
                         alignItems: 'center',
                         display: 'flex',
                         gap: 20,
-                      }}>
+                      }}
+                    >
                       <TouchableOpacity
                         onPress={() => {
                           openAccept(item.id, index);
                         }}
-                        style={styles.button_accept}>
+                        style={styles.button_accept}
+                      >
                         <Text
                           style={{
                             fontWeight: 'bold',
                             fontSize: responsiveFontSize(1.1),
                             color: Colors.white,
                             fontFamily: Inter.medium,
-                          }}>
+                          }}
+                        >
                           Accept
                         </Text>
                       </TouchableOpacity>
@@ -986,14 +1094,16 @@ const MyOrder = () => {
                         onPress={() => {
                           openReject(item.id);
                         }}
-                        style={styles.button_reject}>
+                        style={styles.button_reject}
+                      >
                         <Text
                           style={{
                             fontWeight: 'bold',
                             fontSize: responsiveFontSize(1.1),
                             color: Colors.white,
                             fontFamily: Inter.medium,
-                          }}>
+                          }}
+                        >
                           Reject
                         </Text>
                       </TouchableOpacity>
@@ -1026,7 +1136,8 @@ const MyOrder = () => {
                 fontFamily: Inter.bold,
                 fontSize: 18,
                 color: Colors.red,
-              }}>
+              }}
+            >
               No Record Found{' '}
             </Text>
           </View>
@@ -1038,9 +1149,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -1048,9 +1160,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -1058,9 +1171,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -1068,9 +1182,10 @@ const MyOrder = () => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
             </SkeletonPlaceholder>
@@ -1078,8 +1193,11 @@ const MyOrder = () => {
         )}
       </View>
 
-      <Modal isVisible={isModalVisible} style={{width: '80%', margin: 'auto'}}>
-        <View style={{flex: 1, position: 'relative'}}>
+      <Modal
+        isVisible={isModalVisible}
+        style={{ width: '80%', margin: 'auto' }}
+      >
+        <View style={{ flex: 1, position: 'relative' }}>
           <TouchableOpacity
             onPress={toggleModal}
             style={{
@@ -1087,7 +1205,8 @@ const MyOrder = () => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -1101,7 +1220,8 @@ const MyOrder = () => {
               borderRadius: 20,
               paddingHorizontal: responsiveWidth(2),
               paddingVertical: responsiveHeight(2),
-            }}>
+            }}
+          >
             <ScrollView>
               <View
                 style={{
@@ -1109,20 +1229,23 @@ const MyOrder = () => {
                   flexDirection: 'row',
                   marginBottom: responsiveHeight(2),
                   marginTop: responsiveHeight(4),
-                }}>
+                }}
+              >
                 <View
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     width: '50%',
                     gap: 10,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       fontFamily: Inter.bold,
                       fontSize: responsiveFontSize(1.5),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order ID : #{orderDetails != null ? orderDetails.id : null}
                   </Text>
                   <Text
@@ -1130,7 +1253,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order Date and Time :{' '}
                     {orderDetails != null ? orderDetails.date : null}
                   </Text>
@@ -1139,20 +1263,20 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Estimated Delivery Time :{' '}
-                    {orderDetails != null
-                      ? orderDetails.estimatedelivery
-                      : null}{' '}
+                    {orderDetails != null ? orderDetails.estimate_time : null}{' '}
                   </Text>
-                  <View style={{display: 'flex', flexDirection: 'row'}}>
+                  <View style={{ display: 'flex', flexDirection: 'row' }}>
                     <View>
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.2),
                           color: Colors.black,
-                        }}>
+                        }}
+                      >
                         Order Status :
                       </Text>
                     </View>
@@ -1164,13 +1288,15 @@ const MyOrder = () => {
                             : '',
                         borderRadius: 5,
                         paddingHorizontal: responsiveWidth(1),
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.2),
                           color: Colors.white,
-                        }}>
+                        }}
+                      >
                         {orderDetails != null
                           ? displayVal(orderDetails.status)
                           : null}
@@ -1183,7 +1309,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order Type :
                     {orderDetails != null
                       ? orderDetails.order_type == 1
@@ -1200,7 +1327,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Grand Total :{' '}
                     {orderDetails != null ? orderDetails.currency_symbol : null}
                     {orderDetails != null ? orderDetails.total : null}
@@ -1210,7 +1338,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Payment Information :{' '}
                     {orderDetails != null ? orderDetails.paymentname : null}
                   </Text>
@@ -1221,13 +1350,15 @@ const MyOrder = () => {
                     flexDirection: 'column',
                     width: '50%',
                     gap: 10,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Name :{' '}
                     {orderDetails != null ? orderDetails.business.name : null}
                   </Text>
@@ -1236,7 +1367,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Address:{' '}
                     {orderDetails != null
                       ? orderDetails.business.address
@@ -1247,7 +1379,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     City :{' '}
                     {orderDetails != null ? orderDetails.business.city : null}
                   </Text>
@@ -1256,7 +1389,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Country:{' '}
                     {orderDetails != null
                       ? orderDetails.business.country
@@ -1267,7 +1401,8 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Phone Number :{' '}
                     {orderDetails != null ? orderDetails.business.phone : null}
                   </Text>
@@ -1276,14 +1411,15 @@ const MyOrder = () => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Mobile Number:{' '}
                     {orderDetails != null ? orderDetails.business.mobile : null}
                   </Text>
                 </View>
               </View>
 
-              <View style={{marginBottom: responsiveHeight(4)}}>
+              <View style={{ marginBottom: responsiveHeight(4) }}>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -1292,7 +1428,8 @@ const MyOrder = () => {
                     backgroundColor: Colors.black,
                     borderTopStartRadius: 10,
                     borderTopEndRadius: 10,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       padding: 10,
@@ -1301,7 +1438,8 @@ const MyOrder = () => {
                       width: '30%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Item Name'}
                   </Text>
                   <Text
@@ -1312,7 +1450,8 @@ const MyOrder = () => {
                       width: '10%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Qty'}
                   </Text>
                   <Text
@@ -1323,7 +1462,8 @@ const MyOrder = () => {
                       width: '25%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Ingredients'}
                   </Text>
                   <Text
@@ -1334,7 +1474,8 @@ const MyOrder = () => {
                       width: '25%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Options'}
                   </Text>
                   <Text
@@ -1345,7 +1486,8 @@ const MyOrder = () => {
                       width: '10%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Price'}
                   </Text>
                 </View>
@@ -1359,7 +1501,8 @@ const MyOrder = () => {
                             style={{
                               flexDirection: 'row',
                               alignItems: 'center',
-                            }}>
+                            }}
+                          >
                             <Text
                               style={{
                                 padding: 15,
@@ -1368,7 +1511,8 @@ const MyOrder = () => {
                                 width: '30%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {dish.name}
                             </Text>
                             <Text
@@ -1379,7 +1523,8 @@ const MyOrder = () => {
                                 width: '10%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {dish.quantity}
                             </Text>
                             <Text
@@ -1390,8 +1535,18 @@ const MyOrder = () => {
                                 width: '25%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
-                              {dish.activeIngredientsText}
+                              }}
+                            >
+                              {/*dish.activeIngredientsText*/}
+                              {dish.ingredientsarray.length > 0
+                                ? dish.ingredientsarray.map(
+                                    (ingred, ing_index) => {
+                                      return ing_index != 0
+                                        ? ', ' + ingred
+                                        : ingred;
+                                    },
+                                  )
+                                : null}
                             </Text>
                             <View
                               style={{
@@ -1403,7 +1558,8 @@ const MyOrder = () => {
                                 width: '25%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {dish.sets.length > 0
                                 ? dish.sets.map((set, set_index) => {
                                     return (
@@ -1412,7 +1568,8 @@ const MyOrder = () => {
                                         style={{
                                           fontFamily: Inter.regular,
                                           color: '#000',
-                                        }}>
+                                        }}
+                                      >
                                         {set.name} - {set.choiceText}
                                       </Text>
                                     );
@@ -1427,7 +1584,8 @@ const MyOrder = () => {
                                 width: '10%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {orderDetails != null
                                 ? orderDetails.currency_symbol
                                 : null}
@@ -1446,8 +1604,9 @@ const MyOrder = () => {
 
       <Modal
         isVisible={isModalVisible_accept}
-        style={{width: '60%', margin: 'auto'}}>
-        <View style={{flex: 1, position: 'relative'}}>
+        style={{ width: '60%', margin: 'auto' }}
+      >
+        <View style={{ flex: 1, position: 'relative' }}>
           <TouchableOpacity
             onPress={toggleModal_Accept}
             style={{
@@ -1455,7 +1614,8 @@ const MyOrder = () => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -1469,7 +1629,8 @@ const MyOrder = () => {
               borderRadius: 20,
               paddingHorizontal: responsiveWidth(2),
               paddingVertical: responsiveHeight(2),
-            }}>
+            }}
+          >
             {viewloadermodel === true ? <Loader /> : null}
             <View>
               <Text
@@ -1478,13 +1639,14 @@ const MyOrder = () => {
                   fontSize: responsiveFontSize(1.5),
                   color: Colors.black,
                   fontFamily: Inter.medium,
-                }}>
+                }}
+              >
                 Order Accept
               </Text>
             </View>
 
             <ScrollView>
-              <View
+              {/*<View
                 style={{
                   width: responsiveWidth(55),
                   borderRadius: 5,
@@ -1493,19 +1655,21 @@ const MyOrder = () => {
                   height: 45,
                   marginBottom: responsiveHeight(4),
                   marginTop: responsiveHeight(4),
-                }}>
+                }}
+              >
                 <Picker
-                  style={{marginTop: -5, color: color_theme_selected}}
+                  style={{ marginTop: -5, color: color_theme_selected }}
                   selectionColor={'#555'}
                   placeholder="Order Delivery Time (In Minutes)"
                   selectedValue={accept_delivery_time}
                   dropdownIconColor={color_theme_selected}
                   onValueChange={(itemValue, itemIndex) => {
                     setAcceptDeliveryTime(itemValue);
-                  }}>
+                  }}
+                >
                   <Picker.Item
                     key={'set_'}
-                    style={{color: color_theme}}
+                    style={{ color: color_theme }}
                     label="Order Delivery Time (In Minutes)"
                     value="0"
                   />
@@ -1514,7 +1678,7 @@ const MyOrder = () => {
                         return (
                           <Picker.Item
                             key={'set_' + index}
-                            style={{color: color_theme}}
+                            style={{ color: color_theme }}
                             label={item.time}
                             value={item.time}
                           />
@@ -1522,13 +1686,24 @@ const MyOrder = () => {
                       })
                     : null}
                 </Picker>
+              </View>*/}
+
+              <View
+                style={{
+                  width: responsiveWidth(55),
+                  marginBottom: responsiveHeight(4),
+                  marginTop: responsiveHeight(4),
+                }}
+              >
+                <DropdownComponent />
               </View>
 
               <View
                 style={{
                   width: responsiveWidth(55),
                   marginBottom: responsiveHeight(8),
-                }}>
+                }}
+              >
                 <TextInput
                   multiline={true}
                   placeholder={'Notes'}
@@ -1556,21 +1731,24 @@ const MyOrder = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   display: 'flex',
-                }}>
+                }}
+              >
                 <TouchableOpacity
                   onPress={() => {
                     viewloadermodel === false
                       ? AcceptOrder(actionOrderId)
                       : null;
                   }}
-                  style={styles.button_accept_model}>
+                  style={styles.button_accept_model}
+                >
                   <Text
                     style={{
                       fontWeight: 'bold',
                       fontSize: responsiveFontSize(1.4),
                       color: Colors.white,
                       fontFamily: Inter.medium,
-                    }}>
+                    }}
+                  >
                     Accept
                   </Text>
                 </TouchableOpacity>
@@ -1581,8 +1759,9 @@ const MyOrder = () => {
       </Modal>
       <Modal
         isVisible={isModalVisible_reject}
-        style={{width: '60%', margin: 'auto'}}>
-        <View style={{flex: 1, position: 'relative'}}>
+        style={{ width: '60%', margin: 'auto' }}
+      >
+        <View style={{ flex: 1, position: 'relative' }}>
           <TouchableOpacity
             onPress={toggleModal_Reject}
             style={{
@@ -1590,7 +1769,8 @@ const MyOrder = () => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -1604,7 +1784,8 @@ const MyOrder = () => {
               borderRadius: 20,
               paddingHorizontal: responsiveWidth(2),
               paddingVertical: responsiveHeight(2),
-            }}>
+            }}
+          >
             {viewloadermodel === true ? <Loader /> : null}
 
             <View>
@@ -1614,7 +1795,8 @@ const MyOrder = () => {
                   fontSize: responsiveFontSize(1.5),
                   color: Colors.black,
                   fontFamily: Inter.medium,
-                }}>
+                }}
+              >
                 Order Reject
               </Text>
             </View>
@@ -1626,7 +1808,8 @@ const MyOrder = () => {
                   flexDirection: 'row',
                   marginBottom: responsiveHeight(2),
                   marginTop: responsiveHeight(4),
-                }}>
+                }}
+              >
                 <TextInput
                   multiline={true}
                   placeholder={'Notes'}
@@ -1654,21 +1837,24 @@ const MyOrder = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   display: 'flex',
-                }}>
+                }}
+              >
                 <TouchableOpacity
                   onPress={() => {
                     viewloadermodel === false
                       ? RejectOrder(actionOrderId)
                       : null;
                   }}
-                  style={styles.button_reject_model}>
+                  style={styles.button_reject_model}
+                >
                   <Text
                     style={{
                       fontWeight: 'bold',
                       fontSize: responsiveFontSize(1.1),
                       color: Colors.white,
                       fontFamily: Inter.medium,
-                    }}>
+                    }}
+                  >
                     Reject
                   </Text>
                 </TouchableOpacity>
@@ -1686,7 +1872,8 @@ const MyOrder = () => {
             alignItems: 'center',
             backgroundColor: 'rgba(0,0,0,0.5)',
             position: 'relative',
-          }}>
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               setvisiblemodal(false);
@@ -1696,7 +1883,8 @@ const MyOrder = () => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -1710,7 +1898,8 @@ const MyOrder = () => {
               width: 300,
               backgroundColor: '#ffffff',
               borderRadius: 5,
-            }}>
+            }}
+          >
             <ScrollView showsVerticalScrollIndicator={false}>
               <Thermalpriter
                 Tcp_string={tcp_string}

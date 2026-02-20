@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -16,9 +16,9 @@ import {
   FlatList,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
-import {Images} from '../../Constants/ImageIconContant';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
+import { Images } from '../../Constants/ImageIconContant';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   responsiveHeight,
@@ -26,7 +26,7 @@ import {
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setCartDetails,
   setCartQuantity,
@@ -35,9 +35,9 @@ import {
   setNewOrder,
   saveOrderId,
 } from '../../Store/Reducers/CommonReducer';
-import {showToastMsg, getData, setData} from '../../Service/localStorage';
-import {postWithToken, postWithOutToken} from '../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { showToastMsg, getData, setData } from '../../Service/localStorage';
+import { postWithToken, postWithOutToken } from '../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Container,
   Icon,
@@ -47,16 +47,16 @@ import {
   CheckBox,
 } from 'react-native-basic-elements';
 import Modal from 'react-native-modal';
-import {HomeRight, OptionModelAdd} from '../../Component';
-import EbPrinter from 'react-native-ebprinter';
+import { HomeRight, OptionModelAdd } from '../../Component';
+//import EbPrinter from 'react-native-ebprinter';
 import messaging from '@react-native-firebase/messaging';
 import SoundPlayer from 'react-native-sound-player';
 
 // create a component
-const Home = ({props, route, navigation}) => {
+const Home = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, userToken, userData, langId, cartDetails} =
+  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [selected_category, setSelectedCategory] = useState(null);
@@ -88,7 +88,7 @@ const Home = ({props, route, navigation}) => {
 
   const [cartQuantity, setcartQuantity] = useState(0);
   const [orderType, setOrderType] = useState(1);
-  const [CartDish, setCartDish] = useState({isLoading: true, list: []});
+  const [CartDish, setCartDish] = useState({ isLoading: true, list: [] });
 
   const [optionModelAdd, setoptionModelAdd] = useState(false);
   const [isOrderModel, setNewOrderModel] = useState(false);
@@ -174,7 +174,7 @@ const Home = ({props, route, navigation}) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      setCartDish({isLoading: true, list: cartDetails});
+      setCartDish({ isLoading: true, list: cartDetails });
       setcartQuantity(cartQuantity);
     }, [cartDetails, cartQuantity]),
   );
@@ -218,7 +218,7 @@ const Home = ({props, route, navigation}) => {
     postWithToken(
       baseUrl,
       'web-business/get-business-info',
-      {lang_id: langId, type: 1},
+      { lang_id: langId, type: 1 },
       userToken,
     )
       .then(response => {
@@ -237,14 +237,14 @@ const Home = ({props, route, navigation}) => {
                 style: 'cancel',
               },
             ]);
-            setCategoryDetails({isLoading: false, list: []});
-            setCategoryMenu({isLoading: false, list: null});
+            setCategoryDetails({ isLoading: false, list: [] });
+            setCategoryMenu({ isLoading: false, list: null });
             setcategoryDetailsTemp([]);
             setCategoryMenuTemp([]);
             return false;
           } else {
             //console.log(response.category[0]);
-            setCategoryDetails({isLoading: false, list: response.category});
+            setCategoryDetails({ isLoading: false, list: response.category });
             setcategoryDetailsTemp(response.category);
 
             let menu_temp = null;
@@ -293,14 +293,14 @@ const Home = ({props, route, navigation}) => {
               style: 'cancel',
             },
           ]);
-          setCategoryDetails({isLoading: false, list: []});
-          setCategoryMenu({isLoading: false, list: null});
+          setCategoryDetails({ isLoading: false, list: [] });
+          setCategoryMenu({ isLoading: false, list: null });
           setcategoryDetailsTemp([]);
           setCategoryMenuTemp([]);
           return false;
         } else {
           //console.log(response.category[0]);
-          setCategoryDetails({isLoading: false, list: response.category});
+          setCategoryDetails({ isLoading: false, list: response.category });
           setcategoryDetailsTemp(response.category);
 
           let menu_temp = null;
@@ -337,19 +337,19 @@ const Home = ({props, route, navigation}) => {
     console.log(cat);
 
     setSelectedCategory(cat_id);
-    setCategoryMenu({isLoading: false, list: cat});
+    setCategoryMenu({ isLoading: false, list: cat });
   };
 
   const productDetails = item => {
     if (item.sets.length > 0 || item.ingredientsarray.length > 0) {
-      for (const ingre of item.ingredientsarray) {
+      /*for (const ingre of item.ingredientsarray) {
         ingre.status = true;
-      }
+      }*/
       productDetailsItem(item);
     } else {
       let cartDish = cartDetails;
       if (cartDish !== undefined && cartDish.length > 0) {
-        setCartDish({isLoading: true, list: cartDish});
+        setCartDish({ isLoading: true, list: cartDish });
       }
       addToCart(item);
     }
@@ -530,6 +530,7 @@ const Home = ({props, route, navigation}) => {
       ingredients: dishItem.ingredients,
       ingredientsarray: dishItem.ingredientsarray,
       activeIngredients: activeIngredients,
+      activeIngredientsText: activeIngredients.join(', '),
       quantity: 1,
       sets: new Array(),
       relation: {
@@ -717,7 +718,7 @@ const Home = ({props, route, navigation}) => {
       }
     }
     if (cart.length > 0) {
-      setCartDish({isLoading: false, list: cart});
+      setCartDish({ isLoading: false, list: cart });
       dispatch(setCartDetails(cart));
 
       showToastMsg('Item added successfully.');
@@ -883,7 +884,7 @@ const Home = ({props, route, navigation}) => {
   };
 
   const updateCartDetailsFromChild = cart => {
-    setCartDish({isLoading: false, list: cart});
+    setCartDish({ isLoading: false, list: cart });
     dispatch(setCartDetails(cart));
 
     let cartQty = 0;
@@ -908,19 +909,19 @@ const Home = ({props, route, navigation}) => {
   };
 
   const GetUsbDeviceList = async () => {
-    const usbdevicelist = await EbPrinter.getUsbDeviceList();
+    /*const usbdevicelist = await EbPrinter.getUsbDeviceList();
 
     if (usbdevicelist) {
       setPrinterList(usbdevicelist);
       //setPrinterList(['Devin', 'Dan']);
       setvisiblemodal(true);
     }
-    console.log(usbdevicelist);
+    console.log(usbdevicelist);*/
   };
 
   const selectDevice = item => {
     setSelectedUsb(item);
-    EbPrinter.selectUsbPrinter(item);
+    //EbPrinter.selectUsbPrinter(item);
     setvisiblemodal(false);
   };
 
@@ -976,7 +977,7 @@ const Home = ({props, route, navigation}) => {
 
       setSearchStatus(true);
 
-      setCategoryMenuSearch({isLoading: false, list: items_one});
+      setCategoryMenuSearch({ isLoading: false, list: items_one });
     } else {
       setSearchStatus(false);
       setCategoryMenuSearch({
@@ -1000,7 +1001,8 @@ const Home = ({props, route, navigation}) => {
             left: 0,
             top: 0,
             zIndex: 1,
-          }}>
+          }}
+        >
           <ActivityIndicator size="large" color={Colors.blue} />
         </View>
       ) : null}
@@ -1013,7 +1015,8 @@ const Home = ({props, route, navigation}) => {
             alignItems: 'center',
             backgroundColor: 'rgba(0,0,0,0.5)',
             position: 'relative',
-          }}>
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               setvisiblemodal(false);
@@ -1023,7 +1026,8 @@ const Home = ({props, route, navigation}) => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -1037,19 +1041,21 @@ const Home = ({props, route, navigation}) => {
               width: responsiveWidth(35),
               backgroundColor: '#ffffff',
               borderRadius: 5,
-            }}>
+            }}
+          >
             <ScrollView showsVerticalScrollIndicator={false}>
               <View
                 style={{
                   flex: 1,
                   backgroundColor: Colors.backgroundColor,
                   position: 'relative',
-                }}>
+                }}
+              >
                 <View style={{}}>
                   <FlatList
                     data={printerlist}
                     keyExtractor={(item, index) => item + index}
-                    renderItem={({item}) => (
+                    renderItem={({ item }) => (
                       <TouchableOpacity
                         style={{
                           paddingVertical: 10,
@@ -1057,12 +1063,14 @@ const Home = ({props, route, navigation}) => {
                           borderColor: '#ddd',
                           paddingHorizontal: 10,
                         }}
-                        onPress={() => selectDevice(item)}>
+                        onPress={() => selectDevice(item)}
+                      >
                         <Text
                           style={{
                             fontSize: responsiveFontSize(1.8),
                             color: Colors.blue,
-                          }}>
+                          }}
+                        >
                           {item}
                         </Text>
                       </TouchableOpacity>
@@ -1110,7 +1118,7 @@ const Home = ({props, route, navigation}) => {
           </View>*/}
 
           <AppTextInput
-            inputStyle={{paddingLeft: 10}}
+            inputStyle={{ paddingLeft: 10 }}
             onChangeText={text => {
               search_category(text);
             }}
@@ -1136,7 +1144,8 @@ const Home = ({props, route, navigation}) => {
                       display: 'flex',
                       flexDirection: 'row',
                       flexWrap: 'wrap',
-                    }}>
+                    }}
+                  >
                     {categoryDetails.list.map((item, index) => {
                       return (
                         <TouchableOpacity
@@ -1161,7 +1170,8 @@ const Home = ({props, route, navigation}) => {
                             marginHorizontal: responsiveWidth(0.5),
                             marginVertical: responsiveHeight(1),
                             width: responsiveWidth(14.5),
-                          }}>
+                          }}
+                        >
                           <Text
                             style={{
                               fontFamily: Inter.bold,
@@ -1170,7 +1180,8 @@ const Home = ({props, route, navigation}) => {
                                 selected_category == item.id
                                   ? Colors.blue
                                   : Colors.white,
-                            }}>
+                            }}
+                          >
                             {item.name}
                           </Text>
                         </TouchableOpacity>
@@ -1183,7 +1194,8 @@ const Home = ({props, route, navigation}) => {
                       flexDirection: 'row',
                       flexWrap: 'wrap',
                       marginBottom: responsiveHeight(25),
-                    }}>
+                    }}
+                  >
                     {category_menu.isLoading === false &&
                     category_menu.list != null
                       ? category_menu.list.dish.map((dish, dish_index) => {
@@ -1205,13 +1217,15 @@ const Home = ({props, route, navigation}) => {
                                 marginHorizontal: responsiveWidth(0.5),
                                 marginVertical: responsiveHeight(1),
                                 width: responsiveWidth(14.5),
-                              }}>
+                              }}
+                            >
                               <Text
                                 style={{
                                   fontFamily: Inter.regular,
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.black,
-                                }}>
+                                }}
+                              >
                                 {dish.name}
                               </Text>
                               <View
@@ -1221,14 +1235,16 @@ const Home = ({props, route, navigation}) => {
                                   flexDirection: 'row',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
-                                }}>
+                                }}
+                              >
                                 <View>
                                   <Text
                                     style={{
                                       fontFamily: Inter.regular,
                                       fontSize: responsiveFontSize(1),
                                       color: Colors.green,
-                                    }}>
+                                    }}
+                                  >
                                     {activeBusiness.currency_symbol}
                                     {dish.price}
                                   </Text>
@@ -1269,13 +1285,15 @@ const Home = ({props, route, navigation}) => {
                                   marginHorizontal: responsiveWidth(0.5),
                                   marginVertical: responsiveHeight(1),
                                   width: responsiveWidth(14.5),
-                                }}>
+                                }}
+                              >
                                 <Text
                                   style={{
                                     fontFamily: Inter.regular,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.black,
-                                  }}>
+                                  }}
+                                >
                                   {dish.name}
                                 </Text>
                                 <View
@@ -1285,14 +1303,16 @@ const Home = ({props, route, navigation}) => {
                                     flexDirection: 'row',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                  }}>
+                                  }}
+                                >
                                   <View>
                                     <Text
                                       style={{
                                         fontFamily: Inter.regular,
                                         fontSize: responsiveFontSize(1),
                                         color: Colors.green,
-                                      }}>
+                                      }}
+                                    >
                                       {activeBusiness.currency_symbol}
                                       {dish.price}
                                     </Text>
@@ -1323,7 +1343,8 @@ const Home = ({props, route, navigation}) => {
                       fontFamily: Inter.regular,
                       fontSize: responsiveFontSize(2),
                       color: Colors.red,
-                    }}>
+                    }}
+                  >
                     No Record Found
                   </Text>
                 </View>
@@ -1334,7 +1355,8 @@ const Home = ({props, route, navigation}) => {
                       display: 'flex',
                       flexDirection: 'row',
                       flexWrap: 'wrap',
-                    }}>
+                    }}
+                  >
                     <SkeletonPlaceholder.Item
                       width={responsiveWidth(14.5)}
                       height={responsiveWidth(10)}
@@ -1491,7 +1513,8 @@ const Home = ({props, route, navigation}) => {
                   flexDirection: 'row',
                   flexWrap: 'wrap',
                   marginBottom: responsiveHeight(25),
-                }}>
+                }}
+              >
                 {category_menu_search.isLoading === false &&
                 category_menu_search.list.length > 0 ? (
                   category_menu_search.list.map((dish, dish_index) => {
@@ -1516,13 +1539,15 @@ const Home = ({props, route, navigation}) => {
                           marginHorizontal: responsiveWidth(0.5),
                           marginVertical: responsiveHeight(1),
                           width: responsiveWidth(14.5),
-                        }}>
+                        }}
+                      >
                         <Text
                           style={{
                             fontFamily: Inter.regular,
                             fontSize: responsiveFontSize(1),
                             color: Colors.black,
-                          }}>
+                          }}
+                        >
                           {dish.name}
                         </Text>
                         <View
@@ -1532,14 +1557,16 @@ const Home = ({props, route, navigation}) => {
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                          }}>
+                          }}
+                        >
                           <View>
                             <Text
                               style={{
                                 fontFamily: Inter.regular,
                                 fontSize: responsiveFontSize(1),
                                 color: Colors.green,
-                              }}>
+                              }}
+                            >
                               {activeBusiness.currency_symbol}
                               {dish.price}
                             </Text>
@@ -1566,7 +1593,8 @@ const Home = ({props, route, navigation}) => {
                         fontFamily: Inter.regular,
                         fontSize: responsiveFontSize(2),
                         color: Colors.red,
-                      }}>
+                      }}
+                    >
                       No Record Found
                     </Text>
                   </View>
@@ -1577,7 +1605,8 @@ const Home = ({props, route, navigation}) => {
                         display: 'flex',
                         flexDirection: 'row',
                         flexWrap: 'wrap',
-                      }}>
+                      }}
+                    >
                       <SkeletonPlaceholder.Item
                         width={responsiveWidth(14.5)}
                         height={responsiveWidth(10)}
@@ -1817,14 +1846,16 @@ const Home = ({props, route, navigation}) => {
           animationType="slide"
           onRequestClose={() => {
             setNewOrderModel(false);
-          }}>
-          <View style={{...styles.upload_modal_main}}>
+          }}
+        >
+          <View style={{ ...styles.upload_modal_main }}>
             <View style={styles.upload_modal_inner_modalView}>
               <View
                 style={[
                   styles.upload_modal_view,
-                  {flexDirection: 'column', display: 'flex'},
-                ]}>
+                  { flexDirection: 'column', display: 'flex' },
+                ]}
+              >
                 <View
                   style={{
                     display: 'flex',
@@ -1832,7 +1863,8 @@ const Home = ({props, route, navigation}) => {
                     flexDirection: 'column',
                     gap: 10,
                     padding: 30,
-                  }}>
+                  }}
+                >
                   <Image
                     source={require('../../assets/images/check.png')}
                     style={styles.check_logo}
@@ -1842,7 +1874,8 @@ const Home = ({props, route, navigation}) => {
                       fontFamily: Inter.regular,
                       fontSize: responsiveFontSize(2.5),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Received a New Order!
                   </Text>
                   <Text
@@ -1850,14 +1883,16 @@ const Home = ({props, route, navigation}) => {
                       fontFamily: Inter.regular,
                       fontSize: responsiveFontSize(2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order ID{' '}
                     <Text
                       style={{
                         fontFamily: Inter.regular,
                         fontSize: responsiveFontSize(2.2),
                         color: 'red',
-                      }}>
+                      }}
+                    >
                       #{order_data != null ? order_data.order_id : null}
                     </Text>
                   </Text>
@@ -1866,7 +1901,8 @@ const Home = ({props, route, navigation}) => {
                       fontFamily: Inter.regular,
                       fontSize: responsiveFontSize(2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     {order_data != null ? order_data.order_type : null}
                   </Text>
 
@@ -1885,12 +1921,14 @@ const Home = ({props, route, navigation}) => {
                     style={{
                       ...styles.button_sty,
                       backgroundColor: Colors.green,
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         ...styles.button_txt,
                         color: '#fff',
-                      }}>
+                      }}
+                    >
                       OK
                     </Text>
                   </TouchableOpacity>

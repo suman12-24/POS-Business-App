@@ -23,7 +23,7 @@ import {
 import WifiManager from "react-native-wifi-reborn";
 
 
-import EbPrinter from 'react-native-ebprinter';
+//import EbPrinter from 'react-native-ebprinter';
 
 
 const printerList: Record<string, any> = {

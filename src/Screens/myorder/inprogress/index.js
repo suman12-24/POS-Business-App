@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -16,22 +16,22 @@ import {
   NativeEventEmitter,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../../Constants/Colors';
-import {Inter} from '../../../Constants/Fonts';
-import {Images} from '../../../Constants/ImageIconContant';
+import { Colors } from '../../../Constants/Colors';
+import { Inter } from '../../../Constants/Fonts';
+import { Images } from '../../../Constants/ImageIconContant';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../../../Service/localStorage';
-import {postWithToken, postWithOutToken} from '../../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../../../Service/localStorage';
+import { postWithToken, postWithOutToken } from '../../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import Moment from 'moment';
 import Modal from 'react-native-modal';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 import {
   Container,
   Icon,
@@ -44,12 +44,12 @@ import NetInfo from '@react-native-community/netinfo';
 import Thermalpriter from '../../../Component/prnterConnect';
 import Loader from '../../../Component/loader';
 
-const MyOrderInprogress = ({props, route, navigation}) => {
+const MyOrderInprogress = ({ props, route, navigation }) => {
   const styles = Styles();
   Moment.locale('en');
   const dispatch = useDispatch();
   const colorScheme = useColorScheme();
-  const {baseUrl, siteUrl, userToken, userData, post_data, langId} =
+  const { baseUrl, siteUrl, userToken, userData, post_data, langId } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [color_theme, setColorTheme] = useState('#000000');
@@ -410,10 +410,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
               list: response.data,
             });
           } else {
-            setOrderList({isLoading: false, list: []});
+            setOrderList({ isLoading: false, list: [] });
           }
         } else {
-          setOrderList({isLoading: false, list: []});
+          setOrderList({ isLoading: false, list: [] });
         }
       })
       .catch(error => {
@@ -447,10 +447,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
               list: [...orderlist.list, ...response.data],
             });
           } else {
-            setOrderList({isLoading: false, list: orderlist.list});
+            setOrderList({ isLoading: false, list: orderlist.list });
           }
         } else {
-          setOrderList({isLoading: false, list: orderlist.list});
+          setOrderList({ isLoading: false, list: orderlist.list });
         }
       })
       .catch(error => {
@@ -470,9 +470,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -480,9 +481,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -490,9 +492,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
             </SkeletonPlaceholder>
@@ -627,7 +630,7 @@ const MyOrderInprogress = ({props, route, navigation}) => {
         orderlist.list.splice(index, 1);
 
         setTimeout(() => {
-          setOrderList({isLoading: false, list: orderlist.list});
+          setOrderList({ isLoading: false, list: orderlist.list });
         }, 1000);
       })
       .catch(error => {
@@ -667,7 +670,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
             gap: 10,
             borderBottomWidth: 1.5,
             borderBottomColor: Colors.blue,
-          }}>
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('MyOrder');
@@ -681,14 +685,16 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
-            ]}>
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.blue,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Current
             </Text>
           </TouchableOpacity>
@@ -706,14 +712,16 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
-            ]}>
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.white,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Inprogress
             </Text>
           </TouchableOpacity>
@@ -731,14 +739,16 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
-            ]}>
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.blue,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Complete
             </Text>
           </TouchableOpacity>
@@ -757,7 +767,7 @@ const MyOrderInprogress = ({props, route, navigation}) => {
             }}
             onEndReachedThreshold={0.1}
             keyExtractor={(item, index) => index.toString()}
-            renderItem={({item, index}) => {
+            renderItem={({ item, index }) => {
               return (
                 <View key={index}>
                   <View
@@ -768,7 +778,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       paddingTop: responsiveHeight(2),
                       borderBottomColor: Colors.grey,
                       borderBottomWidth: 1,
-                    }}>
+                    }}
+                  >
                     <TouchableOpacity
                       onPress={() => {
                         openDetails(item);
@@ -777,13 +788,15 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                         flexDirection: 'column',
                         display: 'flex',
                         flex: 1,
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.3),
                           color: Colors.black,
-                        }}>
+                        }}
+                      >
                         Order Id: #{item.id}
                         {'    '}
                         <Text
@@ -792,7 +805,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                             fontSize: responsiveFontSize(1.3),
                             color: Colors.red,
                             marginLeft: responsiveWidth(10),
-                          }}>
+                          }}
+                        >
                           {item.sourcetype == 'Uber' ? 'UberEats' : null}
                         </Text>
                       </Text>
@@ -802,7 +816,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                           fontSize: responsiveFontSize(1.3),
                           color: Colors.black,
                           marginBottom: responsiveHeight(0.5),
-                        }}>
+                        }}
+                      >
                         {item.buyername}
                       </Text>
 
@@ -846,7 +861,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                           fontSize: responsiveFontSize(1),
                           color: Colors.black,
                           marginTop: responsiveHeight(0.5),
-                        }}>
+                        }}
+                      >
                         {item.date}
                       </Text>
                     </TouchableOpacity>
@@ -855,13 +871,15 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                         flexDirection: 'row',
                         alignItems: 'center',
                         display: 'flex',
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.3),
                           color: Colors.black,
-                        }}>
+                        }}
+                      >
                         {item.currency_symbol}
                         {item.total}
                       </Text>
@@ -872,19 +890,22 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                         alignItems: 'center',
                         display: 'flex',
                         gap: 20,
-                      }}>
+                      }}
+                    >
                       <TouchableOpacity
                         onPress={() => {
                           CompleteOrder(item.id, index);
                         }}
-                        style={styles.button_Complete}>
+                        style={styles.button_Complete}
+                      >
                         <Text
                           style={{
                             fontWeight: 'bold',
                             fontSize: responsiveFontSize(1.1),
                             color: Colors.white,
                             fontFamily: Inter.medium,
-                          }}>
+                          }}
+                        >
                           Complete Order
                         </Text>
                       </TouchableOpacity>
@@ -916,7 +937,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                 fontFamily: Inter.bold,
                 fontSize: 18,
                 color: Colors.red,
-              }}>
+              }}
+            >
               No Record Found{' '}
             </Text>
           </View>
@@ -928,9 +950,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -938,9 +961,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -948,9 +972,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
               <View
@@ -958,9 +983,10 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   width: '95%',
                   alignSelf: 'center',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <View
-                  style={{height: responsiveHeight(15), borderRadius: 10}}
+                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
                 />
               </View>
             </SkeletonPlaceholder>
@@ -968,8 +994,11 @@ const MyOrderInprogress = ({props, route, navigation}) => {
         )}
       </View>
 
-      <Modal isVisible={isModalVisible} style={{width: '80%', margin: 'auto'}}>
-        <View style={{flex: 1, position: 'relative'}}>
+      <Modal
+        isVisible={isModalVisible}
+        style={{ width: '80%', margin: 'auto' }}
+      >
+        <View style={{ flex: 1, position: 'relative' }}>
           <TouchableOpacity
             onPress={toggleModal}
             style={{
@@ -977,7 +1006,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -991,7 +1021,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
               borderRadius: 20,
               paddingHorizontal: responsiveWidth(2),
               paddingVertical: responsiveHeight(2),
-            }}>
+            }}
+          >
             <ScrollView>
               <View
                 style={{
@@ -999,20 +1030,23 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                   flexDirection: 'row',
                   marginBottom: responsiveHeight(2),
                   marginTop: responsiveHeight(4),
-                }}>
+                }}
+              >
                 <View
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     width: '50%',
                     gap: 10,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       fontFamily: Inter.bold,
                       fontSize: responsiveFontSize(1.5),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order ID : #{orderDetails != null ? orderDetails.id : null}
                   </Text>
                   <Text
@@ -1020,7 +1054,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order Date and Time :{' '}
                     {orderDetails != null ? orderDetails.date : null}
                   </Text>
@@ -1029,20 +1064,20 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Estimated Delivery Time :{' '}
-                    {orderDetails != null
-                      ? orderDetails.estimatedelivery
-                      : null}{' '}
+                    {orderDetails != null ? orderDetails.estimate_time : null}{' '}
                   </Text>
-                  <View style={{display: 'flex', flexDirection: 'row'}}>
+                  <View style={{ display: 'flex', flexDirection: 'row' }}>
                     <View>
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.2),
                           color: Colors.black,
-                        }}>
+                        }}
+                      >
                         Order Status :
                       </Text>
                     </View>
@@ -1054,13 +1089,15 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                             : '',
                         borderRadius: 5,
                         paddingHorizontal: responsiveWidth(1),
-                      }}>
+                      }}
+                    >
                       <Text
                         style={{
                           fontFamily: Inter.medium,
                           fontSize: responsiveFontSize(1.2),
                           color: Colors.white,
-                        }}>
+                        }}
+                      >
                         {orderDetails != null
                           ? displayVal(orderDetails.status)
                           : null}
@@ -1073,7 +1110,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Order Type :
                     {orderDetails != null
                       ? orderDetails.order_type == 1
@@ -1090,7 +1128,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Grand Total :{' '}
                     {orderDetails != null ? orderDetails.currency_symbol : null}
                     {orderDetails != null ? orderDetails.total : null}
@@ -1100,7 +1139,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Payment Information :{' '}
                     {orderDetails != null ? orderDetails.paymentname : null}
                   </Text>
@@ -1111,13 +1151,15 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                     flexDirection: 'column',
                     width: '50%',
                     gap: 10,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Name :{' '}
                     {orderDetails != null ? orderDetails.business.name : null}
                   </Text>
@@ -1126,7 +1168,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Address:{' '}
                     {orderDetails != null
                       ? orderDetails.business.address
@@ -1137,7 +1180,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     City :{' '}
                     {orderDetails != null ? orderDetails.business.city : null}
                   </Text>
@@ -1146,7 +1190,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Country:{' '}
                     {orderDetails != null
                       ? orderDetails.business.country
@@ -1157,7 +1202,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Phone Number :{' '}
                     {orderDetails != null ? orderDetails.business.phone : null}
                   </Text>
@@ -1166,14 +1212,15 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.2),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Mobile Number:{' '}
                     {orderDetails != null ? orderDetails.business.mobile : null}
                   </Text>
                 </View>
               </View>
 
-              <View style={{marginBottom: responsiveHeight(4)}}>
+              <View style={{ marginBottom: responsiveHeight(4) }}>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -1182,7 +1229,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                     backgroundColor: Colors.black,
                     borderTopStartRadius: 10,
                     borderTopEndRadius: 10,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       padding: 10,
@@ -1191,7 +1239,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       width: '30%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Item Name'}
                   </Text>
                   <Text
@@ -1202,7 +1251,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       width: '10%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Qty'}
                   </Text>
                   <Text
@@ -1213,7 +1263,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       width: '25%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Ingredients'}
                   </Text>
                   <Text
@@ -1224,7 +1275,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       width: '25%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Options'}
                   </Text>
                   <Text
@@ -1235,7 +1287,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                       width: '10%',
                       fontFamily: Inter.bold,
                       color: '#fff',
-                    }}>
+                    }}
+                  >
                     {'Price'}
                   </Text>
                 </View>
@@ -1249,7 +1302,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                             style={{
                               flexDirection: 'row',
                               alignItems: 'center',
-                            }}>
+                            }}
+                          >
                             <Text
                               style={{
                                 padding: 15,
@@ -1258,7 +1312,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                                 width: '30%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {dish.name}
                             </Text>
                             <Text
@@ -1269,7 +1324,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                                 width: '10%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {dish.quantity}
                             </Text>
                             <Text
@@ -1280,8 +1336,18 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                                 width: '25%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
-                              {dish.activeIngredientsText}
+                              }}
+                            >
+                              {/*dish.activeIngredientsText*/}
+                              {dish.ingredientsarray.length > 0
+                                ? dish.ingredientsarray.map(
+                                    (ingred, ing_index) => {
+                                      return ing_index != 0
+                                        ? ', ' + ingred
+                                        : ingred;
+                                    },
+                                  )
+                                : null}
                             </Text>
                             <View
                               style={{
@@ -1293,7 +1359,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                                 width: '25%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {dish.sets.length > 0
                                 ? dish.sets.map((set, set_index) => {
                                     return (
@@ -1302,7 +1369,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                                         style={{
                                           fontFamily: Inter.regular,
                                           color: '#000',
-                                        }}>
+                                        }}
+                                      >
                                         {set.name} - {set.choiceText}
                                       </Text>
                                     );
@@ -1317,7 +1385,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
                                 width: '10%',
                                 fontFamily: Inter.regular,
                                 color: '#000',
-                              }}>
+                              }}
+                            >
                               {orderDetails != null
                                 ? orderDetails.currency_symbol
                                 : null}
@@ -1341,7 +1410,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
             alignItems: 'center',
             backgroundColor: 'rgba(0,0,0,0.5)',
             position: 'relative',
-          }}>
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               setvisiblemodal(false);
@@ -1351,7 +1421,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -1365,7 +1436,8 @@ const MyOrderInprogress = ({props, route, navigation}) => {
               width: 300,
               backgroundColor: '#ffffff',
               borderRadius: 5,
-            }}>
+            }}
+          >
             <ScrollView showsVerticalScrollIndicator={false}>
               <Thermalpriter
                 Tcp_string={tcp_string}

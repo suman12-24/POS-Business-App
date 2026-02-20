@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   useWindowDimensions,
   Text,
@@ -16,9 +16,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Styles from './Styles';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
-import {Images} from '../../Constants/ImageIconContant';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
+import { Images } from '../../Constants/ImageIconContant';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   responsiveHeight,
@@ -26,14 +26,14 @@ import {
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setCartDetails,
   setCartQuantity,
 } from '../../Store/Reducers/CommonReducer';
-import {showToastMsg, getData, setData} from '../../Service/localStorage';
-import {postWithToken, postWithOutToken} from '../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { showToastMsg, getData, setData } from '../../Service/localStorage';
+import { postWithToken, postWithOutToken } from '../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Container,
   Icon,
@@ -49,8 +49,8 @@ import RenderHtml from 'react-native-render-html';
 const OptionModelAdd = props => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {width} = useWindowDimensions();
-  const {baseUrl, siteUrl, userToken, userData, langId, cartDetails} =
+  const { width } = useWindowDimensions();
+  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails } =
     useSelector(state => state.common);
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -942,9 +942,9 @@ const OptionModelAdd = props => {
     let activeIngredients;
     activeIngredients = new Array();
     for (const ingre of dish_val.ingredientsarray) {
-      if (ingre.status === false) {
-        activeIngredients.push(ingre.name);
-      }
+      /*if (ingre.status === false) {*/
+      activeIngredients.push(ingre.name);
+      /*}*/
     }
     let data;
     data = {
@@ -1291,8 +1291,9 @@ const OptionModelAdd = props => {
       {dataItem != null && dish != null ? (
         <Modal
           isVisible={isModalVisible}
-          style={{width: '60%', margin: 'auto'}}>
-          <View style={{flex: 1, position: 'relative'}}>
+          style={{ width: '60%', margin: 'auto' }}
+        >
+          <View style={{ flex: 1, position: 'relative' }}>
             <TouchableOpacity
               onPress={toggleModal}
               style={{
@@ -1300,7 +1301,8 @@ const OptionModelAdd = props => {
                 right: responsiveWidth(1),
                 top: responsiveHeight(1.5),
                 zIndex: 1,
-              }}>
+              }}
+            >
               <Icon
                 name="closecircleo"
                 type="AntDesign"
@@ -1314,14 +1316,17 @@ const OptionModelAdd = props => {
                 borderRadius: 20,
                 paddingHorizontal: responsiveWidth(2),
                 paddingVertical: responsiveHeight(2),
-                height: '100%',
-              }}>
+                //height: '100%',
+                maxHeight: '100%',
+              }}
+            >
               <ScrollView>
                 <View
                   style={{
                     paddingHorizontal: responsiveWidth(0.5),
                     marginVertical: responsiveHeight(1),
-                  }}>
+                  }}
+                >
                   <View
                     style={{
                       marginTop: responsiveHeight(0.5),
@@ -1329,13 +1334,15 @@ const OptionModelAdd = props => {
                       display: 'flex',
                       flexDirection: 'row',
                       alignItems: 'center',
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         fontFamily: Inter.bold,
                         fontSize: responsiveFontSize(2),
                         color: Colors.black,
-                      }}>
+                      }}
+                    >
                       {dish.name} {activeBusiness.currency_symbol}
                       {dish.price}
                     </Text>
@@ -1346,10 +1353,11 @@ const OptionModelAdd = props => {
                       display: 'flex',
                       flexDirection: 'row',
                       alignItems: 'center',
-                    }}>
+                    }}
+                  >
                     <RenderHtml
                       contentWidth={width}
-                      source={{html: dish.description}}
+                      source={{ html: dish.description }}
                       baseStyle={{
                         fontFamily: Inter.medium,
                         fontSize: responsiveFontSize(1.2),
@@ -1359,19 +1367,21 @@ const OptionModelAdd = props => {
                   </View>
 
                   {dish.sets.map((sets, setindex) => {
-                    console.log(dish.sets);
+                    //console.log(dish.sets);
                     return sets.options.map((option, optionindex) => {
                       return option.show === true ? (
                         <View
                           key={'option_' + optionindex}
-                          style={{marginBottom: responsiveHeight(3)}}>
+                          style={{ marginBottom: responsiveHeight(3) }}
+                        >
                           <Text
                             style={{
                               fontFamily: Inter.bold,
                               fontSize: responsiveFontSize(1.5),
                               color: Colors.blue,
                               marginBottom: responsiveHeight(1),
-                            }}>
+                            }}
+                          >
                             {option.name}{' '}
                             {option.required === true ? '*' : null}
                           </Text>
@@ -1381,7 +1391,8 @@ const OptionModelAdd = props => {
                                 fontFamily: Inter.bold,
                                 fontSize: responsiveFontSize(1),
                                 color: Colors.black,
-                              }}>
+                              }}
+                            >
                               {'(Min: ' +
                                 option.min +
                                 ' & Max: ' +
@@ -1396,7 +1407,8 @@ const OptionModelAdd = props => {
                               //alignItems: 'center',
                               gap: responsiveWidth(1),
                               marginTop: responsiveWidth(1),
-                            }}>
+                            }}
+                          >
                             {option.choice.map((choice, choiceindex) => {
                               return option.type == 0 ? (
                                 <View
@@ -1405,7 +1417,8 @@ const OptionModelAdd = props => {
                                     display: 'flex',
                                     flexDirection: 'row',
                                     alignItems: 'center',
-                                  }}>
+                                  }}
+                                >
                                   <View>
                                     <RadioButton
                                       selected={choice.checked}
@@ -1418,19 +1431,21 @@ const OptionModelAdd = props => {
                                         );
                                       }}
                                       size={22}
-                                      containerStyle={{position: 'relative'}}
+                                      containerStyle={{ position: 'relative' }}
                                       activeColor={Colors.blue}
                                       inactiveColor={Colors.blue}
                                     />
                                   </View>
                                   <View
-                                    style={{marginLeft: responsiveWidth(1)}}>
+                                    style={{ marginLeft: responsiveWidth(1) }}
+                                  >
                                     <Text
                                       style={{
                                         fontFamily: Inter.regular,
                                         color: Colors.black,
                                         fontSize: responsiveFontSize(1.2),
-                                      }}>
+                                      }}
+                                    >
                                       {choice.name}{' '}
                                       {choice.price > 0 ? (
                                         <>
@@ -1447,14 +1462,16 @@ const OptionModelAdd = props => {
                                     display: 'flex',
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
-                                  }}>
+                                  }}
+                                >
                                   <View
                                     key={'choice_' + choiceindex}
                                     style={{
                                       display: 'flex',
                                       flexDirection: 'row',
                                       alignItems: 'center',
-                                    }}>
+                                    }}
+                                  >
                                     <CheckBox
                                       checked={choice.checked}
                                       onChange={() => {
@@ -1476,7 +1493,8 @@ const OptionModelAdd = props => {
                                         fontFamily: Inter.regular,
                                         fontSize: responsiveFontSize(1.2),
                                         color: Colors.black,
-                                      }}>
+                                      }}
+                                    >
                                       {choice.name}{' '}
                                       {choice.price > 0 ? (
                                         <>
@@ -1493,7 +1511,8 @@ const OptionModelAdd = props => {
                                       flexDirection: 'row',
                                       alignItems: 'center',
                                       //justifyContent: 'space-between',
-                                    }}>
+                                    }}
+                                  >
                                     {choice.checked === true ? (
                                       <>
                                         <TouchableOpacity
@@ -1504,7 +1523,8 @@ const OptionModelAdd = props => {
                                               choiceindex,
                                               choice.id,
                                             );
-                                          }}>
+                                          }}
+                                        >
                                           <Icon
                                             name="minuscircleo"
                                             type="AntDesign"
@@ -1519,7 +1539,8 @@ const OptionModelAdd = props => {
                                             color: Colors.black,
                                             marginHorizontal:
                                               responsiveWidth(0.5),
-                                          }}>
+                                          }}
+                                        >
                                           {choice.qty}
                                         </Text>
                                         <TouchableOpacity
@@ -1530,7 +1551,8 @@ const OptionModelAdd = props => {
                                               choiceindex,
                                               choice.id,
                                             );
-                                          }}>
+                                          }}
+                                        >
                                           <Icon
                                             name="pluscircleo"
                                             type="AntDesign"
@@ -1555,7 +1577,8 @@ const OptionModelAdd = props => {
                   style={{
                     marginTop: responsiveHeight(2),
                     marginBottom: responsiveHeight(3),
-                  }}>
+                  }}
+                >
                   <TextInput
                     multiline={true}
                     placeholder={'Special Comment'}
@@ -1582,33 +1605,37 @@ const OptionModelAdd = props => {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                }}>
+                }}
+              >
                 <View>
                   <Text
                     style={{
                       fontFamily: Inter.bold,
                       fontSize: responsiveFontSize(1.9),
                       color: Colors.black,
-                    }}>
+                    }}
+                  >
                     Total {activeBusiness.currency_symbol}
                     {dishTotal}
                   </Text>
                 </View>
-                <View style={{paddingBottom: responsiveHeight(1)}}>
+                <View style={{ paddingBottom: responsiveHeight(1) }}>
                   <TouchableOpacity
                     style={styles.add_button}
                     onPress={() => {
                       edit_product === false
                         ? addToCart(dish)
                         : editTocart(dish);
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         fontWeight: 'bold',
                         fontSize: responsiveFontSize(1.5),
                         color: '#fff',
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       {dataItem.type == 1 ? 'Update' : 'Add'}
                     </Text>
                   </TouchableOpacity>
