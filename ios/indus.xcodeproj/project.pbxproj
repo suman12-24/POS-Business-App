@@ -7,22 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* indusTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* indusTests.m */; };
 		0C80B921A6F3F58F76C31292 /* libPods-indus.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-indus.a */; };
-		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		7699B88040F8A987B510C191 /* libPods-indus-indusTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-indus-indusTests.a */; };
+		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		C557A4C46C764EDEB1EB3CE6 /* Inter Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2E422CDBD16D4C118EDF7892 /* Inter Black.ttf */; };
-		5CCF21AE36124D35885CBDBA /* Inter Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C39E0AA96F42488B834747A0 /* Inter Bold.ttf */; };
-		087AC0E71FED4939854FAE15 /* Inter ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BF0A2004EA494279A7226D00 /* Inter ExtraBold.ttf */; };
-		45D1639254644ED68EBDE73A /* Inter ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 82F0836EDFB9411EA3102E1A /* Inter ExtraLight.ttf */; };
-		C1E6B21961834DACA406BBB3 /* Inter Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E6A3B979B5C5424892922F8C /* Inter Light.ttf */; };
-		D7AAE84D7E5247CD937578C8 /* Inter Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F1822F9B3E094EBD817917B5 /* Inter Medium.ttf */; };
-		073667C895B2447F9673690A /* Inter Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B12626D6831849CE9ABCCF35 /* Inter Regular.ttf */; };
-		AA118C925C004EAABDD71516 /* Inter SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09778B2C61D64D3E89B9BCE6 /* Inter SemiBold.ttf */; };
-		42B8B2D53F0544B0B9E7C104 /* Inter Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 188B2C08F3B243DF827804EB /* Inter Thin.ttf */; };
+		1C433570B7ED4189B5E2E08C /* Inter Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 28C3EB2818CC425AA6C59367 /* Inter Black.ttf */; };
+		70D6F6ECE9964C2BA67010DC /* Inter Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1C131300DEA4F428D190AE8 /* Inter Bold.ttf */; };
+		1A5E95F595324A7F8BB3E1B8 /* Inter ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D82C6977294653A271A17B /* Inter ExtraBold.ttf */; };
+		A52238D66D844B3DA316572A /* Inter ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A57A0F60D20648238A43A937 /* Inter ExtraLight.ttf */; };
+		CF4067F74F9645F2A12EF80C /* Inter Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E58856A049C5412091FF9918 /* Inter Light.ttf */; };
+		8679E3B858A44E8F9D0A1036 /* Inter Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E6510A8655E4527B10CF6AA /* Inter Medium.ttf */; };
+		7DB842C60FDF42DF96D2A2CE /* Inter Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E6ADC338A42544BEB641E69E /* Inter Regular.ttf */; };
+		057FEE927954401BA71D983E /* Inter SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBAB8D12F2164278809DD741 /* Inter SemiBold.ttf */; };
+		5BE7B1269CD84538A73344D6 /* Inter Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C309088928DA4F54A56E68B1 /* Inter Thin.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,44 +33,29 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* indusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = indusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* indusTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = indusTests.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* indus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = indus.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = indus/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = indus/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = indus/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = indus/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = indus/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = indus/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		19F6CBCC0A4E27FBF8BF4A61 /* libPods-indus-indusTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-indus-indusTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4392A12AC88292D35C810B /* Pods-indus.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-indus.debug.xcconfig"; path = "Target Support Files/Pods-indus/Pods-indus.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-indus.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-indus.release.xcconfig"; path = "Target Support Files/Pods-indus/Pods-indus.release.xcconfig"; sourceTree = "<group>"; };
-		5B7EB9410499542E8C5724F5 /* Pods-indus-indusTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-indus-indusTests.debug.xcconfig"; path = "Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-indus.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-indus.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = indus/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = indus/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		89C6BE57DB24E9ADA2F236DE /* Pods-indus-indusTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-indus-indusTests.release.xcconfig"; path = "Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		2E422CDBD16D4C118EDF7892 /* Inter Black.ttf */ = {isa = PBXFileReference; name = "Inter Black.ttf"; path = "../assets/fonts/Inter Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		C39E0AA96F42488B834747A0 /* Inter Bold.ttf */ = {isa = PBXFileReference; name = "Inter Bold.ttf"; path = "../assets/fonts/Inter Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		BF0A2004EA494279A7226D00 /* Inter ExtraBold.ttf */ = {isa = PBXFileReference; name = "Inter ExtraBold.ttf"; path = "../assets/fonts/Inter ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		82F0836EDFB9411EA3102E1A /* Inter ExtraLight.ttf */ = {isa = PBXFileReference; name = "Inter ExtraLight.ttf"; path = "../assets/fonts/Inter ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		E6A3B979B5C5424892922F8C /* Inter Light.ttf */ = {isa = PBXFileReference; name = "Inter Light.ttf"; path = "../assets/fonts/Inter Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		F1822F9B3E094EBD817917B5 /* Inter Medium.ttf */ = {isa = PBXFileReference; name = "Inter Medium.ttf"; path = "../assets/fonts/Inter Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		B12626D6831849CE9ABCCF35 /* Inter Regular.ttf */ = {isa = PBXFileReference; name = "Inter Regular.ttf"; path = "../assets/fonts/Inter Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		09778B2C61D64D3E89B9BCE6 /* Inter SemiBold.ttf */ = {isa = PBXFileReference; name = "Inter SemiBold.ttf"; path = "../assets/fonts/Inter SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		188B2C08F3B243DF827804EB /* Inter Thin.ttf */ = {isa = PBXFileReference; name = "Inter Thin.ttf"; path = "../assets/fonts/Inter Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		28C3EB2818CC425AA6C59367 /* Inter Black.ttf */ = {isa = PBXFileReference; name = "Inter Black.ttf"; path = "../assets/fonts/Inter Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E1C131300DEA4F428D190AE8 /* Inter Bold.ttf */ = {isa = PBXFileReference; name = "Inter Bold.ttf"; path = "../assets/fonts/Inter Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		99D82C6977294653A271A17B /* Inter ExtraBold.ttf */ = {isa = PBXFileReference; name = "Inter ExtraBold.ttf"; path = "../assets/fonts/Inter ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A57A0F60D20648238A43A937 /* Inter ExtraLight.ttf */ = {isa = PBXFileReference; name = "Inter ExtraLight.ttf"; path = "../assets/fonts/Inter ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E58856A049C5412091FF9918 /* Inter Light.ttf */ = {isa = PBXFileReference; name = "Inter Light.ttf"; path = "../assets/fonts/Inter Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9E6510A8655E4527B10CF6AA /* Inter Medium.ttf */ = {isa = PBXFileReference; name = "Inter Medium.ttf"; path = "../assets/fonts/Inter Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E6ADC338A42544BEB641E69E /* Inter Regular.ttf */ = {isa = PBXFileReference; name = "Inter Regular.ttf"; path = "../assets/fonts/Inter Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DBAB8D12F2164278809DD741 /* Inter SemiBold.ttf */ = {isa = PBXFileReference; name = "Inter SemiBold.ttf"; path = "../assets/fonts/Inter SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		C309088928DA4F54A56E68B1 /* Inter Thin.ttf */ = {isa = PBXFileReference; name = "Inter Thin.ttf"; path = "../assets/fonts/Inter Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		00E356EB1AD99517003FC87E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7699B88040F8A987B510C191 /* libPods-indus-indusTests.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -85,15 +67,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* indusTests */ = {
-			isa = PBXGroup;
-			children = (
-				00E356F21AD99517003FC87E /* indusTests.m */,
-				00E356F01AD99517003FC87E /* Supporting Files */,
-			);
-			path = indusTests;
-			sourceTree = "<group>";
-		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
@@ -105,12 +78,10 @@
 		13B07FAE1A68108700A75B9A /* indus */ = {
 			isa = PBXGroup;
 			children = (
-				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
-				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
+				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
-				13B07FB71A68108700A75B9A /* main.m */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 			);
 			name = indus;
@@ -121,7 +92,6 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-indus.a */,
-				19F6CBCC0A4E27FBF8BF4A61 /* libPods-indus-indusTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -138,11 +108,10 @@
 			children = (
 				13B07FAE1A68108700A75B9A /* indus */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* indusTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
-				6E53ECD9ED4B47A1BD91D973 /* Resources */,
+				7172EDA676924A54B47C1C1E /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -153,7 +122,6 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* indus.app */,
-				00E356EE1AD99517003FC87E /* indusTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -163,24 +131,22 @@
 			children = (
 				3B4392A12AC88292D35C810B /* Pods-indus.debug.xcconfig */,
 				5709B34CF0A7D63546082F79 /* Pods-indus.release.xcconfig */,
-				5B7EB9410499542E8C5724F5 /* Pods-indus-indusTests.debug.xcconfig */,
-				89C6BE57DB24E9ADA2F236DE /* Pods-indus-indusTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		6E53ECD9ED4B47A1BD91D973 /* Resources */ = {
+		7172EDA676924A54B47C1C1E /* Resources */ = {
 			isa = "PBXGroup";
 			children = (
-				2E422CDBD16D4C118EDF7892 /* Inter Black.ttf */,
-				C39E0AA96F42488B834747A0 /* Inter Bold.ttf */,
-				BF0A2004EA494279A7226D00 /* Inter ExtraBold.ttf */,
-				82F0836EDFB9411EA3102E1A /* Inter ExtraLight.ttf */,
-				E6A3B979B5C5424892922F8C /* Inter Light.ttf */,
-				F1822F9B3E094EBD817917B5 /* Inter Medium.ttf */,
-				B12626D6831849CE9ABCCF35 /* Inter Regular.ttf */,
-				09778B2C61D64D3E89B9BCE6 /* Inter SemiBold.ttf */,
-				188B2C08F3B243DF827804EB /* Inter Thin.ttf */,
+				28C3EB2818CC425AA6C59367 /* Inter Black.ttf */,
+				E1C131300DEA4F428D190AE8 /* Inter Bold.ttf */,
+				99D82C6977294653A271A17B /* Inter ExtraBold.ttf */,
+				A57A0F60D20648238A43A937 /* Inter ExtraLight.ttf */,
+				E58856A049C5412091FF9918 /* Inter Light.ttf */,
+				9E6510A8655E4527B10CF6AA /* Inter Medium.ttf */,
+				E6ADC338A42544BEB641E69E /* Inter Regular.ttf */,
+				DBAB8D12F2164278809DD741 /* Inter SemiBold.ttf */,
+				C309088928DA4F54A56E68B1 /* Inter Thin.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -189,27 +155,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* indusTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "indusTests" */;
-			buildPhases = (
-				A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */,
-				00E356EA1AD99517003FC87E /* Sources */,
-				00E356EB1AD99517003FC87E /* Frameworks */,
-				00E356EC1AD99517003FC87E /* Resources */,
-				C59DA0FBD6956966B86A3779 /* [CP] Embed Pods Frameworks */,
-				F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				00E356F51AD99517003FC87E /* PBXTargetDependency */,
-			);
-			name = indusTests;
-			productName = indusTests;
-			productReference = 00E356EE1AD99517003FC87E /* indusTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		13B07F861A680F5B00A75B9A /* indus */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "indus" */;
@@ -239,10 +184,6 @@
 			attributes = {
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
-					00E356ED1AD99517003FC87E = {
-						CreatedOnToolsVersion = 6.2;
-						TestTargetID = 13B07F861A680F5B00A75B9A;
-					};
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
 					};
@@ -262,7 +203,6 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* indus */,
-				00E356ED1AD99517003FC87E /* indusTests */,
 			);
 		};
 /* End PBXProject section */
@@ -281,15 +221,15 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				C557A4C46C764EDEB1EB3CE6 /* Inter Black.ttf in Resources */,
-				5CCF21AE36124D35885CBDBA /* Inter Bold.ttf in Resources */,
-				087AC0E71FED4939854FAE15 /* Inter ExtraBold.ttf in Resources */,
-				45D1639254644ED68EBDE73A /* Inter ExtraLight.ttf in Resources */,
-				C1E6B21961834DACA406BBB3 /* Inter Light.ttf in Resources */,
-				D7AAE84D7E5247CD937578C8 /* Inter Medium.ttf in Resources */,
-				073667C895B2447F9673690A /* Inter Regular.ttf in Resources */,
-				AA118C925C004EAABDD71516 /* Inter SemiBold.ttf in Resources */,
-				42B8B2D53F0544B0B9E7C104 /* Inter Thin.ttf in Resources */,
+				1C433570B7ED4189B5E2E08C /* Inter Black.ttf in Resources */,
+				70D6F6ECE9964C2BA67010DC /* Inter Bold.ttf in Resources */,
+				1A5E95F595324A7F8BB3E1B8 /* Inter ExtraBold.ttf in Resources */,
+				A52238D66D844B3DA316572A /* Inter ExtraLight.ttf in Resources */,
+				CF4067F74F9645F2A12EF80C /* Inter Light.ttf in Resources */,
+				8679E3B858A44E8F9D0A1036 /* Inter Medium.ttf in Resources */,
+				7DB842C60FDF42DF96D2A2CE /* Inter Regular.ttf in Resources */,
+				057FEE927954401BA71D983E /* Inter SemiBold.ttf in Resources */,
+				5BE7B1269CD84538A73344D6 /* Inter Thin.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,28 +269,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-indus/Pods-indus-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-indus-indusTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -373,23 +291,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C59DA0FBD6956966B86A3779 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		E235C05ADACE081382539298 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -407,40 +308,14 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-indus/Pods-indus-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F6A41C54EA430FDDC6A6ED99 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-indus-indusTests/Pods-indus-indusTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		00E356EA1AD99517003FC87E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				00E356F31AD99517003FC87E /* indusTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F871A680F5B00A75B9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
-				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -455,57 +330,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		00E356F61AD99517003FC87E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-indus-indusTests.debug.xcconfig */;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = indusTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/indus.app/indus";
-			};
-			name = Debug;
-		};
-		00E356F71AD99517003FC87E /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-indus-indusTests.release.xcconfig */;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = indusTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/indus.app/indus";
-			};
-			name = Release;
-		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 3B4392A12AC88292D35C810B /* Pods-indus.debug.xcconfig */;
@@ -515,6 +339,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = indus/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -541,6 +366,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = indus/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -607,7 +433,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -673,7 +499,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -700,15 +526,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "indusTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				00E356F61AD99517003FC87E /* Debug */,
-				00E356F71AD99517003FC87E /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "indus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

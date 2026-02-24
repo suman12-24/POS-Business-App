@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   createNativeStackNavigator,
   CardStyleInterpolators,
@@ -11,15 +11,15 @@ import {
   ResetPassword,
   Main,
   MyAccount,
-  MyOrder
-} from "../Screens";
+  MyOrder,
+} from '../Screens';
+import { Platform } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
-const MainNavigation = (props) => {
-
+const MainNavigation = props => {
   const horizontalAnimation = {
-    gestureDirection: "horizontal",
+    gestureDirection: 'horizontal',
     cardStyleInterpolator: ({ current, layouts }) => {
       return {
         cardStyle: {
@@ -37,7 +37,7 @@ const MainNavigation = (props) => {
   };
 
   const verticalAnimation = {
-    gestureDirection: "vertical",
+    gestureDirection: 'vertical',
     cardStyleInterpolator: ({ current, layouts }) => {
       return {
         cardStyle: {
@@ -55,14 +55,21 @@ const MainNavigation = (props) => {
   };
 
   return (
-    <Stack.Navigator screenOptions={{headerShown: false, headerStyle: {backgroundColor: ''}, headerShadowVisible: false}} >
-
-     <Stack.Screen
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        headerStyle: { backgroundColor: '' },
+        headerShadowVisible: false,
+        gestureEnabled: Platform.OS === 'android' ? false : true,
+      }}
+      initialRouteName="Initial"
+    >
+      <Stack.Screen
         name="Initial"
         component={Initial}
         options={horizontalAnimation}
-      /> 
-                
+      />
+
       <Stack.Screen
         name="Main"
         component={Main}
@@ -72,27 +79,26 @@ const MainNavigation = (props) => {
       <Stack.Screen
         name="Login"
         component={Login}
-        options={{headerTitle: 'Login', headerShown: false}}
+        options={{ headerTitle: 'Login', headerShown: false }}
       />
 
-     <Stack.Screen
+      <Stack.Screen
         name="Forgot"
         component={Forgot}
-        options={{headerTitle: 'Forgot Password', headerShown: false}}
+        options={{ headerTitle: 'Forgot Password', headerShown: false }}
       />
 
-     <Stack.Screen
+      <Stack.Screen
         name="ForgotOtp"
         component={ForgotOtp}
-        options={{headerTitle: 'OTP Vefify', headerShown: false}}
+        options={{ headerTitle: 'OTP Vefify', headerShown: false }}
       />
 
       <Stack.Screen
         name="ResetPassword"
         component={ResetPassword}
-        options={{headerTitle: 'Reset Password', headerShown: false}}
+        options={{ headerTitle: 'Reset Password', headerShown: false }}
       />
-           
     </Stack.Navigator>
   );
 };

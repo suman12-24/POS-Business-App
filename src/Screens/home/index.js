@@ -146,6 +146,39 @@ const Home = ({ props, route, navigation }) => {
       });
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        BackHandler.exitApp();
+      };
+
+      const ExitAlert = () => {
+        /*Alert.alert('Jatayu Supplier', 'do you want to close app?', [
+              {
+                text: 'No',
+                onPress: () => console.log('Cancel Pressed'),
+                style: 'cancel',
+              },
+              {
+                text: 'Yes',
+                onPress: () => {
+                  backAction();
+                },
+              },
+            ]);*/
+        backAction();
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        ExitAlert,
+      );
+
+      return () => backHandler.remove();
+    }, []),
+  );
+
   const SoundPlay = () => {
     console.log('call sound');
     try {
@@ -177,19 +210,6 @@ const Home = ({ props, route, navigation }) => {
       setCartDish({ isLoading: true, list: cartDetails });
       setcartQuantity(cartQuantity);
     }, [cartDetails, cartQuantity]),
-  );
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const backAction = () => {
-        BackHandler.exitApp();
-      };
-      const backHandler = BackHandler.addEventListener(
-        'hardwareBackPress',
-        backAction,
-      );
-      return () => backHandler.remove();
-    }, []),
   );
 
   useEffect(() => {

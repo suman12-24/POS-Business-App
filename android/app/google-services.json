@@ -137,6 +137,25 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1045916785862:android:5a5f2589a9faa0e0860bc7",
+        "android_client_info": {
+          "package_name": "com.pos.business"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

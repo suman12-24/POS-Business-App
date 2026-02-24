@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.indus.business",
+  "applicationId": "com.pos.business",
   "variantName": "release",
   "elements": [
     {

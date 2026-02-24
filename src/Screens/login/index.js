@@ -8,26 +8,27 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Styles from './style';
-import {Colors} from '../../Constants/Colors';
+import { Colors } from '../../Constants/Colors';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import {Inter} from '../../Constants/Fonts';
-import {Images} from '../../Constants/ImageIconContant';
-import {useDispatch, useSelector} from 'react-redux';
-import {setUserData} from '../../Store/Reducers/CommonReducer';
-import {showToastMsg, getData, setData} from '../../Service/localStorage';
+import { Inter } from '../../Constants/Fonts';
+import { Images } from '../../Constants/ImageIconContant';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUserData } from '../../Store/Reducers/CommonReducer';
+import { showToastMsg, getData, setData } from '../../Service/localStorage';
 import {
   postWithOutToken,
   postWithOutTokenWithoutData,
 } from '../../Service/service';
-import {clearUserData} from '../../Store/Reducers/CommonReducer';
-import {useFocusEffect} from '@react-navigation/native';
+import { clearUserData } from '../../Store/Reducers/CommonReducer';
+import { useFocusEffect } from '@react-navigation/native';
 import VersionNumber from 'react-native-version-number';
 import {
   Container,
@@ -37,10 +38,10 @@ import {
 } from 'react-native-basic-elements';
 import Loader from '../../Component/loader';
 
-const Login = ({props, route, navigation}) => {
+const Login = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, deviceToken, langId} = useSelector(
+  const { baseUrl, siteUrl, deviceToken, langId } = useSelector(
     state => state.common,
   );
   const [version_code, setVersionCode] = useState(null);
@@ -68,6 +69,39 @@ const Login = ({props, route, navigation}) => {
   useFocusEffect(
     React.useCallback(() => {
       dispatch(clearUserData());
+    }, []),
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        BackHandler.exitApp();
+      };
+
+      const ExitAlert = () => {
+        /*Alert.alert('Jatayu Supplier', 'do you want to close app?', [
+            {
+              text: 'No',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {
+              text: 'Yes',
+              onPress: () => {
+                backAction();
+              },
+            },
+          ]);*/
+        backAction();
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        ExitAlert,
+      );
+
+      return () => backHandler.remove();
     }, []),
   );
 
@@ -180,10 +214,11 @@ const Login = ({props, route, navigation}) => {
               overflow: 'hidden',
               borderRadius: 10,
               margin: 'auto',
-            }}>
+            }}
+          >
             <Image
               source={Images.login_logo}
-              style={{width: '100%', height: '100%', objectFit: 'contain'}}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
           </View>
 
@@ -192,23 +227,29 @@ const Login = ({props, route, navigation}) => {
               flexDirection: 'row',
               justifyContent: 'center',
               marginBottom: 20,
-            }}>
+            }}
+          >
             <Text
               style={{
                 color: Colors.black,
                 fontFamily: Inter.light,
                 fontSize: responsiveFontSize(2.5),
-              }}>
+              }}
+            >
               Welcome Back!
             </Text>
           </View>
           <View>
             <AppTextInput
-              inputStyle={{paddingLeft: 10}}
+              inputStyle={{ paddingLeft: 10 }}
               onChangeText={setEmail}
               value={email}
               placeholder="Email"
-              leftIcon={{name: 'mail', type: 'AntDesign', color: Colors.black}}
+              leftIcon={{
+                name: 'mail',
+                type: 'AntDesign',
+                color: Colors.black,
+              }}
               inputContainerStyle={{
                 borderColor: Colors.grey,
                 marginBottom: responsiveHeight(1),
@@ -217,15 +258,19 @@ const Login = ({props, route, navigation}) => {
             />
 
             <AppTextInput
-              inputStyle={{paddingLeft: 10, borderColor: Colors.grey}}
+              inputStyle={{ paddingLeft: 10, borderColor: Colors.grey }}
               onChangeText={setPassword}
               value={password}
               secureTextEntry={password_field_type}
               rightAction={password_eye}
               onRightIconPress={changeFieldType}
               placeholder="Password"
-              leftIcon={{name: 'lock', type: 'AntDesign', color: Colors.black}}
-              inputContainerStyle={{borderColor: Colors.grey}}
+              leftIcon={{
+                name: 'lock',
+                type: 'AntDesign',
+                color: Colors.black,
+              }}
+              inputContainerStyle={{ borderColor: Colors.grey }}
               autoCapitalize="none"
             />
 
@@ -237,7 +282,8 @@ const Login = ({props, route, navigation}) => {
                     fontSize: responsiveFontSize(1.5),
                     color: '#000',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Login
                 </Text>
               </TouchableOpacity>
@@ -246,14 +292,16 @@ const Login = ({props, route, navigation}) => {
                 style={styles.button}
                 onPress={() => {
                   handleLogin();
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontWeight: 'bold',
                     fontSize: responsiveFontSize(1.5),
                     color: '#fff',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Login
                 </Text>
               </TouchableOpacity>
@@ -267,7 +315,8 @@ const Login = ({props, route, navigation}) => {
                 fontFamily: Inter.regular,
                 paddingTop: responsiveHeight(2),
                 textAlign: 'center',
-              }}>
+              }}
+            >
               Forgot Password?
             </Text>
             <Text
@@ -277,7 +326,8 @@ const Login = ({props, route, navigation}) => {
                 fontFamily: Inter.regular,
                 paddingTop: responsiveHeight(2),
                 textAlign: 'center',
-              }}>
+              }}
+            >
               @ Indus v {version_code != null ? version_code : null}
             </Text>
           </View>

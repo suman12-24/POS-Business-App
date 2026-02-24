@@ -1,5 +1,4 @@
-package com.indus.business
-
+package com.pos.business
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,11 +8,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
+
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
-
 
 class MainActivity : ReactActivity() {
 
@@ -30,7 +29,7 @@ class MainActivity : ReactActivity() {
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
-	override fun onCreate(savedInstanceState: Bundle?) {
+      override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(
                 "booking_channel",
