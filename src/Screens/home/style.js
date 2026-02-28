@@ -1,6 +1,6 @@
-import {StyleSheet} from 'react-native';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
+import { StyleSheet } from 'react-native';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -16,6 +16,7 @@ const Styles = () => {
     main: {
       display: 'flex',
       width: '100%',
+      minHeight: '100%',
       flexDirection: 'row',
       paddingHorizontal: responsiveWidth(2),
       paddingVertical: responsiveHeight(2),
@@ -87,7 +88,7 @@ const Styles = () => {
       borderRadius: responsiveWidth(2),
       elevation: 5,
       shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
+      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: responsiveWidth(5),
       paddingTop: responsiveHeight(1),

@@ -242,8 +242,8 @@ const Home = ({ props, route, navigation }) => {
       userToken,
     )
       .then(response => {
-        console.log(response);
-        console.log(response.category[0]);
+        //console.log(response.business);
+        // console.log(response.category[0]);
         //setActiveBusiness(response);
         //dineIn(response);
 
@@ -279,13 +279,19 @@ const Home = ({ props, route, navigation }) => {
               if (item.subCat.length > 0) {
                 //menu_temp.concat(item.subCat.dish);
 
-                if (menu_temp == null) {
-                  menu_temp = item.dish;
-                } else {
-                  menu_temp = [...menu_temp, ...item.subCat.dish];
-                }
+                item.subCat.map((sutitem, subindex) => {
+                  if (menu_temp == null) {
+                    menu_temp = sutitem.dish;
+                  } else {
+                    menu_temp = [...menu_temp, ...sutitem.dish];
+                  }
+                });
               }
+              //console.log(item);
             });
+
+            //console.log('Menu Temp');
+            //console.log(menu_temp);
 
             setCategoryMenuTemp(menu_temp);
           }
@@ -361,10 +367,11 @@ const Home = ({ props, route, navigation }) => {
   };
 
   const productDetails = item => {
-    if (item.sets.length > 0 || item.ingredientsarray.length > 0) {
-      /*for (const ingre of item.ingredientsarray) {
+    /*if (item.sets.length > 0 || item.ingredientsarray.length > 0) {*/
+    /*for (const ingre of item.ingredientsarray) {
         ingre.status = true;
       }*/
+    if (item.sets.length > 0) {
       productDetailsItem(item);
     } else {
       let cartDish = cartDetails;
@@ -983,6 +990,8 @@ const Home = ({ props, route, navigation }) => {
           tag => tag.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
         );
       });*/
+      console.log('Search');
+      console.log(category_menu_temp);
 
       const items_one = category_menu_temp.filter(
         item => item.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
@@ -1240,10 +1249,13 @@ const Home = ({ props, route, navigation }) => {
                               }}
                             >
                               <Text
+                                numberOfLines={2}
+                                ellipsizeMode="tail"
                                 style={{
                                   fontFamily: Inter.regular,
                                   fontSize: responsiveFontSize(1),
                                   color: Colors.black,
+                                  height: responsiveHeight(5.4),
                                 }}
                               >
                                 {dish.name}
@@ -1308,10 +1320,13 @@ const Home = ({ props, route, navigation }) => {
                                 }}
                               >
                                 <Text
+                                  numberOfLines={2}
+                                  ellipsizeMode="tail"
                                   style={{
                                     fontFamily: Inter.regular,
                                     fontSize: responsiveFontSize(1),
                                     color: Colors.black,
+                                    height: responsiveHeight(5.4),
                                   }}
                                 >
                                   {dish.name}
@@ -1562,10 +1577,13 @@ const Home = ({ props, route, navigation }) => {
                         }}
                       >
                         <Text
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
                           style={{
                             fontFamily: Inter.regular,
                             fontSize: responsiveFontSize(1),
                             color: Colors.black,
+                            height: responsiveHeight(5.4),
                           }}
                         >
                           {dish.name}
@@ -1595,7 +1613,7 @@ const Home = ({ props, route, navigation }) => {
                             <Icon
                               name="pluscircle"
                               type="AntDesign"
-                              size={25}
+                              size={responsiveWidth(2)}
                               color={Colors.green}
                             />
                           </View>

@@ -9,19 +9,19 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Styles from './style';
-import {Colors} from '../../../Constants/Colors';
+import { Colors } from '../../../Constants/Colors';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import {Images} from '../../../Constants/ImageIconContant';
-import {Inter} from '../../../Constants/Fonts';
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../../../Service/localStorage';
-import {postWithOutToken} from '../../../Service/service';
+import { Images } from '../../../Constants/ImageIconContant';
+import { Inter } from '../../../Constants/Fonts';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../../../Service/localStorage';
+import { postWithOutToken } from '../../../Service/service';
 import VersionNumber from 'react-native-version-number';
 import {
   Container,
@@ -30,12 +30,12 @@ import {
   AppButton,
 } from 'react-native-basic-elements';
 import Loader from '../../../Component/loader';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
-const ResetPassword = ({props, route, navigation}) => {
+const ResetPassword = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, deviceToken, langId} = useSelector(
+  const { baseUrl, siteUrl, deviceToken, langId } = useSelector(
     state => state.common,
   );
   const [newpass, setNewPass] = useState('');
@@ -250,10 +250,11 @@ const ResetPassword = ({props, route, navigation}) => {
               overflow: 'hidden',
               borderRadius: 10,
               margin: 'auto',
-            }}>
+            }}
+          >
             <Image
               source={Images.login_logo}
-              style={{width: '100%', height: '100%', objectFit: 'cover'}}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </View>
           {resetPasswordstatus === false ? (
@@ -263,20 +264,22 @@ const ResetPassword = ({props, route, navigation}) => {
                   flexDirection: 'row',
                   justifyContent: 'center',
                   marginBottom: 20,
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     color: Colors.black,
                     fontFamily: Inter.light,
                     fontSize: responsiveFontSize(2.5),
-                  }}>
+                  }}
+                >
                   Reset Password
                 </Text>
               </View>
 
               <View>
                 <AppTextInput
-                  inputStyle={{paddingLeft: 10, borderColor: Colors.grey}}
+                  inputStyle={{ paddingLeft: 10, borderColor: Colors.grey }}
                   onChangeText={setNewPass}
                   value={newpass}
                   secureTextEntry={password_field_type}
@@ -288,12 +291,12 @@ const ResetPassword = ({props, route, navigation}) => {
                     type: 'AntDesign',
                     color: Colors.black,
                   }}
-                  inputContainerStyle={{borderColor: Colors.grey}}
+                  inputContainerStyle={{ borderColor: Colors.grey }}
                   autoCapitalize="none"
                 />
 
                 <AppTextInput
-                  inputStyle={{paddingLeft: 10, borderColor: Colors.grey}}
+                  inputStyle={{ paddingLeft: 10, borderColor: Colors.grey }}
                   onChangeText={setConfirmpass}
                   value={confirmpass}
                   secureTextEntry={password_field_type_con}
@@ -305,7 +308,7 @@ const ResetPassword = ({props, route, navigation}) => {
                     type: 'AntDesign',
                     color: Colors.black,
                   }}
-                  inputContainerStyle={{borderColor: Colors.grey}}
+                  inputContainerStyle={{ borderColor: Colors.grey }}
                   autoCapitalize="none"
                 />
 
@@ -317,7 +320,8 @@ const ResetPassword = ({props, route, navigation}) => {
                         fontSize: responsiveFontSize(1.5),
                         color: '#000',
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       Reset Password
                     </Text>
                   </TouchableOpacity>
@@ -326,27 +330,34 @@ const ResetPassword = ({props, route, navigation}) => {
                     style={styles.button}
                     onPress={() => {
                       Reset();
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         fontWeight: 'bold',
                         fontSize: responsiveFontSize(1.5),
                         color: '#fff',
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       Reset Password
                     </Text>
                   </TouchableOpacity>
                 )}
 
                 <View
-                  style={{alignSelf: 'center', marginTop: responsiveHeight(2)}}>
+                  style={{
+                    alignSelf: 'center',
+                    marginTop: responsiveHeight(2),
+                  }}
+                >
                   <Text
                     style={{
                       color: '#555',
                       fontFamily: Inter.regular,
                       fontSize: responsiveFontSize(1.5),
-                    }}>
+                    }}
+                  >
                     Already Have an account ?
                     <Text
                       onPress={() => {
@@ -355,14 +366,15 @@ const ResetPassword = ({props, route, navigation}) => {
                       style={{
                         color: Colors.blue,
                         fontSize: responsiveFontSize(1.5),
-                      }}>
+                      }}
+                    >
                       {' '}
                       Login
                     </Text>
                   </Text>
                 </View>
 
-                <Text
+                {/*<Text
                   style={{
                     fontSize: responsiveFontSize(1.2),
                     color: Colors.grey,
@@ -371,7 +383,7 @@ const ResetPassword = ({props, route, navigation}) => {
                     textAlign: 'center',
                   }}>
                   @ Indus v {version_code != null ? version_code : null}
-                </Text>
+                </Text>*/}
               </View>
             </View>
           ) : (
@@ -383,10 +395,11 @@ const ResetPassword = ({props, route, navigation}) => {
                   overflow: 'hidden',
                   margin: 'auto',
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <Image
                   source={Images.successtick}
-                  style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </View>
               <View
@@ -395,13 +408,15 @@ const ResetPassword = ({props, route, navigation}) => {
                   justifyContent: 'center',
                   marginBottom: responsiveHeight(2),
                   marginTop: responsiveHeight(2),
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     color: Colors.black,
                     fontFamily: Inter.light,
                     fontSize: responsiveFontSize(1.5),
-                  }}>
+                  }}
+                >
                   Password Changed Successfully
                 </Text>
               </View>
@@ -410,27 +425,30 @@ const ResetPassword = ({props, route, navigation}) => {
                 style={styles.button}
                 onPress={() => {
                   navigation.navigate('Login');
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontWeight: 'bold',
                     fontSize: responsiveFontSize(1.5),
                     color: '#fff',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Go Back To Login
                 </Text>
               </TouchableOpacity>
-              <Text
+              {/*<Text
                 style={{
                   fontSize: responsiveFontSize(1.2),
                   color: Colors.grey,
                   fontFamily: Inter.regular,
                   paddingTop: responsiveHeight(2),
                   textAlign: 'center',
-                }}>
+                }}
+              >
                 @ Indus v {version_code != null ? version_code : null}
-              </Text>
+              </Text>*/}
             </View>
           )}
         </View>

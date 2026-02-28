@@ -10,19 +10,19 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Styles from './style';
-import {Colors} from '../../../Constants/Colors';
+import { Colors } from '../../../Constants/Colors';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import {Images} from '../../../Constants/ImageIconContant';
-import {Inter} from '../../../Constants/Fonts';
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../../../Service/localStorage';
-import {postWithOutToken} from '../../../Service/service';
+import { Images } from '../../../Constants/ImageIconContant';
+import { Inter } from '../../../Constants/Fonts';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../../../Service/localStorage';
+import { postWithOutToken } from '../../../Service/service';
 import VersionNumber from 'react-native-version-number';
 import {
   Container,
@@ -32,10 +32,10 @@ import {
 } from 'react-native-basic-elements';
 import Loader from '../../../Component/loader';
 
-const Forgot = ({props, route, navigation}) => {
+const Forgot = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, langId} = useSelector(state => state.common);
+  const { baseUrl, siteUrl, langId } = useSelector(state => state.common);
   const [email, setEmail] = useState('');
   const [version_code, setVersionCode] = useState(null);
   const [viewloader, setLoader] = useState(false);
@@ -136,10 +136,11 @@ const Forgot = ({props, route, navigation}) => {
               overflow: 'hidden',
               borderRadius: 10,
               margin: 'auto',
-            }}>
+            }}
+          >
             <Image
               source={Images.login_logo}
-              style={{width: '100%', height: '100%', objectFit: 'cover'}}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </View>
 
@@ -148,23 +149,29 @@ const Forgot = ({props, route, navigation}) => {
               flexDirection: 'row',
               justifyContent: 'center',
               marginBottom: 20,
-            }}>
+            }}
+          >
             <Text
               style={{
                 color: Colors.black,
                 fontFamily: Inter.light,
                 fontSize: responsiveFontSize(2.5),
-              }}>
+              }}
+            >
               Forgot Password!
             </Text>
           </View>
           <View>
             <AppTextInput
-              inputStyle={{paddingLeft: 10}}
+              inputStyle={{ paddingLeft: 10 }}
               onChangeText={setEmail}
               value={email}
               placeholder="Email"
-              leftIcon={{name: 'mail', type: 'AntDesign', color: Colors.black}}
+              leftIcon={{
+                name: 'mail',
+                type: 'AntDesign',
+                color: Colors.black,
+              }}
               inputContainerStyle={{
                 borderColor: Colors.grey,
                 marginBottom: responsiveHeight(1),
@@ -180,7 +187,8 @@ const Forgot = ({props, route, navigation}) => {
                     fontSize: responsiveFontSize(1.5),
                     color: '#000',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Submit
                 </Text>
               </TouchableOpacity>
@@ -189,14 +197,16 @@ const Forgot = ({props, route, navigation}) => {
                 style={styles.button}
                 onPress={() => {
                   SubmitEmail();
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontWeight: 'bold',
                     fontSize: responsiveFontSize(1.5),
                     color: '#fff',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Submit
                 </Text>
               </TouchableOpacity>
@@ -211,19 +221,21 @@ const Forgot = ({props, route, navigation}) => {
               }}
               onPress={() => {
                 navigation.navigate('Login');
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(1),
                   color: Colors.blue,
                   fontFamily: Inter.medium,
-                }}>
+                }}
+              >
                 Go Back To Login
               </Text>
             </TouchableOpacity>
 
-            <Text
+            {/*<Text
               style={{
                 fontSize: responsiveFontSize(1.2),
                 color: Colors.grey,
@@ -232,7 +244,7 @@ const Forgot = ({props, route, navigation}) => {
                 textAlign: 'center',
               }}>
               @ Indus v {version_code != null ? version_code : null}
-            </Text>
+            </Text>*/}
           </View>
         </View>
       </View>

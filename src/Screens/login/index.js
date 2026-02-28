@@ -319,7 +319,7 @@ const Login = ({ props, route, navigation }) => {
             >
               Forgot Password?
             </Text>
-            <Text
+            {/*<Text
               style={{
                 fontSize: responsiveFontSize(1.2),
                 color: Colors.grey,
@@ -329,7 +329,7 @@ const Login = ({ props, route, navigation }) => {
               }}
             >
               @ Indus v {version_code != null ? version_code : null}
-            </Text>
+            </Text>*/}
           </View>
         </View>
       </View>

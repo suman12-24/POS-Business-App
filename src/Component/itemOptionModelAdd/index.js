@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   useWindowDimensions,
   Text,
@@ -14,7 +14,9 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 import Styles from './Styles';
 import { Colors } from '../../Constants/Colors';
 import { Inter } from '../../Constants/Fonts';
@@ -65,8 +67,43 @@ const OptionModelAdd = props => {
   const [dish_note, setItemNote] = useState('');
   const [edit_product, setEditProduct] = useState(false);
 
+  const [images, setImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [expandedDesc, setExpandedDesc] = useState(false);
+  const [productQty, setProductQty] = useState(1);
+
+  const scrollViewRef = useRef(null);
+  const optionRefs = useRef({});
+  const [error, setError] = useState('');
+
+  const [optionErrors, setOptionErrors] = useState({});
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const imageOpacity = scrollY.interpolate({
+    inputRange: [0, 170],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+  const imageHeight = scrollY.interpolate({
+    inputRange: [0, 170],
+    outputRange: [240, 0],
+    extrapolate: 'clamp',
+  });
+
   const toggleModal = () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    scrollY.setValue(0);
+    setExpandedDesc(false);
     setModalVisible(!isModalVisible);
+    setOptionErrors({});
+    setError('');
   };
 
   /*useEffect(() =>{
@@ -80,11 +117,29 @@ const OptionModelAdd = props => {
         setActiveBusiness(props.activeBusiness);
         setOrderType(props.orderType);
         setDataItem(props.optionItem);
+        setSelectedImage(null);
 
         let dish_value = JSON.parse(JSON.stringify(props.optionItem.dish));
 
+        let image_arr = [];
+
+        if (dish_value.is_img != null && dish_value.is_img != 0) {
+          image_arr.push(dish_value.is_img);
+        }
+
+        if (dish_value.is_img1 != null && dish_value.is_img1 != 0) {
+          image_arr.push(dish_value.is_img1);
+        }
+
+        if (dish_value.is_img2 != null && dish_value.is_img2 != 0) {
+          image_arr.push(dish_value.is_img2);
+        }
+
+        setImages(image_arr);
+
         console.log('dish item');
-        //console.log(dish_value.sets[0].options[4]);
+        console.log(images);
+        console.log(dish_value);
 
         for (let k = 0; k < dish_value.sets.length; k++) {
           for (let i = 0; i < dish_value.sets[k].options.length; i++) {
@@ -100,6 +155,10 @@ const OptionModelAdd = props => {
               }
             }
           }
+        }
+
+        if (image_arr.length > 0) {
+          setSelectedImage(image_arr[0]);
         }
 
         setDish(dish_value);
@@ -121,6 +180,7 @@ const OptionModelAdd = props => {
             ].quantity,
             10,
           );
+          setProductQty(qty);
           let dishTotal = indexcart.dishTotal / qty;
           setDishTotal(dishTotal);
         }
@@ -251,9 +311,9 @@ const OptionModelAdd = props => {
     console.log('choiceIndex:' + choiceIndex);
     console.log('checked_status:' + checked_status);
 
-    console.log(dish_val.sets[setIndex].options[optionIndex]);
+    //console.log(dish_val.sets[setIndex].options[optionIndex]);
 
-    if (dish_val.sets[setIndex].options[optionIndex].type === 0) {
+    if (dish_val.sets[setIndex].options[optionIndex].type == 0) {
       console.log('hello');
       for (
         let i = 0;
@@ -278,6 +338,14 @@ const OptionModelAdd = props => {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].qty = 1;
+
+        setOptionErrors(prev => {
+          if (!prev[dish_val.sets[setIndex].options[optionIndex].id])
+            return prev;
+          const copy = { ...prev };
+          delete copy[dish_val.sets[setIndex].options[optionIndex].id];
+          return copy;
+        });
       } else {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
@@ -309,7 +377,7 @@ const OptionModelAdd = props => {
         }
       }
     }
-    if (dish_val.sets[setIndex].options[optionIndex].type === 1) {
+    if (dish_val.sets[setIndex].options[optionIndex].type == 1) {
       let trues = 0;
       if (
         dish_val.sets[setIndex].options[optionIndex].choice[choiceIndex]
@@ -341,7 +409,7 @@ const OptionModelAdd = props => {
           trues++;
         }
       }
-      if (trues > dish_val.sets[setIndex].options[optionIndex].max) {
+      /*if (trues > dish_val.sets[setIndex].options[optionIndex].max) {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].checked = false;
@@ -351,7 +419,7 @@ const OptionModelAdd = props => {
             dish_val.sets[setIndex].options[optionIndex].max,
         );
         return false;
-      }
+      }*/
       for (
         let i = 0;
         i < dish_val.sets[setIndex].options[optionIndex].coditions.length;
@@ -458,8 +526,51 @@ const OptionModelAdd = props => {
     setDishTotal(dishTotal_val);
     setDish(dish_val);
 
-    console.log('dish_val');
-    console.log(dish_val.sets[0].options[0]);
+    /*console.log('dish_val');
+    console.log(dish_val);*/
+  };
+
+  const getTotalQtyForOption = (setIndex, optionIndex) => {
+    let dish_val = JSON.parse(JSON.stringify(dish));
+    let return_value = 0;
+
+    for (
+      let j = 0;
+      j < dish_val.sets[setIndex].options[optionIndex].choice.length;
+      j++
+    ) {
+      if (
+        dish_val.sets[setIndex].options[optionIndex].choice[j].checked === true
+      ) {
+        return_value += parseInt(
+          dish_val.sets[setIndex].options[optionIndex].choice[j].qty,
+        );
+      }
+    }
+
+    return return_value;
+  };
+
+  const TotalQtyChoice = (setIndex, optionIndex) => {
+    let totalqty = 0;
+
+    let dish_val = JSON.parse(JSON.stringify(dish));
+
+    for (
+      let j = 0;
+      j < dish_val.sets[setIndex].options[optionIndex].choice.length;
+      j++
+    ) {
+      if (
+        dish_val.sets[setIndex].options[optionIndex].choice[j].checked === true
+      ) {
+        totalqty += parseInt(
+          dish_val.sets[setIndex].options[optionIndex].choice[j].qty,
+        );
+      }
+    }
+
+    return totalqty;
   };
 
   const CheckType1 = (setIndex, optionIndex, choiceIndex, rest_op_id) => {
@@ -512,8 +623,91 @@ const OptionModelAdd = props => {
     }
   };
 
-  const addToCart = dish_val => {
+  const validateRequiredOptions = dish_val => {
+    const errors = {};
+    let firstInvalidOptionId = null;
+
     if (dish_val.sets !== undefined) {
+      if (dish_val.sets.length > 0) {
+        for (let i = 0; i < dish_val.sets.length; i++) {
+          for (let j = 0; j < dish_val.sets[i].options.length; j++) {
+            if (dish_val.sets[i].options[j].show === true) {
+              if (
+                dish_val.sets[i].options[j].required == 1 &&
+                dish_val.sets[i].options[j].type == 0
+              ) {
+                let min = 0;
+                for (
+                  let k = 0;
+                  k < dish_val.sets[i].options[j].choice.length;
+                  k++
+                ) {
+                  if (dish_val.sets[i].options[j].choice[k].checked === true) {
+                    min++;
+                  }
+                }
+                if (min == 0) {
+                  errors[dish_val.sets[i].options[j].id] = true;
+                  if (!firstInvalidOptionId) {
+                    firstInvalidOptionId = dish_val.sets[i].options[j].id;
+                  }
+                }
+              } else if (dish_val.sets[i].options[j].type == 1) {
+                let min = 0;
+                for (
+                  let k = 0;
+                  k < dish_val.sets[i].options[j].choice.length;
+                  k++
+                ) {
+                  if (dish_val.sets[i].options[j].choice[k].checked === true) {
+                    min++;
+                  }
+                }
+                if (dish_val.sets[i].options[j].required == 1 && min == 0) {
+                  errors[dish_val.sets[i].options[j].id] = true;
+                  if (!firstInvalidOptionId) {
+                    firstInvalidOptionId = dish_val.sets[i].options[j].id;
+                  }
+                } else if (min < dish_val.sets[i].options[j].min) {
+                  errors[dish_val.sets[i].options[j].id] = true;
+                  if (!firstInvalidOptionId) {
+                    firstInvalidOptionId = dish_val.sets[i].options[j].id;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    setOptionErrors(errors);
+    return firstInvalidOptionId;
+  };
+
+  const addToCart = dish_val => {
+    const invalidOptionId = validateRequiredOptions(dish_val);
+
+    if (invalidOptionId) {
+      setError('');
+      setTimeout(() => {
+        optionRefs.current[invalidOptionId]?.measure(
+          (fx, fy, width, height, px, py) => {
+            console.log(py);
+            scrollViewRef.current?.scrollTo({
+              y: py - 80,
+              animated: true,
+            });
+          },
+        );
+      }, 300);
+
+      return;
+    }
+
+    setOptionErrors({});
+
+    /* if (dish_val.sets !== undefined) {
       if (dish_val.sets.length > 0) {
         for (let i = 0; i < dish_val.sets.length; i++) {
           for (let j = 0; j < dish_val.sets[i].options.length; j++) {
@@ -597,7 +791,7 @@ const OptionModelAdd = props => {
           }
         }
       }
-    }
+    }*/
 
     let business;
     business = {
@@ -608,7 +802,7 @@ const OptionModelAdd = props => {
 
     let dish = {
       id: dish_val.id,
-      quantity: 1,
+      quantity: productQty,
       data: new Array(),
     };
     let activeIngredients = new Array();
@@ -626,7 +820,7 @@ const OptionModelAdd = props => {
       pickprice: dish_val.pickprice,
       notes: dish_note,
       totalprice: dishTotal,
-      total: dishTotal,
+      total: parseFloat(dishTotal * productQty).toFixed(2),
       is_img: dish_val.is_img,
       img: dish_val.img,
       spicy: dish_val.spicy,
@@ -637,7 +831,7 @@ const OptionModelAdd = props => {
       ingredientsarray: dish_val.ingredientsarray,
       activeIngredients: activeIngredients,
       activeIngredientsText: activeIngredients.join(', '),
-      quantity: 1,
+      quantity: productQty,
       sets: new Array(),
       relation: {
         options: new Array(),
@@ -833,7 +1027,28 @@ const OptionModelAdd = props => {
   };
 
   const editTocart = dish_val => {
-    if (dish_val.sets !== undefined) {
+    const invalidOptionId = validateRequiredOptions(dish_val);
+
+    if (invalidOptionId) {
+      setError('');
+
+      setTimeout(() => {
+        optionRefs.current[invalidOptionId]?.measure(
+          (fx, fy, width, height, px, py) => {
+            scrollViewRef.current?.scrollTo({
+              y: py - 80,
+              animated: true,
+            });
+          },
+        );
+      }, 300);
+
+      return;
+    }
+
+    setOptionErrors({});
+
+    /*if (dish_val.sets !== undefined) {
       if (dish_val.sets.length > 0) {
         for (let i = 0; i < dish_val.sets.length; i++) {
           for (let j = 0; j < dish_val.sets[i].options.length; j++) {
@@ -917,7 +1132,7 @@ const OptionModelAdd = props => {
           }
         }
       }
-    }
+    }*/
 
     let cart = JSON.parse(JSON.stringify(props.optionItem.CartDish));
 
@@ -925,7 +1140,7 @@ const OptionModelAdd = props => {
       cart[indexcart.index].dish[indexcart.dishindex].data[
         indexcart.dishdataindex
       ];
-    cart[indexcart.index].dish[indexcart.dishindex].quantity =
+    /*cart[indexcart.index].dish[indexcart.dishindex].quantity =
       cart[indexcart.index].dish[indexcart.dishindex].quantity -
       cart[indexcart.index].dish[indexcart.dishindex].data[
         indexcart.dishdataindex
@@ -935,7 +1150,18 @@ const OptionModelAdd = props => {
       1,
     );
     let dishTotal_val =
-      parseFloat(dishTotal) * parseInt(BackupCart.quantity, 10);
+      parseFloat(dishTotal) * parseInt(BackupCart.quantity, 10);*/
+
+    cart[indexcart.index].dish[indexcart.dishindex].quantity = productQty;
+    cart[indexcart.index].dish[indexcart.dishindex].data.splice(
+      indexcart.dishdataindex,
+      1,
+    );
+    cart[indexcart.index].dish[indexcart.dishindex].data.splice(
+      indexcart.dishdataindex,
+      1,
+    );
+    let dishTotal_val = parseFloat(dishTotal) * parseInt(productQty, 10);
 
     setDishTotal(dishTotal_val);
     dishTotal_val = Number(dishTotal_val);
@@ -955,7 +1181,7 @@ const OptionModelAdd = props => {
       delprice: dish_val.delprice,
       pickprice: dish_val.pickprice,
       notes: dish_note,
-      totalprice: dishTotal_val,
+      totalprice: dishTotal,
       total: dishTotal_val,
       is_img: dish_val.is_img,
       img: dish_val.img,
@@ -967,7 +1193,8 @@ const OptionModelAdd = props => {
       ingredientsarray: dish_val.ingredientsarray,
       activeIngredients: activeIngredients,
       activeIngredientsText: activeIngredients.join(', '),
-      quantity: BackupCart.quantity,
+      //quantity: BackupCart.quantity,
+      quantity: productQty,
       sets: new Array(),
       relation: {
         options: new Array(),
@@ -1291,355 +1518,471 @@ const OptionModelAdd = props => {
       {dataItem != null && dish != null ? (
         <Modal
           isVisible={isModalVisible}
+          transparent
+          animationType="slide"
           style={{ width: '60%', margin: 'auto' }}
         >
-          <View style={{ flex: 1, position: 'relative' }}>
-            <TouchableOpacity
-              onPress={toggleModal}
-              style={{
-                position: 'absolute',
-                right: responsiveWidth(1),
-                top: responsiveHeight(1.5),
-                zIndex: 1,
-              }}
-            >
-              <Icon
-                name="closecircleo"
-                type="AntDesign"
-                size={30}
-                color={Colors.red}
-              />
-            </TouchableOpacity>
-            <View
-              style={{
-                backgroundColor: Colors.white,
-                borderRadius: 20,
-                paddingHorizontal: responsiveWidth(2),
-                paddingVertical: responsiveHeight(2),
-                //height: '100%',
-                maxHeight: '100%',
-              }}
-            >
-              <ScrollView>
+          <View style={styles.overlay}>
+            <View style={styles.container}>
+              {/* ---------------- HEADER ---------------- */}
+
+              <Animated.View
+                style={[styles.stickyHeader, { opacity: headerOpacity }]}
+              >
+                <Text style={styles.stickyTitle}>{dish.name}</Text>
+              </Animated.View>
+
+              {/* ---------------- OPTIONS ---------------- */}
+              <TouchableOpacity
+                style={styles.imageClose}
+                onPress={toggleModal}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+              >
+                <Feather name="x" size={18} color="#000" />
+              </TouchableOpacity>
+              <Animated.ScrollView
+                ref={scrollViewRef}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: false },
+                )}
+                scrollEventThrottle={16}
+                keyboardShouldPersistTaps="handled"
+              >
+                {selectedImage != null && (
+                  <Animated.View
+                    style={{
+                      height: imageHeight,
+                      opacity: imageOpacity,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <View style={styles.imageBox}>
+                      <Image
+                        source={{ uri: selectedImage }}
+                        style={{ height: 220, width: '100%', borderRadius: 12 }}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  </Animated.View>
+                )}
+
+                {images.length > 1 && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginTop: 8, paddingHorizontal: 16 }}
+                  >
+                    {images.map((img, index) => {
+                      const isActive = img === selectedImage;
+
+                      return (
+                        <TouchableOpacity
+                          key={'image_' + index}
+                          onPress={() => setSelectedImage(img)}
+                          style={{
+                            marginRight: 8,
+                            borderRadius: 8,
+                            borderWidth: isActive ? 2 : 0,
+                            borderColor: '#4CAF50',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <Image
+                            source={{ uri: img }}
+                            style={{ width: 60, height: 60 }}
+                          />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+
                 <View
                   style={{
-                    paddingHorizontal: responsiveWidth(0.5),
-                    marginVertical: responsiveHeight(1),
+                    marginTop: 10,
+                    paddingHorizontal: 16,
+                    marginBottom: 8,
                   }}
                 >
-                  <View
-                    style={{
-                      marginTop: responsiveHeight(0.5),
-                      marginBottom: responsiveHeight(1.5),
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: Inter.bold,
-                        fontSize: responsiveFontSize(2),
-                        color: Colors.black,
-                      }}
-                    >
-                      {dish.name} {activeBusiness.currency_symbol}
-                      {dish.price}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      marginBottom: responsiveHeight(1.5),
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <RenderHtml
-                      contentWidth={width}
-                      source={{ html: dish.description }}
-                      baseStyle={{
-                        fontFamily: Inter.medium,
-                        fontSize: responsiveFontSize(1.2),
-                        color: Colors.black,
-                      }}
-                    />
-                  </View>
+                  <Text style={styles.title}>{dish.name}</Text>
 
-                  {dish.sets.map((sets, setindex) => {
-                    //console.log(dish.sets);
-                    return sets.options.map((option, optionindex) => {
-                      return option.show === true ? (
-                        <View
-                          key={'option_' + optionindex}
-                          style={{ marginBottom: responsiveHeight(3) }}
+                  {dish?.description && (
+                    <View style={{ marginTop: 4 }}>
+                      <Text style={{ fontSize: 12, lineHeight: 16 }}>
+                        {expandedDesc
+                          ? dish?.description
+                          : dish?.description.length > 200
+                          ? dish?.description.slice(0, 200) + '...'
+                          : dish?.description}
+                      </Text>
+
+                      {dish?.description.length > 200 && (
+                        <TouchableOpacity
+                          onPress={() => setExpandedDesc(prev => !prev)}
                         >
                           <Text
                             style={{
-                              fontFamily: Inter.bold,
-                              fontSize: responsiveFontSize(1.5),
-                              color: Colors.blue,
-                              marginBottom: responsiveHeight(1),
+                              marginTop: 4,
+                              color: '#4CAF50',
+                              fontSize: 12,
                             }}
                           >
-                            {option.name}{' '}
-                            {option.required === true ? '*' : null}
+                            {expandedDesc ? 'Read less' : 'Read more'}
                           </Text>
-                          {option.type == 1 ? (
-                            <Text
-                              style={{
-                                fontFamily: Inter.bold,
-                                fontSize: responsiveFontSize(1),
-                                color: Colors.black,
-                              }}
-                            >
-                              {'(Min: ' +
-                                option.min +
-                                ' & Max: ' +
-                                option.max +
-                                ')'}
-                            </Text>
-                          ) : null}
-                          <View
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              //alignItems: 'center',
-                              gap: responsiveWidth(1),
-                              marginTop: responsiveWidth(1),
-                            }}
-                          >
-                            {option.choice.map((choice, choiceindex) => {
-                              return option.type == 0 ? (
-                                <View
-                                  key={'choice_' + choiceindex}
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  <View>
-                                    <RadioButton
-                                      selected={choice.checked}
-                                      onChange={() => {
-                                        checkProductOption(
-                                          setindex,
-                                          optionindex,
-                                          choiceindex,
-                                          choice.checked,
-                                        );
-                                      }}
-                                      size={22}
-                                      containerStyle={{ position: 'relative' }}
-                                      activeColor={Colors.blue}
-                                      inactiveColor={Colors.blue}
-                                    />
-                                  </View>
-                                  <View
-                                    style={{ marginLeft: responsiveWidth(1) }}
-                                  >
-                                    <Text
-                                      style={{
-                                        fontFamily: Inter.regular,
-                                        color: Colors.black,
-                                        fontSize: responsiveFontSize(1.2),
-                                      }}
-                                    >
-                                      {choice.name}{' '}
-                                      {choice.price > 0 ? (
-                                        <>
-                                          {activeBusiness.currency_symbol}{' '}
-                                          {choice.price}
-                                        </>
-                                      ) : null}
-                                    </Text>
-                                  </View>
-                                </View>
-                              ) : option.type == 1 ? (
-                                <View
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                  }}
-                                >
-                                  <View
-                                    key={'choice_' + choiceindex}
-                                    style={{
-                                      display: 'flex',
-                                      flexDirection: 'row',
-                                      alignItems: 'center',
-                                    }}
-                                  >
-                                    <CheckBox
-                                      checked={choice.checked}
-                                      onChange={() => {
-                                        checkProductOption(
-                                          setindex,
-                                          optionindex,
-                                          choiceindex,
-                                          choice.checked,
-                                        );
-                                      }}
-                                      size={22}
-                                      style={styles.checkbox}
-                                      activeColor={Colors.blue}
-                                      inactiveColor={Colors.blue}
-                                    />
-                                    <Text
-                                      style={{
-                                        marginLeft: responsiveWidth(1),
-                                        fontFamily: Inter.regular,
-                                        fontSize: responsiveFontSize(1.2),
-                                        color: Colors.black,
-                                      }}
-                                    >
-                                      {choice.name}{' '}
-                                      {choice.price > 0 ? (
-                                        <>
-                                          {activeBusiness.currency_symbol}{' '}
-                                          {choice.price}
-                                        </>
-                                      ) : null}
-                                    </Text>
-                                  </View>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </View>
 
-                                  <View
-                                    style={{
-                                      display: 'flex',
-                                      flexDirection: 'row',
-                                      alignItems: 'center',
-                                      //justifyContent: 'space-between',
-                                    }}
-                                  >
-                                    {choice.checked === true ? (
-                                      <>
-                                        <TouchableOpacity
-                                          onPress={() => {
-                                            choiceQtyDecrement(
-                                              setindex,
-                                              optionindex,
-                                              choiceindex,
-                                              choice.id,
-                                            );
-                                          }}
-                                        >
-                                          <Icon
-                                            name="minuscircleo"
-                                            type="AntDesign"
-                                            size={responsiveWidth(2)}
-                                            color={Colors.blue}
-                                          />
-                                        </TouchableOpacity>
-                                        <Text
-                                          style={{
-                                            fontFamily: Inter.regular,
-                                            fontSize: responsiveFontSize(1),
-                                            color: Colors.black,
-                                            marginHorizontal:
-                                              responsiveWidth(0.5),
-                                          }}
-                                        >
-                                          {choice.qty}
-                                        </Text>
-                                        <TouchableOpacity
-                                          onPress={() => {
-                                            choiceQtyIncrement(
-                                              setindex,
-                                              optionindex,
-                                              choiceindex,
-                                              choice.id,
-                                            );
-                                          }}
-                                        >
-                                          <Icon
-                                            name="pluscircleo"
-                                            type="AntDesign"
-                                            size={responsiveWidth(2)}
-                                            color={Colors.blue}
-                                          />
-                                        </TouchableOpacity>
-                                      </>
-                                    ) : null}
-                                  </View>
-                                </View>
-                              ) : null;
-                            })}
+                {dish.sets.map((sets, setindex) => {
+                  return sets.options.map((option, optionindex) => {
+                    const isOptionFulfilled = (() => {
+                      const totalQty = getTotalQtyForOption(
+                        setindex,
+                        optionindex,
+                      );
+                      return totalQty >= Number(option.min || 1);
+                    })();
+
+                    return Number(option.status) === 1 ? (
+                      <View
+                        ref={ref => (optionRefs.current[option.id] = ref)}
+                        style={[
+                          styles.optionBlock,
+                          optionErrors[option.id] && styles.optionErrorBorder,
+                        ]}
+                        key={option.id}
+                      >
+                        <View style={styles.divider} />
+                        {/* OPTION HEADER */}
+                        <View style={styles.optionHeader}>
+                          <View style={styles.optionTitlebox}>
+                            <View>
+                              <Text style={styles.optionTitle}>
+                                {option.name}
+                              </Text>
+                              {option?.min === 0 ? null : option?.min ===
+                                option?.max ? (
+                                <Text style={{ fontWeight: 500, fontSize: 10 }}>
+                                  {option?.min} Selection
+                                </Text>
+                              ) : (
+                                <Text style={{ fontWeight: 500, fontSize: 10 }}>
+                                  {option?.min} Min & {option?.max} Max
+                                  Selection
+                                </Text>
+                              )}
+                            </View>
+
+                            {Number(option?.required) === 1 && (
+                              <View
+                                style={{
+                                  gap: 4,
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                <Feather
+                                  name={
+                                    isOptionFulfilled
+                                      ? 'check-circle'
+                                      : 'alert-circle'
+                                  }
+                                  size={14}
+                                  color={isOptionFulfilled ? 'green' : '#000'}
+                                />
+                                <Text
+                                  style={{
+                                    fontSize: 12,
+                                    color: isOptionFulfilled ? 'green' : '#000',
+                                    fontFamily: Inter.regular,
+                                  }}
+                                >
+                                  Required {option.id}
+                                  {optionErrors[option.id] === true ? 1 : 0}
+                                </Text>
+                              </View>
+                            )}
                           </View>
                         </View>
-                      ) : null;
-                    });
-                  })}
-                </View>
 
+                        {/* OPTION Choices BODY */}
+                        {option.choice.map((choice, choiceindex) => {
+                          /* ---------- RADIO ---------- */
+                          if (choice.type == 0) {
+                            return (
+                              <TouchableOpacity
+                                key={'choice_' + choice.id}
+                                style={[styles.row, { marginTop: 5 }]}
+                                onPress={() => {
+                                  checkProductOption(
+                                    setindex,
+                                    optionindex,
+                                    choiceindex,
+                                    choice.checked,
+                                  );
+                                }}
+                              >
+                                <Text style={styles.choiceText}>
+                                  {choice.name} (+{' '}
+                                  {activeBusiness.currency_symbol}
+                                  {''}
+                                  {choice.price})
+                                </Text>
+                                <View
+                                  style={[
+                                    styles.radio,
+                                    choice.checked === true && {
+                                      backgroundColor: Colors.blue,
+                                    },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            );
+                          }
+
+                          /* ---------- CHECKBOX + COUNTER ---------- */
+                          if (choice.type == 1) {
+                            let qty_check = TotalQtyChoice(
+                              setindex,
+                              optionindex,
+                            );
+                            const maxReached = qty_check >= Number(option.max);
+                            const disableNewSelect = maxReached;
+
+                            return (
+                              <View
+                                key={'coice_check_' + choice.id}
+                                style={[styles.rowBetween, { marginTop: 6 }]}
+                              >
+                                <TouchableOpacity
+                                  style={[
+                                    styles.row,
+                                    disableNewSelect && { opacity: 0.4 },
+                                  ]}
+                                  disabled={disableNewSelect}
+                                  onPress={() => {
+                                    checkProductOption(
+                                      setindex,
+                                      optionindex,
+                                      choiceindex,
+                                      choice.checked,
+                                    );
+                                  }}
+                                >
+                                  <Text style={styles.choiceText}>
+                                    {choice.name} (+
+                                    {activeBusiness.currency_symbol}
+                                    {''}
+                                    {choice.price}){' '}
+                                  </Text>
+                                </TouchableOpacity>
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <TouchableOpacity
+                                    style={[
+                                      styles.row,
+                                      disableNewSelect && { opacity: 0.4 },
+                                    ]}
+                                    disabled={disableNewSelect}
+                                    onPress={() => {
+                                      checkProductOption(
+                                        setindex,
+                                        optionindex,
+                                        choiceindex,
+                                        choice.checked,
+                                      );
+                                    }}
+                                  >
+                                    <View
+                                      style={[
+                                        styles.checkbox,
+                                        choice.checked === true && {
+                                          backgroundColor: Colors.blue,
+                                        },
+                                      ]}
+                                    >
+                                      {choice.checked === true && (
+                                        <Feather
+                                          name="check"
+                                          color="#fff"
+                                          size={14}
+                                        />
+                                      )}
+                                    </View>
+                                  </TouchableOpacity>
+                                  {choice.checked === true && (
+                                    <View style={styles.qtyBox}>
+                                      {/* MINUS */}
+                                      <TouchableOpacity
+                                        onPress={() => {
+                                          choiceQtyDecrement(
+                                            setindex,
+                                            optionindex,
+                                            choiceindex,
+                                            choice.id,
+                                          );
+                                        }}
+                                        style={{
+                                          backgroundColor: Colors.blue,
+                                          paddingHorizontal: 3,
+                                          borderRadius: 6,
+                                        }}
+                                      >
+                                        <Text style={styles.qtyBtn}>−</Text>
+                                      </TouchableOpacity>
+
+                                      <Text style={styles.qtyText}>
+                                        {choice.qty}
+                                      </Text>
+
+                                      {/* PLUS */}
+                                      <TouchableOpacity
+                                        disabled={maxReached}
+                                        onPress={() => {
+                                          choiceQtyIncrement(
+                                            setindex,
+                                            optionindex,
+                                            choiceindex,
+                                            choice.id,
+                                          );
+                                        }}
+                                        style={{
+                                          backgroundColor: Colors.blue,
+                                          paddingHorizontal: 3,
+                                          borderRadius: 6,
+                                          opacity: maxReached ? 0.4 : 1,
+                                        }}
+                                      >
+                                        <Text style={styles.qtyBtn}>+</Text>
+                                      </TouchableOpacity>
+                                    </View>
+                                  )}
+                                </View>
+                              </View>
+                            );
+                          }
+
+                          return null;
+                        })}
+                      </View>
+                    ) : null;
+                  });
+                })}
+              </Animated.ScrollView>
+
+              <TextInput
+                placeholder="Add Comment"
+                multiline
+                textAlignVertical="top"
+                onChangeText={text => setComment(text)}
+                placeholderTextColor={'#000'}
+                style={{
+                  height: 90,
+                  borderColor: '#ddd',
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  marginVertical: 7,
+                  padding: 10,
+                  marginHorizontal: 16,
+                  fontFamily: Inter.regular,
+                  color: '#000',
+                }}
+              />
+
+              {/* ---------------- FOOTER ---------------- */}
+              <View style={styles.footer}>
                 <View
                   style={{
-                    marginTop: responsiveHeight(2),
-                    marginBottom: responsiveHeight(3),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    // backgroundColor: colors?.primary,
+                    paddingVertical: 6,
+                    backgroundColor: '#8e8e8e',
+                    borderRadius: 6,
+                    width: '30%',
+                    justifyContent: 'space-between',
+                    paddingHorizontal: 7,
                   }}
                 >
-                  <TextInput
-                    multiline={true}
-                    placeholder={'Special Comment'}
-                    numberOfLines={10}
-                    onChangeText={text => setItemNote(text)}
-                    value={dish_note}
-                    style={{
-                      color: Colors.grey,
-                      borderWidth: 1,
-                      borderRadius: 15,
-                      paddingLeft: 10,
-                      height: responsiveHeight(15),
-                      textAlignVertical: 'top',
-                      borderColor: Colors.grey,
-                      backgroundColor: Colors.white,
-                    }}
-                  />
-                </View>
-              </ScrollView>
-
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <View>
-                  <Text
-                    style={{
-                      fontFamily: Inter.bold,
-                      fontSize: responsiveFontSize(1.9),
-                      color: Colors.black,
-                    }}
-                  >
-                    Total {activeBusiness.currency_symbol}
-                    {dishTotal}
-                  </Text>
-                </View>
-                <View style={{ paddingBottom: responsiveHeight(1) }}>
                   <TouchableOpacity
-                    style={styles.add_button}
-                    onPress={() => {
-                      edit_product === false
-                        ? addToCart(dish)
-                        : editTocart(dish);
-                    }}
+                    disabled={productQty === 1}
+                    onPress={() => setProductQty(q => Math.max(1, q - 1))}
+                    style={[
+                      styles.qtyControlBtn,
+                      productQty === 1 && { opacity: 0.4 },
+                    ]}
                   >
-                    <Text
-                      style={{
-                        fontWeight: 'bold',
-                        fontSize: responsiveFontSize(1.5),
-                        color: '#fff',
-                        fontFamily: Inter.medium,
-                      }}
-                    >
-                      {dataItem.type == 1 ? 'Update' : 'Add'}
-                    </Text>
+                    <Text style={styles.qtyBtn}>−</Text>
+                  </TouchableOpacity>
+
+                  <Text
+                    style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}
+                  >
+                    {productQty}
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => setProductQty(q => q + 1)}
+                    style={styles.qtyControlBtn}
+                  >
+                    <Text style={styles.qtyBtn}>+</Text>
                   </TouchableOpacity>
                 </View>
+
+                <TouchableOpacity
+                  style={styles.addBtn}
+                  onPress={() => {
+                    edit_product === false ? addToCart(dish) : editTocart(dish);
+                  }}
+                >
+                  <Text style={styles.addText}>
+                    {dataItem.type == 1 ? 'Update' : 'Add'}
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                    }}
+                  >
+                    {dish?.offerprice && (
+                      <Text
+                        style={{
+                          textDecorationLine: 'line-through',
+                          fontFamily: Inter.regular,
+                          fontSize: 12,
+                          color: '#fff',
+                        }}
+                      >
+                        ${dish?.delprice}
+                      </Text>
+                    )}
+
+                    <Text
+                      style={{
+                        fontFamily: Inter.regular,
+                        fontSize: 12,
+                        color: '#fff',
+                      }}
+                    >
+                      {activeBusiness.currency_symbol}
+                      {''}
+                      {dishTotal}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -1650,39 +1993,3 @@ const OptionModelAdd = props => {
 };
 
 export default OptionModelAdd;
-
-{
-  /*
-      <View style={{marginBottom: responsiveHeight(2)}}>
-                                      <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1.5), color: Colors.blue}}>Choose Rice Dishes</Text>
-                                      <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.black}}>( Min: 1 & Max: 5)</Text>
-                                      <View style={{display: 'flex', flexDirection:'row', alignItems: 'center', gap: responsiveWidth(2), marginTop: responsiveHeight(1.5)}}>
-                                      
-                                            <View style={{display: 'flex', flexDirection:'row', alignItems: 'center'}}>
-                                            <CheckBox
-                                                  checked = {true}
-                                                  onChange = {''}
-                                                  size = {22}
-                                                  style={styles.checkbox}
-                                                  activeColor={Colors.blue}
-                                                  inactiveColor={Colors.blue}
-                                                />
-                                              <Text style={{marginLeft: responsiveWidth(1), fontFamily: Inter.regular, fontSize: responsiveFontSize(1.2), color: Colors.black}}>Rice Dishes $3.00</Text>
-                                            </View>
-                                            <View style={{display: 'flex', flexDirection:'row', alignItems: 'center'}}>
-                                            <CheckBox
-                                                  checked = {false}
-                                                  onChange = {''}
-                                                  size = {22}
-                                                  style={styles.checkbox}
-                                                  activeColor={Colors.blue}
-                                                  inactiveColor={Colors.blue}
-                                                />
-                                              <Text style={{marginLeft: responsiveWidth(1),fontFamily: Inter.regular, fontSize: responsiveFontSize(1.2), color: Colors.black}}>Coconut Rice $4.00</Text>
-                                            </View>
-                                      </View>      
-                                    </View>
-                                  </View>
-
-  */
-}

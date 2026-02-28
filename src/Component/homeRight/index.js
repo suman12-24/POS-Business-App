@@ -18,6 +18,7 @@ import {
   NativeEventEmitter,
   FlatList,
   useColorScheme,
+  Keyboard,
 } from 'react-native';
 import {
   USBPrinter,
@@ -61,6 +62,7 @@ import { Picker } from '@react-native-picker/picker';
 import Loader from '../../Component/loader';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
+import { Menu } from 'react-native-paper';
 
 // create a component
 const HomeRight = props => {
@@ -292,6 +294,69 @@ const HomeRight = props => {
       }
     }, [props.cartDish]),
   );
+
+  const userlistdata = [
+    { id: '1', name: 'one', cel: '8017841960' },
+    { id: '2', name: 'two', cel: '8087841960' },
+    { id: '3', name: 'two', cel: '8097841960' },
+    { id: '4', name: 'two', cel: '8067841960' },
+    { id: '5', name: 'two', cel: '8077841960' },
+    { id: '6', name: 'two', cel: '8027841960' },
+    { id: '7', name: 'two', cel: '8037841960' },
+    { id: '8', name: 'two', cel: '8047841960' },
+    { id: '9', name: 'two', cel: '8057841960' },
+  ];
+
+  const [userlist, setUserList] = useState([]);
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const updateUserData = userIndex => {
+    let userval = userlist[userIndex];
+    setBuyerDetails({
+      ...buyerDetails,
+      name: userval.name,
+      last_name: userval.last_name,
+      cel: userval.cel,
+    });
+    setMenuVisible(false);
+  };
+
+  const FetchUserByPhone = mobilenumber => {
+    //console.log(mobilenumber.length);
+    if (mobilenumber.length > 0) {
+      if (mobilenumber.length >= 3) {
+        postWithToken(
+          baseUrl,
+          'web-business/get-customer-details',
+          {
+            lang_id: langId,
+            search_phone: mobilenumber,
+          },
+          userToken,
+        )
+          .then(response => {
+            //console.log(response);
+
+            if (response.status === true) {
+              setMenuVisible(true);
+              setUserList(response.data);
+            } else {
+              setUserList([]);
+              setMenuVisible(false);
+            }
+          })
+          .catch(error => {
+            console.log('Error : ', error);
+            setMenuVisible(false);
+          });
+      } else {
+        setMenuVisible(false);
+      }
+    } else {
+      setUserList([]);
+      setMenuVisible(false);
+    }
+  };
 
   const DropdownComponent = () => {
     const [value, setValue] = useState(selectedTime ? selectedTime : null);
@@ -717,14 +782,19 @@ const HomeRight = props => {
           firstOffer = parseFloat(firstOffer).toFixed(2);
         }
       }*/
-      cart_val[i].details.delivery = 0.0;
+
+      /*console.log(cart_val[i].details);
+      console.log('check delivery');
+      return false;*/
+
+      /* cart_val[i].details.delivery = 0.0;
       if (activeBusiness.freedeliverystatus === '1') {
         if (
           parseFloat(SubTotal) >= parseFloat(activeBusiness.freedeliveryvalue)
         ) {
           cart_val[i].details.delivery = 0.0;
         }
-      }
+      }*/
       let extraminimum = 0.0;
       if (activeBusiness.requiredminimumstatus === '1') {
         if (parseFloat(SubTotal) < parseFloat(activeBusiness.minimumfee)) {
@@ -794,6 +864,8 @@ const HomeRight = props => {
       cartFee.push(fee);
     }
 
+    console.log('cartFee line 797');
+
     console.log(cartFee);
 
     setCartFee(cartFee);
@@ -827,14 +899,14 @@ const HomeRight = props => {
           firstOffer = parseFloat(firstOffer).toFixed(2);
         }
       }*/
-      cart_val[i].details.delivery = 0.0;
+      /*cart_val[i].details.delivery = 0.0;
       if (activeBusiness.freedeliverystatus === '1') {
         if (
           parseFloat(SubTotal) >= parseFloat(activeBusiness.freedeliveryvalue)
         ) {
           cart_val[i].details.delivery = 0.0;
         }
-      }
+      }*/
       let extraminimum = 0.0;
       if (activeBusiness.requiredminimumstatus === '1') {
         if (parseFloat(SubTotal) < parseFloat(activeBusiness.minimumfee)) {
@@ -905,7 +977,7 @@ const HomeRight = props => {
       cartFee.push(fee);
     }
 
-    //console.log(cartFee);
+    console.log('cartFee line 910');
 
     setCartFee(cartFee);
   };
@@ -1170,7 +1242,7 @@ const HomeRight = props => {
       lat: activeBusiness.latitud,
       lng: activeBusiness.longitud,
       search_address: activeBusiness.address,
-      order_type: orderType,
+      order_type: 4,
     };
 
     let tax = 0;
@@ -1215,7 +1287,7 @@ const HomeRight = props => {
       buyerphone: buyerDetails.cel,
       buyercomments: '',
       subtotal: CartSubTotal,
-      order_type: orderType,
+      order_type: 4,
       payment_id: paymentId,
       tax: tax,
       taxtype: taxtype,
@@ -1421,7 +1493,10 @@ const HomeRight = props => {
             </View>
           </Modal>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps={'always'}
+          >
             {/*viewloader === true ? (
               <View
                 style={{
@@ -1439,7 +1514,8 @@ const HomeRight = props => {
               </View>
             ) : null*/}
             {viewloader === true ? <Loader /> : null}
-            {CartDish.isLoading === false && CartDish.list.length > 0 ? (
+            {
+              /*CartDish.isLoading === false && CartDish.list.length > 0 ? (*/
               <View
                 style={{
                   borderColor: Colors.blue,
@@ -1447,6 +1523,7 @@ const HomeRight = props => {
                   borderRadius: 15,
                   paddingHorizontal: responsiveWidth(1),
                   paddingVertical: responsiveHeight(2),
+                  minHeight: responsiveHeight(80),
                 }}
               >
                 {/*<View  style={{marginTop: responsiveHeight(0.5), display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between'}}>
@@ -1475,6 +1552,7 @@ const HomeRight = props => {
                     inputContainerStyle={{
                       borderColor: Colors.grey,
                       marginBottom: responsiveHeight(1),
+                      height: responsiveWidth(4),
                     }}
                   />
                 </View>
@@ -1497,6 +1575,7 @@ const HomeRight = props => {
                     inputContainerStyle={{
                       borderColor: Colors.grey,
                       marginBottom: responsiveHeight(1),
+                      height: responsiveWidth(4),
                     }}
                   />
                 </View>
@@ -1523,12 +1602,17 @@ const HomeRight = props => {
                 </View>*/}
 
                 <View
-                  style={{ marginTop: responsiveHeight(0.5), display: 'flex' }}
+                  style={{
+                    marginTop: responsiveHeight(0.5),
+                    display: 'flex',
+                    position: 'relative',
+                  }}
                 >
                   <AppTextInput
                     inputStyle={{ paddingLeft: 10 }}
                     onChangeText={text => {
                       setBuyerInfo(text, 'cel');
+                      FetchUserByPhone(text);
                     }}
                     value={buyerDetails.cel}
                     placeholder="Mobile"
@@ -1540,10 +1624,50 @@ const HomeRight = props => {
                     inputContainerStyle={{
                       borderColor: Colors.grey,
                       marginBottom: responsiveHeight(1),
+                      height: responsiveWidth(4),
                     }}
                     keyboardType="numeric"
-                    maxLength={10}
+                    maxLength={15}
                   />
+
+                  {menuVisible && userlist.length > 0 && (
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: 'white',
+                        borderWidth: 1,
+                        flexDirection: 'column',
+                        borderColor: Colors.grey,
+                        marginTop: responsiveHeight(-1.8),
+                        maxHeight: responsiveHeight(25),
+                        overflow: 'hidden',
+                        position: 'absolute',
+                        top: '100%',
+                        zIndex: 999,
+                        width: '100%',
+                      }}
+                    >
+                      <ScrollView keyboardShouldPersistTaps={'always'}>
+                        {userlist.map((item, index) => (
+                          <TouchableOpacity
+                            key={'cel_t' + index}
+                            onPress={() => {
+                              console.log('Button Pressed!');
+                              Keyboard.dismiss();
+                              updateUserData(index);
+                              setMenuVisible(false);
+                            }}
+                          >
+                            <Menu.Item
+                              key={'cel_' + index}
+                              style={[{ width: '100%' }]}
+                              title={item.cel}
+                            />
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
 
                 {discountInfo.discounttype !== 'offer' ? (
@@ -1572,31 +1696,32 @@ const HomeRight = props => {
                         inputContainerStyle={{
                           borderColor: Colors.grey,
                           marginBottom: responsiveHeight(1),
+                          height: responsiveWidth(4),
                         }}
                       />
                     </View>
                     <View
                       style={{
                         width: '33%',
-                        paddingTop: responsiveHeight(3),
+                        marginTop: responsiveHeight(0.7),
                       }}
                     >
                       {update_action_status === true ? (
-                        <TouchableOpacity style={styles.button_disable}>
+                        <View style={styles.applybutton_disable}>
                           <Text
                             style={{
                               fontWeight: 'bold',
-                              fontSize: responsiveFontSize(1.5),
+                              fontSize: responsiveFontSize(1.4),
                               color: '#000',
                               fontFamily: Inter.medium,
                             }}
                           >
                             {'APPLY'}
                           </Text>
-                        </TouchableOpacity>
-                      ) : (
+                        </View>
+                      ) : CartDish.list.length > 0 ? (
                         <TouchableOpacity
-                          style={styles.button}
+                          style={styles.applybutton}
                           onPress={() => {
                             CheckDiscount();
                           }}
@@ -1604,7 +1729,7 @@ const HomeRight = props => {
                           <Text
                             style={{
                               fontWeight: 'bold',
-                              fontSize: responsiveFontSize(1.5),
+                              fontSize: responsiveFontSize(1.4),
                               color: '#fff',
                               fontFamily: Inter.medium,
                             }}
@@ -1612,6 +1737,19 @@ const HomeRight = props => {
                             {'APPLY'}
                           </Text>
                         </TouchableOpacity>
+                      ) : (
+                        <View style={styles.applybutton_disable}>
+                          <Text
+                            style={{
+                              fontWeight: 'bold',
+                              fontSize: responsiveFontSize(1.4),
+                              color: '#000',
+                              fontFamily: Inter.medium,
+                            }}
+                          >
+                            {'APPLY'}
+                          </Text>
+                        </View>
                       )}
                     </View>
                   </View>
@@ -1672,200 +1810,206 @@ const HomeRight = props => {
                   <DropdownComponent />
                 </View>
 
-                {CartDish.list.map((cartdish, cartindex) => {
-                  return cartdish.dish.map((cdish, dishindex) => {
-                    return cdish.data.map((dish, dataindex) => {
-                      return (
-                        <View
-                          key={'cdish_' + dataindex}
-                          style={{
-                            borderColor: Colors.grey,
-                            borderWidth: 1,
-                            borderRadius: 10,
-                            paddingHorizontal: responsiveWidth(0.5),
-                            marginVertical: responsiveHeight(1),
-                          }}
-                        >
-                          <View
-                            style={{
-                              marginTop: responsiveHeight(0.5),
-                              display: 'flex',
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                            }}
-                          >
-                            <View style={{ width: responsiveWidth(15) }}>
-                              <Text
-                                style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.black,
-                                }}
-                              >
-                                {dish.name}
-                              </Text>
-                            </View>
+                {CartDish.isLoading === false && CartDish.list.length > 0 ? (
+                  <>
+                    {CartDish.list.map((cartdish, cartindex) => {
+                      return cartdish.dish.map((cdish, dishindex) => {
+                        return cdish.data.map((dish, dataindex) => {
+                          return (
                             <View
+                              key={'cdish_' + dataindex}
                               style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
+                                borderColor: Colors.grey,
+                                borderWidth: 1,
+                                borderRadius: 10,
+                                paddingHorizontal: responsiveWidth(0.5),
+                                marginVertical: responsiveHeight(1),
                               }}
                             >
-                              <TouchableOpacity
-                                onPress={() => {
-                                  addTocartDecrement(
-                                    cartindex,
-                                    dishindex,
-                                    dataindex,
-                                  );
-                                }}
-                              >
-                                <Icon
-                                  name="minuscircleo"
-                                  type="AntDesign"
-                                  size={responsiveWidth(2)}
-                                  color={Colors.blue}
-                                />
-                              </TouchableOpacity>
-                              <Text
+                              <View
                                 style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.black,
-                                  marginHorizontal: responsiveWidth(0.5),
+                                  marginTop: responsiveHeight(0.5),
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
                                 }}
                               >
-                                {dish.quantity}
-                              </Text>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  addTocartIncrement(
-                                    cartindex,
-                                    dishindex,
-                                    dataindex,
-                                  );
-                                }}
-                              >
-                                <Icon
-                                  name="pluscircleo"
-                                  type="AntDesign"
-                                  size={responsiveWidth(2)}
-                                  color={Colors.blue}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                            <View
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.green,
-                                }}
-                              >
-                                {activeBusiness != null
-                                  ? activeBusiness.currency_symbol
-                                  : null}
-                                {dish.total}
-                              </Text>
-                              {dish.sets.length > 0 ? (
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    editOptions(
-                                      cartindex,
-                                      dishindex,
-                                      dataindex,
-                                    );
+                                <View style={{ width: responsiveWidth(15) }}>
+                                  <Text
+                                    style={{
+                                      fontFamily: Inter.regular,
+                                      fontSize: responsiveFontSize(1),
+                                      color: Colors.black,
+                                    }}
+                                  >
+                                    {dish.name}
+                                  </Text>
+                                </View>
+                                <View
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
                                   }}
                                 >
-                                  <Icon
-                                    name="edit"
-                                    type="AntDesign"
-                                    size={responsiveWidth(2)}
-                                    color={Colors.black}
-                                  />
-                                </TouchableOpacity>
-                              ) : null}
-                            </View>
-                          </View>
-
-                          {dish.sets.length > 0
-                            ? dish.sets.map((set, set_index) => {
-                                return (
-                                  <View key={'set_' + set_index}>
-                                    <Text
-                                      style={{
-                                        fontFamily: Inter.bold,
-                                        fontSize: responsiveFontSize(1),
-                                        color: Colors.blue,
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      addTocartDecrement(
+                                        cartindex,
+                                        dishindex,
+                                        dataindex,
+                                      );
+                                    }}
+                                  >
+                                    <Icon
+                                      name="minuscircleo"
+                                      type="AntDesign"
+                                      size={responsiveWidth(2)}
+                                      color={Colors.blue}
+                                    />
+                                  </TouchableOpacity>
+                                  <Text
+                                    style={{
+                                      fontFamily: Inter.regular,
+                                      fontSize: responsiveFontSize(1),
+                                      color: Colors.black,
+                                      marginHorizontal: responsiveWidth(0.5),
+                                    }}
+                                  >
+                                    {dish.quantity}
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      addTocartIncrement(
+                                        cartindex,
+                                        dishindex,
+                                        dataindex,
+                                      );
+                                    }}
+                                  >
+                                    <Icon
+                                      name="pluscircleo"
+                                      type="AntDesign"
+                                      size={responsiveWidth(2)}
+                                      color={Colors.blue}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                                <View
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontFamily: Inter.regular,
+                                      fontSize: responsiveFontSize(1),
+                                      color: Colors.green,
+                                    }}
+                                  >
+                                    {activeBusiness != null
+                                      ? activeBusiness.currency_symbol
+                                      : null}
+                                    {dish.total}
+                                  </Text>
+                                  {dish.sets.length > 0 ? (
+                                    <TouchableOpacity
+                                      onPress={() => {
+                                        editOptions(
+                                          cartindex,
+                                          dishindex,
+                                          dataindex,
+                                        );
                                       }}
                                     >
-                                      {set.name}
-                                    </Text>
-                                    {set.choice.length > 0
-                                      ? set.choice.map(
-                                          (choice, choice_index) => {
-                                            console.log(choice);
-                                            return (
-                                              <View
-                                                key={'choice_' + choice_index}
-                                                style={{
-                                                  display: 'flex',
-                                                  flexDirection: 'row',
-                                                  alignItems: 'center',
-                                                }}
-                                              >
-                                                <Icon
-                                                  name="dot-single"
-                                                  type="Entypo"
-                                                  size={25}
-                                                  color={Colors.blue}
-                                                />
-                                                <Text
-                                                  style={{
-                                                    fontFamily: Inter.regular,
-                                                    fontSize:
-                                                      responsiveFontSize(1),
-                                                    color: Colors.black,
-                                                  }}
-                                                >
-                                                  {choice.name}
-                                                  {' x '}
-                                                  {choice.qty}
-                                                  {
-                                                    /*choice.price > 0 ? (*/
-                                                    <Text>
-                                                      {' - '}
-                                                      {activeBusiness != null
-                                                        ? activeBusiness.currency_symbol
-                                                        : null}
-                                                      {choice.price}
-                                                    </Text>
-                                                    /*) : null*/
-                                                  }
-                                                </Text>
-                                              </View>
-                                            );
-                                          },
-                                        )
-                                      : null}
-                                  </View>
-                                );
-                              })
-                            : null}
+                                      <Icon
+                                        name="edit"
+                                        type="AntDesign"
+                                        size={responsiveWidth(2)}
+                                        color={Colors.black}
+                                      />
+                                    </TouchableOpacity>
+                                  ) : null}
+                                </View>
+                              </View>
 
-                          {dish.activeIngredients.length > 0 ? (
-                            <View>
-                              {/*<Text
+                              {dish.sets.length > 0
+                                ? dish.sets.map((set, set_index) => {
+                                    return (
+                                      <View key={'set_' + set_index}>
+                                        <Text
+                                          style={{
+                                            fontFamily: Inter.bold,
+                                            fontSize: responsiveFontSize(1),
+                                            color: Colors.blue,
+                                          }}
+                                        >
+                                          {set.name}
+                                        </Text>
+                                        {set.choice.length > 0
+                                          ? set.choice.map(
+                                              (choice, choice_index) => {
+                                                console.log(choice);
+                                                return (
+                                                  <View
+                                                    key={
+                                                      'choice_' + choice_index
+                                                    }
+                                                    style={{
+                                                      display: 'flex',
+                                                      flexDirection: 'row',
+                                                      alignItems: 'center',
+                                                    }}
+                                                  >
+                                                    <Icon
+                                                      name="dot-single"
+                                                      type="Entypo"
+                                                      size={25}
+                                                      color={Colors.blue}
+                                                    />
+                                                    <Text
+                                                      style={{
+                                                        fontFamily:
+                                                          Inter.regular,
+                                                        fontSize:
+                                                          responsiveFontSize(1),
+                                                        color: Colors.black,
+                                                      }}
+                                                    >
+                                                      {choice.name}
+                                                      {' x '}
+                                                      {choice.qty}
+                                                      {
+                                                        /*choice.price > 0 ? (*/
+                                                        <Text>
+                                                          {' - '}
+                                                          {activeBusiness !=
+                                                          null
+                                                            ? activeBusiness.currency_symbol
+                                                            : null}
+                                                          {choice.price}
+                                                        </Text>
+                                                        /*) : null*/
+                                                      }
+                                                    </Text>
+                                                  </View>
+                                                );
+                                              },
+                                            )
+                                          : null}
+                                      </View>
+                                    );
+                                  })
+                                : null}
+
+                              {dish.activeIngredients.length > 0 ? (
+                                <View>
+                                  {/*<Text
                                 style={{
                                   fontFamily: Inter.bold,
                                   fontSize: responsiveFontSize(1),
@@ -1874,68 +2018,68 @@ const HomeRight = props => {
                                 Ingredients
                               </Text>*/}
 
-                              {dish.activeIngredients.map(
-                                (ingre, ingre_index) => {
-                                  return (
-                                    <View
-                                      key={'ing_' + ingre_index}
-                                      style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                      }}
-                                    >
-                                      <Icon
-                                        name="dot-single"
-                                        type="Entypo"
-                                        size={25}
-                                        color={Colors.blue}
-                                      />
-                                      {/*<Icon
+                                  {dish.activeIngredients.map(
+                                    (ingre, ingre_index) => {
+                                      return (
+                                        <View
+                                          key={'ing_' + ingre_index}
+                                          style={{
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                          }}
+                                        >
+                                          <Icon
+                                            name="dot-single"
+                                            type="Entypo"
+                                            size={25}
+                                            color={Colors.blue}
+                                          />
+                                          {/*<Icon
                                         name="plus"
                                         type="AntDesign"
                                         size={responsiveWidth(3)}
                                         color={Colors.grey}
                                       />*/}
-                                      <Text
-                                        style={{
-                                          fontFamily: Inter.regular,
-                                          fontSize: responsiveFontSize(1),
-                                          color: Colors.black,
-                                        }}
-                                      >
-                                        {ingre}
-                                      </Text>
-                                    </View>
-                                  );
-                                },
-                              )}
+                                          <Text
+                                            style={{
+                                              fontFamily: Inter.regular,
+                                              fontSize: responsiveFontSize(1),
+                                              color: Colors.black,
+                                            }}
+                                          >
+                                            {ingre}
+                                          </Text>
+                                        </View>
+                                      );
+                                    },
+                                  )}
+                                </View>
+                              ) : null}
                             </View>
-                          ) : null}
-                        </View>
-                      );
-                    });
-                  });
-                })}
+                          );
+                        });
+                      });
+                    })}
 
-                {PendingMinimumFee > 0.0 ? null : (
-                  <>
-                    <View
-                      style={{
-                        backgroundColor: Colors.blue,
-                        borderRadius: 10,
-                        paddingHorizontal: responsiveWidth(1),
-                        paddingVertical: responsiveHeight(1),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        {/*<Text
+                    {PendingMinimumFee > 0.0 ? null : (
+                      <>
+                        <View
+                          style={{
+                            backgroundColor: Colors.blue,
+                            borderRadius: 10,
+                            paddingHorizontal: responsiveWidth(1),
+                            paddingVertical: responsiveHeight(1),
+                            marginVertical: responsiveHeight(1),
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            {/*<Text
                           style={{
                             fontFamily: Inter.bold,
                             fontSize: responsiveFontSize(1),
@@ -1951,36 +2095,36 @@ const HomeRight = props => {
                           }}>
                           {cartQuantity}
                         </Text>*/}
-                      </View>
+                          </View>
 
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: Inter.bold,
-                            fontSize: responsiveFontSize(1),
-                            color: Colors.white,
-                          }}
-                        >
-                          Sub Total{' '}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: Inter.bold,
-                            fontSize: responsiveFontSize(1),
-                            color: Colors.white,
-                          }}
-                        >
-                          {activeBusiness.currency_symbol}
-                          {CartSubTotal}
-                        </Text>
-                      </View>
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontFamily: Inter.bold,
+                                fontSize: responsiveFontSize(1),
+                                color: Colors.white,
+                              }}
+                            >
+                              Sub Total{' '}
+                            </Text>
+                            <Text
+                              style={{
+                                fontFamily: Inter.bold,
+                                fontSize: responsiveFontSize(1),
+                                color: Colors.white,
+                              }}
+                            >
+                              {activeBusiness.currency_symbol}
+                              {CartSubTotal}
+                            </Text>
+                          </View>
 
-                      {/*} <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                          {/*} <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                                            <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>Discount </Text>
                                            <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>0%</Text>
                                        </View>
@@ -1990,40 +2134,42 @@ const HomeRight = props => {
                                            <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>$ 67.00 </Text>
                                        </View>*/}
 
-                      {cartFee.map((cartfee, index) => {
-                        //console.log(cartfee?.firstoffer?.data);
-                        return (
-                          <View key={'carefee_' + index}>
-                            {cartfee.taxprice > 0 ? (
-                              <>
-                                <View
-                                  style={{
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                  }}
-                                >
-                                  <Text
-                                    style={{
-                                      fontFamily: Inter.bold,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.white,
-                                    }}
-                                  >
-                                    Tax ({cartfee.tax}%)
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      fontFamily: Inter.bold,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.white,
-                                    }}
-                                  >
-                                    {activeBusiness.currency_symbol}
-                                    {parseFloat(cartfee.taxprice).toFixed(2)}
-                                  </Text>
-                                </View>
+                          {cartFee.map((cartfee, index) => {
+                            //console.log(cartfee?.firstoffer?.data);
+                            return (
+                              <View key={'carefee_' + index}>
+                                {cartfee.taxprice > 0 ? (
+                                  <>
+                                    <View
+                                      style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                      }}
+                                    >
+                                      <Text
+                                        style={{
+                                          fontFamily: Inter.bold,
+                                          fontSize: responsiveFontSize(1),
+                                          color: Colors.white,
+                                        }}
+                                      >
+                                        Tax ({cartfee.tax}%)
+                                      </Text>
+                                      <Text
+                                        style={{
+                                          fontFamily: Inter.bold,
+                                          fontSize: responsiveFontSize(1),
+                                          color: Colors.white,
+                                        }}
+                                      >
+                                        {activeBusiness.currency_symbol}
+                                        {parseFloat(cartfee.taxprice).toFixed(
+                                          2,
+                                        )}
+                                      </Text>
+                                    </View>
 
-                                {/*<View
+                                    {/*<View
                                   style={{
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
@@ -2048,318 +2194,346 @@ const HomeRight = props => {
                                     </Text>
                                   ) : null}
                                 </View>*/}
-                              </>
-                            ) : null}
-                            {cartfee.servicefeeprice > 0 ? (
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  justifyContent: 'space-between',
-                                }}
-                              >
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.white,
-                                  }}
-                                >
-                                  Service Fee ({cartfee.servicefee}%)
-                                </Text>
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.white,
-                                  }}
-                                >
-                                  {activeBusiness.currency_symbol}
-                                  {parseFloat(cartfee.servicefeeprice).toFixed(
-                                    2,
-                                  )}
-                                </Text>
-                              </View>
-                            ) : null}
-
-                            {cartfee.tips > 0 ? (
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  justifyContent: 'space-between',
-                                }}
-                              >
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.white,
-                                  }}
-                                >
-                                  Tips{' '}
-                                </Text>
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.white,
-                                  }}
-                                >
-                                  {activeBusiness.currency_symbol}
-                                  {parseFloat(cartfee.tips).toFixed(2)}
-                                </Text>
-                              </View>
-                            ) : null}
-
-                            {cartfee.discount > 0 ? (
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  justifyContent: 'space-between',
-                                }}
-                              >
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.white,
-                                  }}
-                                >
-                                  Discount{' '}
-                                </Text>
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.red,
-                                  }}
-                                >
-                                  {'-'}
-                                  {activeBusiness.currency_symbol}
-                                  {parseFloat(cartfee.discount).toFixed(2)}
-                                </Text>
-                              </View>
-                            ) : null}
-
-                            {cartfee?.autodiscount > 0 ? (
-                              <View
-                                style={{
-                                  flexDirection: 'row',
-                                  justifyContent: 'space-between',
-                                }}
-                              >
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.white,
-                                  }}
-                                >
-                                  {cartfee?.firstoffer?.message}(
-                                  {cartfee?.firstoffer?.data[0]?.distext}){' '}
-                                </Text>
-                                <Text
-                                  style={{
-                                    fontFamily: Inter.bold,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.red,
-                                  }}
-                                >
-                                  {'-'}
-                                  {activeBusiness.currency_symbol}
-                                  {parseFloat(cartfee.autodiscount).toFixed(2)}
-                                </Text>
-                              </View>
-                            ) : null}
-
-                            <View
-                              style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  fontFamily: Inter.bold,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.white,
-                                }}
-                              >
-                                Total{' '}
-                              </Text>
-                              <Text
-                                style={{
-                                  fontFamily: Inter.bold,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.white,
-                                }}
-                              >
-                                {activeBusiness.currency_symbol}
-                                {parseFloat(cartfee.total).toFixed(2)}
-                              </Text>
-                            </View>
-                          </View>
-                        );
-                      })}
-                    </View>
-
-                    {displaypaircode === true ? (
-                      <View
-                        style={{
-                          marginTop: responsiveHeight(0.5),
-                          display: 'flex',
-                        }}
-                      >
-                        <AppTextInput
-                          inputStyle={{ paddingLeft: 10 }}
-                          onChangeText={text => {
-                            setPaircode(text);
-                          }}
-                          value={paircode}
-                          placeholder="Terminal PairCode"
-                          leftIcon={{
-                            name: 'code-working',
-                            type: 'Ionicons',
-                            color: Colors.black,
-                          }}
-                          inputContainerStyle={{
-                            borderColor: Colors.grey,
-                            marginBottom: responsiveHeight(1),
-                          }}
-                          keyboardType="numeric"
-                          maxLength={10}
-                        />
-                      </View>
-                    ) : null}
-
-                    <View style={{ marginVertical: responsiveHeight(2) }}>
-                      <View
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                        }}
-                      >
-                        {paymentMethod.isLoading === false &&
-                        paymentMethod.list.length > 0
-                          ? paymentMethod.list.map((item, index) => {
-                              return (
-                                <View
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    marginRight: responsiveWidth(1),
-                                  }}
-                                  key={'pay_' + index}
-                                >
-                                  <RadioButton
-                                    selected={item.active}
-                                    onChange={() => {
-                                      SelectPayment(item);
-                                      setPaymentIndex(index);
-                                    }}
-                                    size={22}
-                                    style={[styles.radioButton, {}]}
-                                    activeColor={Colors.blue}
-                                    inactiveColor={Colors.blue}
-                                  />
-                                  <Text
+                                  </>
+                                ) : null}
+                                {cartfee.servicefeeprice > 0 ? (
+                                  <View
                                     style={{
-                                      marginLeft: responsiveWidth(1),
-                                      fontFamily: Inter.bold,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.black,
-                                      textTransform: 'capitalize',
+                                      flexDirection: 'row',
+                                      justifyContent: 'space-between',
                                     }}
                                   >
-                                    {item.payment_method}
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.white,
+                                      }}
+                                    >
+                                      Service Fee ({cartfee.servicefee}%)
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.white,
+                                      }}
+                                    >
+                                      {activeBusiness.currency_symbol}
+                                      {parseFloat(
+                                        cartfee.servicefeeprice,
+                                      ).toFixed(2)}
+                                    </Text>
+                                  </View>
+                                ) : null}
+
+                                {cartfee.tips > 0 ? (
+                                  <View
+                                    style={{
+                                      flexDirection: 'row',
+                                      justifyContent: 'space-between',
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.white,
+                                      }}
+                                    >
+                                      Tips{' '}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.white,
+                                      }}
+                                    >
+                                      {activeBusiness.currency_symbol}
+                                      {parseFloat(cartfee.tips).toFixed(2)}
+                                    </Text>
+                                  </View>
+                                ) : null}
+
+                                {cartfee.discount > 0 ? (
+                                  <View
+                                    style={{
+                                      flexDirection: 'row',
+                                      justifyContent: 'space-between',
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.white,
+                                      }}
+                                    >
+                                      Discount{' '}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.red,
+                                      }}
+                                    >
+                                      {'-'}
+                                      {activeBusiness.currency_symbol}
+                                      {parseFloat(cartfee.discount).toFixed(2)}
+                                    </Text>
+                                  </View>
+                                ) : null}
+
+                                {cartfee?.autodiscount > 0 ? (
+                                  <View
+                                    style={{
+                                      flexDirection: 'row',
+                                      justifyContent: 'space-between',
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.white,
+                                      }}
+                                    >
+                                      {cartfee?.firstoffer?.message}(
+                                      {cartfee?.firstoffer?.data[0]?.distext}){' '}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontFamily: Inter.bold,
+                                        fontSize: responsiveFontSize(1),
+                                        color: Colors.red,
+                                      }}
+                                    >
+                                      {'-'}
+                                      {activeBusiness.currency_symbol}
+                                      {parseFloat(cartfee.autodiscount).toFixed(
+                                        2,
+                                      )}
+                                    </Text>
+                                  </View>
+                                ) : null}
+
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontFamily: Inter.bold,
+                                      fontSize: responsiveFontSize(1),
+                                      color: Colors.white,
+                                    }}
+                                  >
+                                    Total{' '}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontFamily: Inter.bold,
+                                      fontSize: responsiveFontSize(1),
+                                      color: Colors.white,
+                                    }}
+                                  >
+                                    {activeBusiness.currency_symbol}
+                                    {parseFloat(cartfee.total).toFixed(2)}
                                   </Text>
                                 </View>
-                              );
-                            })
-                          : null}
-                      </View>
-                    </View>
-                  </>
-                )}
+                              </View>
+                            );
+                          })}
+                        </View>
 
-                <View
-                  style={{
-                    paddingBottom: responsiveHeight(1),
-                    marginBottom: responsiveHeight(20),
-                  }}
-                >
-                  {PendingMinimumFee > 0.0 ? (
+                        {displaypaircode === true ? (
+                          <View
+                            style={{
+                              marginTop: responsiveHeight(0.5),
+                              display: 'flex',
+                            }}
+                          >
+                            <AppTextInput
+                              inputStyle={{ paddingLeft: 10 }}
+                              onChangeText={text => {
+                                setPaircode(text);
+                              }}
+                              value={paircode}
+                              placeholder="Terminal PairCode"
+                              leftIcon={{
+                                name: 'code-working',
+                                type: 'Ionicons',
+                                color: Colors.black,
+                              }}
+                              inputContainerStyle={{
+                                borderColor: Colors.grey,
+                                marginBottom: responsiveHeight(1),
+                              }}
+                              keyboardType="numeric"
+                              maxLength={10}
+                            />
+                          </View>
+                        ) : null}
+
+                        <View style={{ marginVertical: responsiveHeight(2) }}>
+                          <View
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                            }}
+                          >
+                            {paymentMethod.isLoading === false &&
+                            paymentMethod.list.length > 0
+                              ? paymentMethod.list.map((item, index) => {
+                                  return (
+                                    <View
+                                      style={{
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        marginRight: responsiveWidth(1),
+                                      }}
+                                      key={'pay_' + index}
+                                    >
+                                      <RadioButton
+                                        selected={item.active}
+                                        onChange={() => {
+                                          SelectPayment(item);
+                                          setPaymentIndex(index);
+                                        }}
+                                        size={22}
+                                        style={[styles.radioButton, {}]}
+                                        activeColor={Colors.blue}
+                                        inactiveColor={Colors.blue}
+                                      />
+                                      <Text
+                                        style={{
+                                          marginLeft: responsiveWidth(1),
+                                          fontFamily: Inter.bold,
+                                          fontSize: responsiveFontSize(1),
+                                          color: Colors.black,
+                                          textTransform: 'capitalize',
+                                        }}
+                                      >
+                                        {item.payment_method}
+                                      </Text>
+                                    </View>
+                                  );
+                                })
+                              : null}
+                          </View>
+                        </View>
+                      </>
+                    )}
+
                     <View
                       style={{
-                        alignItems: 'center',
-                        paddingVertical: responsiveHeight(1),
+                        paddingBottom: responsiveHeight(1),
+                        marginBottom: responsiveHeight(20),
                       }}
                     >
-                      <Text
-                        style={{
-                          fontFamily: Inter.medium,
-                          fontSize: responsiveFontSize(1.2),
-                          color: Colors.red,
-                        }}
-                      >
-                        minimum price need to add{' '}
-                        {activeBusiness.currency_symbol}
-                        {PendingMinimumFee}
-                      </Text>
+                      {PendingMinimumFee > 0.0 ? (
+                        <View
+                          style={{
+                            alignItems: 'center',
+                            paddingVertical: responsiveHeight(1),
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: Inter.medium,
+                              fontSize: responsiveFontSize(1.2),
+                              color: Colors.red,
+                            }}
+                          >
+                            minimum price need to add{' '}
+                            {activeBusiness.currency_symbol}
+                            {PendingMinimumFee}
+                          </Text>
+                        </View>
+                      ) : null}
+                      {PendingMinimumFee <= 0.0 ? (
+                        update_action_status === true ? (
+                          <TouchableOpacity style={styles.button_disable}>
+                            <Text
+                              style={{
+                                fontWeight: 'bold',
+                                fontSize: responsiveFontSize(1.5),
+                                color: '#000',
+                                fontFamily: Inter.medium,
+                              }}
+                            >
+                              Pay Now
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => {
+                              CheckallDetails();
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontWeight: 'bold',
+                                fontSize: responsiveFontSize(1.5),
+                                color: '#fff',
+                                fontFamily: Inter.medium,
+                              }}
+                            >
+                              Pay Now
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      ) : PendingMinimumFee > 0.0 ? (
+                        <TouchableOpacity style={styles.button}>
+                          <Text
+                            style={{
+                              fontWeight: 'bold',
+                              fontSize: responsiveFontSize(1.5),
+                              color: '#fff',
+                              fontFamily: Inter.medium,
+                            }}
+                          >
+                            {'Minumum Order'}:{activeBusiness.currency_symbol}
+                            {activeBusiness.minimumfee}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
                     </View>
-                  ) : null}
-                  {PendingMinimumFee <= 0.0 ? (
-                    update_action_status === true ? (
-                      <TouchableOpacity style={styles.button_disable}>
-                        <Text
-                          style={{
-                            fontWeight: 'bold',
-                            fontSize: responsiveFontSize(1.5),
-                            color: '#000',
-                            fontFamily: Inter.medium,
-                          }}
-                        >
-                          Pay Now
-                        </Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => {
-                          CheckallDetails();
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontWeight: 'bold',
-                            fontSize: responsiveFontSize(1.5),
-                            color: '#fff',
-                            fontFamily: Inter.medium,
-                          }}
-                        >
-                          Pay Now
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  ) : PendingMinimumFee > 0.0 ? (
-                    <TouchableOpacity style={styles.button}>
-                      <Text
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: responsiveFontSize(1.5),
-                          color: '#fff',
-                          fontFamily: Inter.medium,
-                        }}
-                      >
-                        {'Minumum Order'}:{activeBusiness.currency_symbol}
-                        {activeBusiness.minimumfee}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
+                  </>
+                ) : (
+                  <>
+                    {/*<View
+                      style={{
+                        borderColor: Colors.grey,
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        paddingHorizontal: responsiveWidth(0.5),
+                        marginVertical: responsiveHeight(1),
+                        height: responsiveHeight(15),
+                      }}
+                    ></View>
+                    <View
+                      style={{
+                        backgroundColor: Colors.blue,
+                        borderRadius: 10,
+                        paddingHorizontal: responsiveWidth(1),
+                        paddingVertical: responsiveHeight(1),
+                        marginVertical: responsiveHeight(1),
+                        height: responsiveHeight(15),
+                      }}
+                    ></View>*/}
+                  </>
+                )}
               </View>
-            ) : null}
+              /*) : null*/
+            }
           </ScrollView>
         </SafeAreaView>
       </SafeAreaProvider>

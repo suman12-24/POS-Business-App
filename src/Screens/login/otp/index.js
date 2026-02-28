@@ -9,22 +9,22 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Styles from './style';
-import {Colors} from '../../../Constants/Colors';
+import { Colors } from '../../../Constants/Colors';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
   responsiveScreenWidth,
 } from 'react-native-responsive-dimensions';
-import {Inter} from '../../../Constants/Fonts';
-import {Images} from '../../../Constants/ImageIconContant';
+import { Inter } from '../../../Constants/Fonts';
+import { Images } from '../../../Constants/ImageIconContant';
 import VersionNumber from 'react-native-version-number';
 import OTPTextInput from 'react-native-otp-textinput';
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../../../Service/localStorage';
-import {postWithOutToken} from '../../../Service/service';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../../../Service/localStorage';
+import { postWithOutToken } from '../../../Service/service';
 import {
   Container,
   Icon,
@@ -33,10 +33,10 @@ import {
 } from 'react-native-basic-elements';
 import Loader from '../../../Component/loader';
 
-const ForgotOtp = ({props, route, navigation}) => {
+const ForgotOtp = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, langId} = useSelector(state => state.common);
+  const { baseUrl, siteUrl, langId } = useSelector(state => state.common);
   const [version_code, setVersionCode] = useState(null);
   const [viewloader, setLoader] = useState(false);
   const [otp, setOTP] = useState('');
@@ -216,10 +216,11 @@ const ForgotOtp = ({props, route, navigation}) => {
               overflow: 'hidden',
               borderRadius: 10,
               margin: 'auto',
-            }}>
+            }}
+          >
             <Image
               source={Images.login_logo}
-              style={{width: '100%', height: '100%', objectFit: 'cover'}}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </View>
 
@@ -228,13 +229,15 @@ const ForgotOtp = ({props, route, navigation}) => {
               flexDirection: 'row',
               justifyContent: 'center',
               marginTop: responsiveHeight(2),
-            }}>
+            }}
+          >
             <Text
               style={{
                 color: Colors.black,
                 fontFamily: Inter.light,
                 fontSize: responsiveFontSize(2.2),
-              }}>
+              }}
+            >
               OTP Verify
             </Text>
           </View>
@@ -246,9 +249,10 @@ const ForgotOtp = ({props, route, navigation}) => {
                 color: '#555',
                 fontSize: responsiveFontSize(1),
                 marginVertical: responsiveHeight(2),
-              }}>
+              }}
+            >
               Please enter an OTP we are sending you to{' '}
-              <Text style={{color: Colors.blue}}>{route.params.email}</Text>
+              <Text style={{ color: Colors.blue }}>{route.params.email}</Text>
             </Text>
             <View style={styles.inputContainer}>
               <OTPTextInput
@@ -275,7 +279,8 @@ const ForgotOtp = ({props, route, navigation}) => {
                     fontSize: responsiveFontSize(1.5),
                     color: '#000',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Submit
                 </Text>
               </TouchableOpacity>
@@ -284,14 +289,16 @@ const ForgotOtp = ({props, route, navigation}) => {
                 style={styles.button}
                 onPress={() => {
                   ConfirmWithOtp();
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontWeight: 'bold',
                     fontSize: responsiveFontSize(1.5),
                     color: '#fff',
                     fontFamily: Inter.medium,
-                  }}>
+                  }}
+                >
                   Submit
                 </Text>
               </TouchableOpacity>
@@ -302,14 +309,16 @@ const ForgotOtp = ({props, route, navigation}) => {
                 color: Colors.fontcolor,
                 marginTop: responsiveHeight(2),
                 alignSelf: 'center',
-              }}>
+              }}
+            >
               {seconds > 0 || minutes > 0 ? (
                 <Text
                   style={{
                     color: Colors.fontcolor,
                     fontFamily: Inter.regular,
                     fontSize: responsiveFontSize(1.2),
-                  }}>
+                  }}
+                >
                   Time Remaining: {minutes < 10 ? `0${minutes}` : minutes}:
                   {seconds < 10 ? `0${seconds}` : seconds}
                 </Text>
@@ -319,7 +328,8 @@ const ForgotOtp = ({props, route, navigation}) => {
                     color: Colors.fontcolor,
                     fontFamily: Inter.regular,
                     fontSize: responsiveFontSize(1.2),
-                  }}>
+                  }}
+                >
                   Didn't recieve code?
                 </Text>
               )}
@@ -329,31 +339,35 @@ const ForgotOtp = ({props, route, navigation}) => {
                 color: Colors.fontcolor,
                 marginTop: responsiveHeight(2),
                 alignSelf: 'center',
-              }}>
+              }}
+            >
               {seconds > 0 || minutes > 0 ? (
                 <Text
                   style={{
                     color: Colors.fontcolor,
                     fontFamily: Inter.medium,
                     fontSize: responsiveFontSize(1.5),
-                  }}>
+                  }}
+                >
                   Resend OTP
                 </Text>
               ) : (
                 <TouchableOpacity
-                  onPress={viewloader == false ? resetPasswordOtp : null}>
+                  onPress={viewloader == false ? resetPasswordOtp : null}
+                >
                   <Text
                     style={{
                       color: Colors.blue,
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.5),
-                    }}>
+                    }}
+                  >
                     Resend OTP
                   </Text>
                 </TouchableOpacity>
               )}
             </View>
-            <Text
+            {/*<Text
               style={{
                 fontSize: responsiveFontSize(1.2),
                 color: Colors.grey,
@@ -362,7 +376,7 @@ const ForgotOtp = ({props, route, navigation}) => {
                 textAlign: 'center',
               }}>
               @ Indus v {version_code != null ? version_code : null}
-            </Text>
+            </Text>*/}
           </View>
         </View>
       </View>

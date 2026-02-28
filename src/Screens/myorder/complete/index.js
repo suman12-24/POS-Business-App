@@ -1056,6 +1056,8 @@ const MyOrderComplete = ({ props, route, navigation }) => {
                         ? ' Pickup'
                         : orderDetails.order_type == 3
                         ? ' Dinein'
+                        : orderDetails.order_type == 4
+                        ? ' POS'
                         : null
                       : null}
                   </Text>
