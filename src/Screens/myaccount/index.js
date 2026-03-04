@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -13,23 +13,23 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
-import {Images} from '../../Constants/ImageIconContant';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
+import { Images } from '../../Constants/ImageIconContant';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setUserData,
   setUserDataAfterLogin,
 } from '../../Store/Reducers/CommonReducer';
-import {showToastMsg, getData, setData} from '../../Service/localStorage';
-import {postWithToken, postWithOutToken} from '../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { showToastMsg, getData, setData } from '../../Service/localStorage';
+import { postWithToken, postWithOutToken } from '../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Container,
   Icon,
@@ -38,10 +38,10 @@ import {
 } from 'react-native-basic-elements';
 import Loader from '../../Component/loader';
 // create a component
-const MyAccount = ({props, route, navigation}) => {
+const MyAccount = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, userToken, userData, post_data, langId} =
+  const { baseUrl, siteUrl, userToken, userData, post_data, langId } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [first_name, setFirstName] = useState('');
@@ -173,29 +173,36 @@ const MyAccount = ({props, route, navigation}) => {
       <View style={styles.main}>
         <View style={styles.inner_left}>
           <TouchableOpacity
-            style={[styles.button_left, {backgroundColor: Colors.blue}]}>
+            style={[
+              styles.button_left,
+              { backgroundColor: Colors.primaryFontColor },
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.white,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Update Profile
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button_left, {backgroundColor: '#F0F0F0'}]}
+            style={[styles.button_left, { backgroundColor: '#F0F0F0' }]}
             onPress={() => {
               navigation.navigate('MyAccountDelete');
-            }}>
+            }}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.black,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Delete Profile
             </Text>
           </TouchableOpacity>
@@ -208,10 +215,11 @@ const MyAccount = ({props, route, navigation}) => {
                 paddingVertical: responsiveHeight(4),
                 width: '56%',
                 marginBottom: '20%',
-              }}>
+              }}
+            >
               <AppTextInput
                 title={'First Name'}
-                inputStyle={{paddingLeft: 10}}
+                inputStyle={{ paddingLeft: 10 }}
                 onChangeText={setFirstName}
                 value={first_name}
                 placeholder=""
@@ -224,7 +232,7 @@ const MyAccount = ({props, route, navigation}) => {
 
               <AppTextInput
                 title={'Last Name'}
-                inputStyle={{paddingLeft: 10}}
+                inputStyle={{ paddingLeft: 10 }}
                 onChangeText={setLastName}
                 value={last_name}
                 placeholder=""
@@ -237,7 +245,7 @@ const MyAccount = ({props, route, navigation}) => {
 
               <AppTextInput
                 title={'Email'}
-                inputStyle={{paddingLeft: 10}}
+                inputStyle={{ paddingLeft: 10 }}
                 value={email}
                 placeholder=""
                 inputContainerStyle={{
@@ -250,7 +258,7 @@ const MyAccount = ({props, route, navigation}) => {
 
               <AppTextInput
                 title={'Phone'}
-                inputStyle={{paddingLeft: 10}}
+                inputStyle={{ paddingLeft: 10 }}
                 onChangeText={setPhone}
                 value={phone}
                 placeholder=""
@@ -271,7 +279,8 @@ const MyAccount = ({props, route, navigation}) => {
                       fontSize: responsiveFontSize(1.5),
                       color: '#000',
                       fontFamily: Inter.medium,
-                    }}>
+                    }}
+                  >
                     Update
                   </Text>
                 </TouchableOpacity>
@@ -280,14 +289,16 @@ const MyAccount = ({props, route, navigation}) => {
                   style={styles.button}
                   onPress={() => {
                     updateProfile();
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       fontWeight: 'bold',
                       fontSize: responsiveFontSize(1.5),
                       color: '#fff',
                       fontFamily: Inter.medium,
-                    }}>
+                    }}
+                  >
                     Update
                   </Text>
                 </TouchableOpacity>

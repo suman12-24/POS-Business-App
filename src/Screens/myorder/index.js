@@ -45,6 +45,7 @@ import Thermalpriter from '../../Component/prnterConnect';
 import Loader from '../../Component/loader';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
+import OrderCardSkeleton from '../../Component/OrderCardSkeleton';
 
 // create a component
 const MyOrder = () => {
@@ -525,41 +526,9 @@ const MyOrder = () => {
       <>
         {viewmoreloader === true ? (
           <View>
-            <SkeletonPlaceholder borderRadius={4}>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-            </SkeletonPlaceholder>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <OrderCardSkeleton key={'skeleton_lo' + index} />
+            ))}
           </View>
         ) : null}
       </>
@@ -567,7 +536,7 @@ const MyOrder = () => {
   };
 
   const openDetails = item => {
-    //console.log(item);
+    console.log(item);
     setOrderDetails(item);
     toggleModal();
   };
@@ -710,7 +679,7 @@ const MyOrder = () => {
             {isTableBooked && (
               <AntDesignIcon
                 style={styles.icon}
-                color={Colors.blue}
+                color={Colors.primaryFontColor}
                 name="Safety"
                 size={20}
               />
@@ -718,7 +687,7 @@ const MyOrder = () => {
             {isSelected && (
               <AntDesignIcon
                 style={styles.icon}
-                color={Colors.blue}
+                color={Colors.primaryFontColor}
                 name="checkcircle"
                 size={20}
               />
@@ -850,7 +819,7 @@ const MyOrder = () => {
             justifyContent: 'flex-start',
             gap: 10,
             borderBottomWidth: 1.5,
-            borderBottomColor: Colors.blue,
+            borderBottomColor: Colors.primaryFontColor,
           }}
         >
           <TouchableOpacity
@@ -860,9 +829,9 @@ const MyOrder = () => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.primaryFontColor,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
@@ -887,7 +856,7 @@ const MyOrder = () => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
                 backgroundColor: Colors.white,
                 borderTopRightRadius: 10,
@@ -899,7 +868,7 @@ const MyOrder = () => {
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.medium,
               }}
             >
@@ -914,7 +883,7 @@ const MyOrder = () => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
                 backgroundColor: Colors.white,
                 borderTopRightRadius: 10,
@@ -926,7 +895,7 @@ const MyOrder = () => {
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.medium,
               }}
             >
@@ -1143,52 +1112,9 @@ const MyOrder = () => {
           </View>
         ) : (
           <View>
-            <SkeletonPlaceholder borderRadius={4}>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-            </SkeletonPlaceholder>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <OrderCardSkeleton key={'skeleton_lo_1' + index} />
+            ))}
           </View>
         )}
       </View>
@@ -1343,7 +1269,12 @@ const MyOrder = () => {
                     }}
                   >
                     Payment Information :{' '}
-                    {orderDetails != null ? orderDetails.paymentname : null}
+                    {orderDetails != null
+                      ? orderDetails.paymentmethod != null &&
+                        orderDetails.paymentmethod.length > 0
+                        ? orderDetails.paymentmethod[0].payment_method
+                        : null
+                      : null}
                   </Text>
                 </View>
                 <View

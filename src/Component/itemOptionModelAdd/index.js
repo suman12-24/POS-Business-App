@@ -396,6 +396,14 @@ const OptionModelAdd = props => {
         dish_val.sets[setIndex].options[optionIndex].choice[
           choiceIndex
         ].qty = 1;
+
+        setOptionErrors(prev => {
+          if (!prev[dish_val.sets[setIndex].options[optionIndex].id])
+            return prev;
+          const copy = { ...prev };
+          delete copy[dish_val.sets[setIndex].options[optionIndex].id];
+          return copy;
+        });
       }
       for (
         let i = 0;
@@ -681,6 +689,10 @@ const OptionModelAdd = props => {
       }
     }
 
+    console.log('errors');
+    console.log(errors);
+    console.log(firstInvalidOptionId);
+
     setOptionErrors(errors);
     return firstInvalidOptionId;
   };
@@ -691,7 +703,7 @@ const OptionModelAdd = props => {
     if (invalidOptionId) {
       setError('');
       setTimeout(() => {
-        optionRefs.current[invalidOptionId]?.measure(
+        /*optionRefs.current[invalidOptionId]?.measure(
           (fx, fy, width, height, px, py) => {
             console.log(py);
             scrollViewRef.current?.scrollTo({
@@ -699,6 +711,16 @@ const OptionModelAdd = props => {
               animated: true,
             });
           },
+        );*/
+        optionRefs.current[invalidOptionId]?.measureLayout(
+          scrollViewRef.current,
+          (x, y) => {
+            scrollViewRef.current?.scrollTo({
+              y: y - 80,
+              animated: true,
+            });
+          },
+          error => console.log(error),
         );
       }, 300);
 
@@ -1586,7 +1608,7 @@ const OptionModelAdd = props => {
                             marginRight: 8,
                             borderRadius: 8,
                             borderWidth: isActive ? 2 : 0,
-                            borderColor: '#4CAF50',
+                            borderColor: Colors.primaryFontColor,
                             overflow: 'hidden',
                           }}
                         >
@@ -1626,7 +1648,7 @@ const OptionModelAdd = props => {
                           <Text
                             style={{
                               marginTop: 4,
-                              color: '#4CAF50',
+                              color: Colors.primaryFontColor,
                               fontSize: 12,
                             }}
                           >
@@ -1702,8 +1724,7 @@ const OptionModelAdd = props => {
                                     fontFamily: Inter.regular,
                                   }}
                                 >
-                                  Required {option.id}
-                                  {optionErrors[option.id] === true ? 1 : 0}
+                                  Required
                                 </Text>
                               </View>
                             )}
@@ -1737,7 +1758,7 @@ const OptionModelAdd = props => {
                                   style={[
                                     styles.radio,
                                     choice.checked === true && {
-                                      backgroundColor: Colors.blue,
+                                      backgroundColor: Colors.buttonColor,
                                     },
                                   ]}
                                 />
@@ -1808,7 +1829,7 @@ const OptionModelAdd = props => {
                                       style={[
                                         styles.checkbox,
                                         choice.checked === true && {
-                                          backgroundColor: Colors.blue,
+                                          backgroundColor: Colors.buttonColor,
                                         },
                                       ]}
                                     >
@@ -1834,7 +1855,7 @@ const OptionModelAdd = props => {
                                           );
                                         }}
                                         style={{
-                                          backgroundColor: Colors.blue,
+                                          backgroundColor: Colors.buttonColor,
                                           paddingHorizontal: 3,
                                           borderRadius: 6,
                                         }}
@@ -1858,7 +1879,7 @@ const OptionModelAdd = props => {
                                           );
                                         }}
                                         style={{
-                                          backgroundColor: Colors.blue,
+                                          backgroundColor: Colors.buttonColor,
                                           paddingHorizontal: 3,
                                           borderRadius: 6,
                                           opacity: maxReached ? 0.4 : 1,

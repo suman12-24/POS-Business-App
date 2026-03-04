@@ -120,8 +120,8 @@ const Styles = () => {
       marginRight: 8,
     },
     radioSelected: {
-      backgroundColor: '#4CAF50',
-      borderColor: '#4CAF50',
+      backgroundColor: Colors.primary,
+      borderColor: Colors.primary,
     },
 
     checkbox: {
@@ -134,8 +134,8 @@ const Styles = () => {
       marginRight: 8,
     },
     checkboxChecked: {
-      backgroundColor: '#4CAF50',
-      borderColor: '#4CAF50',
+      backgroundColor: Colors.primary,
+      borderColor: Colors.primary,
     },
 
     choiceText: { fontSize: 14, fontFamily: Inter.regular },
@@ -158,7 +158,7 @@ const Styles = () => {
     },
     total: { fontSize: 15, fontWeight: '600' },
     addBtn: {
-      backgroundColor: '#4CAF50',
+      backgroundColor: Colors.buttonColor,
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 6,

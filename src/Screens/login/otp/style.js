@@ -1,13 +1,13 @@
 // LoginFormStyles.js
 
-import {StyleSheet} from 'react-native';
-import {Colors} from '../../../Constants/Colors';
+import { StyleSheet } from 'react-native';
+import { Colors } from '../../../Constants/Colors';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import {Inter} from '../../../Constants/Fonts';
+import { Inter } from '../../../Constants/Fonts';
 
 const Styles = () => {
   return StyleSheet.create({
@@ -22,24 +22,24 @@ const Styles = () => {
       position: 'absolute',
     },
     button: {
-      height: responsiveWidth(4),
+      height: responsiveWidth(4.5),
       width: '100%',
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.buttonColor,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
       marginTop: responsiveWidth(2),
-      borderRadius: 5,
+      borderRadius: responsiveWidth(0.6),
     },
     button_dis: {
-      height: responsiveWidth(4),
+      height: responsiveWidth(4.5),
       width: '100%',
       backgroundColor: Colors.grey,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
       marginTop: responsiveWidth(2),
-      borderRadius: 5,
+      borderRadius: responsiveWidth(0.6),
     },
     main: {
       position: 'absolute',
@@ -52,7 +52,7 @@ const Styles = () => {
     main_inner: {
       backgroundColor: Colors.white,
       shadowColor: '#000',
-      shadowOffset: {width: 1, height: 1},
+      shadowOffset: { width: 1, height: 1 },
       shadowOpacity: 0.8,
       shadowRadius: 3,
       elevation: 10,

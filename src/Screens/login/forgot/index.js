@@ -227,7 +227,7 @@ const Forgot = ({ props, route, navigation }) => {
                 style={{
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(1),
-                  color: Colors.blue,
+                  color: Colors.primaryFontColor,
                   fontFamily: Inter.medium,
                 }}
               >

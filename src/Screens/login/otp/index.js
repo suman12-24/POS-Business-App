@@ -252,7 +252,9 @@ const ForgotOtp = ({ props, route, navigation }) => {
               }}
             >
               Please enter an OTP we are sending you to{' '}
-              <Text style={{ color: Colors.blue }}>{route.params.email}</Text>
+              <Text style={{ color: Colors.primaryFontColor }}>
+                {route.params.email}
+              </Text>
             </Text>
             <View style={styles.inputContainer}>
               <OTPTextInput
@@ -261,10 +263,10 @@ const ForgotOtp = ({ props, route, navigation }) => {
                 textInputStyle={{
                   borderWidth: 2,
                   borderRadius: 6,
-                  height: responsiveScreenWidth(4.5),
-                  width: responsiveScreenWidth(4.5),
+                  height: responsiveScreenWidth(5),
+                  width: responsiveScreenWidth(5),
                 }}
-                tintColor={Colors.blue}
+                tintColor={Colors.primaryFontColor}
                 autoFocus={true}
                 handleTextChange={text => setOTP(text)}
                 ref={ref}
@@ -357,7 +359,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                 >
                   <Text
                     style={{
-                      color: Colors.blue,
+                      color: Colors.primaryFontColor,
                       fontFamily: Inter.medium,
                       fontSize: responsiveFontSize(1.5),
                     }}

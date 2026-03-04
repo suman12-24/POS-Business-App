@@ -12,11 +12,11 @@ const Styles = () => {
     button: {
       height: responsiveWidth(4),
       width: '96%',
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.buttonColor,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     button_disable: {
       height: responsiveWidth(4),
@@ -25,16 +25,16 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     applybutton: {
       height: responsiveWidth(4),
       width: '96%',
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.buttonColor,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     applybutton_disable: {
       height: responsiveWidth(4),
@@ -43,7 +43,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     radioButton: {},
     checkbox: {
@@ -53,11 +53,11 @@ const Styles = () => {
     add_button: {
       height: responsiveWidth(4),
       width: responsiveWidth(10),
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.buttonColor,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     //drop down
     dropdown: {
@@ -175,8 +175,8 @@ const Styles = () => {
     modalbutt: {
       paddingVertical: 10,
       paddingHorizontal: 20,
-      borderRadius: 10,
-      backgroundColor: Colors.blue,
+      borderRadius: responsiveWidth(0.6),
+      backgroundColor: Colors.buttonColor,
     },
     modalbutt2: {
       paddingVertical: 10,

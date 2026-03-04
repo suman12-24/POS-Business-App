@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -17,9 +17,9 @@ import {
   NativeEventEmitter,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../../Constants/Colors';
-import {Inter} from '../../../Constants/Fonts';
-import {Images} from '../../../Constants/ImageIconContant';
+import { Colors } from '../../../Constants/Colors';
+import { Inter } from '../../../Constants/Fonts';
+import { Images } from '../../../Constants/ImageIconContant';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   responsiveHeight,
@@ -27,10 +27,10 @@ import {
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../../../Service/localStorage';
-import {postWithOutToken, postWithToken} from '../../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../../../Service/localStorage';
+import { postWithOutToken, postWithToken } from '../../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   setCartDetails,
   setCartQuantity,
@@ -42,7 +42,7 @@ import {
   AppTextInput,
   CheckBox,
 } from 'react-native-basic-elements';
-import {PermissionsAndroid} from 'react-native';
+import { PermissionsAndroid } from 'react-native';
 
 import {
   USBPrinter,
@@ -53,18 +53,18 @@ import NetInfo from '@react-native-community/netinfo';
 import Thermalpriter from '../../../Component/prnterConnect';
 
 // create a component
-const OrderSuccess = ({props, route, navigation}) => {
+const OrderSuccess = ({ props, route, navigation }) => {
   const styles = Styles();
   Moment.locale('en');
   const dispatch = useDispatch();
   const colorScheme = useColorScheme();
-  const {baseUrl, siteUrl, userToken, userData, post_data, langId} =
+  const { baseUrl, siteUrl, userToken, userData, post_data, langId } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [color_theme, setColorTheme] = useState('#000000');
   const [color_theme_selected, setColorThemeSelected] = useState('#000000');
 
-  const [order, setOrder] = useState({isLoading: true, list: []});
+  const [order, setOrder] = useState({ isLoading: true, list: [] });
 
   const [ipAddressPrinter, setipaddresprinter] = useState();
   const [visiblemodal, setvisiblemodal] = useState(false);
@@ -141,7 +141,7 @@ const OrderSuccess = ({props, route, navigation}) => {
   const Print_printer = () => {
     if (PRINTER_OPTION == 'USBPRINTER') {
       // console.log('usb print')
-      USBPrinter.printBill('<C>sample text</C>\n', {beep: true})
+      USBPrinter.printBill('<C>sample text</C>\n', { beep: true })
         .then(() => {
           return USBPrinter.closeConn();
         })
@@ -279,7 +279,7 @@ const OrderSuccess = ({props, route, navigation}) => {
         //console.log(response);
         setLoader(false);
 
-        setOrder({isLoading: false, list: response.data});
+        setOrder({ isLoading: false, list: response.data });
 
         /*let OrderDate = response.date;
         let Bname = response.bname;
@@ -519,7 +519,8 @@ const OrderSuccess = ({props, route, navigation}) => {
             left: 0,
             top: 0,
             zIndex: 1,
-          }}>
+          }}
+        >
           <ActivityIndicator size="large" color={Colors.blue} />
         </View>
       ) : null}
@@ -532,7 +533,8 @@ const OrderSuccess = ({props, route, navigation}) => {
             alignItems: 'center',
             backgroundColor: 'rgba(0,0,0,0.5)',
             position: 'relative',
-          }}>
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               setvisiblemodal(false);
@@ -542,7 +544,8 @@ const OrderSuccess = ({props, route, navigation}) => {
               right: responsiveWidth(1),
               top: responsiveHeight(1.5),
               zIndex: 1,
-            }}>
+            }}
+          >
             <Icon
               name="closecircleo"
               type="AntDesign"
@@ -556,7 +559,8 @@ const OrderSuccess = ({props, route, navigation}) => {
               width: 300,
               backgroundColor: '#ffffff',
               borderRadius: 5,
-            }}>
+            }}
+          >
             <ScrollView showsVerticalScrollIndicator={false}>
               <Thermalpriter
                 Tcp_string={tcp_string}
@@ -577,7 +581,8 @@ const OrderSuccess = ({props, route, navigation}) => {
               alignItems: 'center',
               flexDirection: 'column',
               justifyContent: 'center',
-            }}>
+            }}
+          >
             <View
               style={{
                 width: responsiveWidth(6),
@@ -585,10 +590,11 @@ const OrderSuccess = ({props, route, navigation}) => {
                 overflow: 'hidden',
                 margin: 'auto',
                 marginTop: responsiveHeight(2),
-              }}>
+              }}
+            >
               <Image
                 source={Images.successtick}
-                style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </View>
             <View
@@ -597,13 +603,15 @@ const OrderSuccess = ({props, route, navigation}) => {
                 justifyContent: 'center',
                 marginBottom: responsiveHeight(1),
                 marginTop: responsiveHeight(2),
-              }}>
+              }}
+            >
               <Text
                 style={{
                   color: Colors.black,
                   fontFamily: Inter.bold,
                   fontSize: responsiveFontSize(1.5),
-                }}>
+                }}
+              >
                 Congratulations
               </Text>
             </View>
@@ -612,13 +620,15 @@ const OrderSuccess = ({props, route, navigation}) => {
                 flexDirection: 'row',
                 justifyContent: 'center',
                 marginBottom: responsiveHeight(3),
-              }}>
+              }}
+            >
               <Text
                 style={{
                   color: Colors.black,
                   fontFamily: Inter.regular,
                   fontSize: responsiveFontSize(1.2),
-                }}>
+                }}
+              >
                 Thank you. Your Order has submitted successfully
               </Text>
             </View>
@@ -627,7 +637,7 @@ const OrderSuccess = ({props, route, navigation}) => {
           <View>
             {order.isLoading === false ? (
               <>
-                <View style={{marginBottom: responsiveHeight(4)}}>
+                <View style={{ marginBottom: responsiveHeight(4) }}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -636,7 +646,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                       backgroundColor: Colors.black,
                       borderTopStartRadius: 10,
                       borderTopEndRadius: 10,
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         padding: 10,
@@ -646,7 +657,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'ORDER NUMBER'}
                     </Text>
                     <Text
@@ -658,7 +670,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'DATE'}
                     </Text>
                     <Text
@@ -670,7 +683,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'TOTAL'}
                     </Text>
                     <Text
@@ -682,12 +696,13 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'Payment Method'}
                     </Text>
                   </View>
 
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text
                       style={{
                         padding: 15,
@@ -697,7 +712,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.regular,
                         color: '#000',
                         fontSize: responsiveFontSize(1),
-                      }}>
+                      }}
+                    >
                       {'#'}
                       {order.list.id}
                     </Text>
@@ -710,7 +726,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.regular,
                         color: '#000',
                         fontSize: responsiveFontSize(1),
-                      }}>
+                      }}
+                    >
                       {order.list.date}
                     </Text>
                     <Text
@@ -722,7 +739,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.regular,
                         color: '#000',
                         fontSize: responsiveFontSize(1),
-                      }}>
+                      }}
+                    >
                       {order.list.currency_symbol}
                       {order.list.total}
                     </Text>
@@ -735,13 +753,17 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.regular,
                         color: '#000',
                         fontSize: responsiveFontSize(1),
-                      }}>
-                      {order.list.paymentname}
+                      }}
+                    >
+                      {order.list.paymentmethod != null &&
+                      order.list.paymentmethod.length > 0
+                        ? order.list.paymentmethod[0].payment_method
+                        : null}
                     </Text>
                   </View>
                 </View>
 
-                <View style={{marginBottom: responsiveHeight(4)}}>
+                <View style={{ marginBottom: responsiveHeight(4) }}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -750,7 +772,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                       backgroundColor: Colors.black,
                       borderTopStartRadius: 10,
                       borderTopEndRadius: 10,
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         padding: 10,
@@ -760,7 +783,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'Item Name'}
                     </Text>
                     <Text
@@ -772,7 +796,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'Qty'}
                     </Text>
                     <Text
@@ -784,7 +809,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'Ingredients'}
                     </Text>
                     <Text
@@ -796,7 +822,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'Options'}
                     </Text>
                     <Text
@@ -808,7 +835,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                         fontFamily: Inter.bold,
                         color: '#fff',
                         fontSize: responsiveFontSize(1.1),
-                      }}>
+                      }}
+                    >
                       {'Price'}
                     </Text>
                   </View>
@@ -822,7 +850,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                               style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                              }}>
+                              }}
+                            >
                               <Text
                                 style={{
                                   padding: 15,
@@ -832,7 +861,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                   fontFamily: Inter.regular,
                                   color: '#000',
                                   fontSize: responsiveFontSize(1),
-                                }}>
+                                }}
+                              >
                                 {dish.name}
                               </Text>
                               <Text
@@ -844,7 +874,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                   fontFamily: Inter.regular,
                                   color: '#000',
                                   fontSize: responsiveFontSize(1),
-                                }}>
+                                }}
+                              >
                                 {dish.quantity}
                               </Text>
                               <Text
@@ -856,7 +887,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                   fontFamily: Inter.regular,
                                   color: '#000',
                                   fontSize: responsiveFontSize(1),
-                                }}>
+                                }}
+                              >
                                 {dish.activeIngredientsText}
                               </Text>
                               <View
@@ -865,7 +897,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                   borderWidth: 0.5,
                                   height: '100%',
                                   width: '25%',
-                                }}>
+                                }}
+                              >
                                 {dish.sets.length > 0
                                   ? dish.sets.map((set, set_index) => {
                                       return (
@@ -875,7 +908,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                             color: '#000',
                                             fontSize: responsiveFontSize(1),
                                           }}
-                                          key={'set_' + set_index}>
+                                          key={'set_' + set_index}
+                                        >
                                           {set.name} - {set.choiceText}
                                         </Text>
                                       );
@@ -891,7 +925,8 @@ const OrderSuccess = ({props, route, navigation}) => {
                                   fontFamily: Inter.regular,
                                   color: '#000',
                                   fontSize: responsiveFontSize(1),
-                                }}>
+                                }}
+                              >
                                 {order.list.currency_symbol}
                                 {parseFloat(dish.total).toFixed(2)}
                               </Text>
@@ -972,14 +1007,16 @@ const OrderSuccess = ({props, route, navigation}) => {
               style={styles.button}
               onPress={() => {
                 navigation.navigate('H');
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(1.5),
                   color: '#fff',
                   fontFamily: Inter.medium,
-                }}>
+                }}
+              >
                 Continue to Create Order
               </Text>
             </TouchableOpacity>

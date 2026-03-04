@@ -311,7 +311,7 @@ const Login = ({ props, route, navigation }) => {
               onPress={() => navigation.navigate('Forgot')}
               style={{
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.regular,
                 paddingTop: responsiveHeight(2),
                 textAlign: 'center',

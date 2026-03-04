@@ -1,6 +1,6 @@
-import {StyleSheet} from 'react-native';
-import {Colors} from '../../Constants/Colors';
-import {Inter} from '../../Constants/Fonts';
+import { StyleSheet } from 'react-native';
+import { Colors } from '../../Constants/Colors';
+import { Inter } from '../../Constants/Fonts';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -37,11 +37,11 @@ const Styles = () => {
     button: {
       height: responsiveWidth(4),
       width: responsiveWidth(12),
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.buttonColor,
       alignItems: 'center',
       justifyContent: 'center',
       // alignSelf: "center",
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
       marginTop: responsiveHeight(3),
     },
     button_disable: {
@@ -51,7 +51,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       // alignSelf: "center",
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
       marginTop: responsiveHeight(3),
     },
     button_left: {

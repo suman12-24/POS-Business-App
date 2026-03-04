@@ -383,7 +383,7 @@ const HomeRight = props => {
             {isTableBooked && (
               <AntDesignIcon
                 style={styles.icon}
-                color={Colors.blue}
+                color={Colors.primaryFontColor}
                 name="Safety"
                 size={20}
               />
@@ -391,7 +391,7 @@ const HomeRight = props => {
             {isSelected && (
               <AntDesignIcon
                 style={styles.icon}
-                color={Colors.blue}
+                color={Colors.primaryFontColor}
                 name="checkcircle"
                 size={20}
               />
@@ -1249,12 +1249,14 @@ const HomeRight = props => {
     let taxtype = 0;
     let tax_price = 0;
     let total = 0;
+    let firstoffer = 0;
 
     for (let f = 0; f < cartFee.length; f++) {
       tax = cartFee[f].tax;
       taxtype = cartFee[f].taxtype;
       tax_price = cartFee[f].taxprice;
       total = cartFee[f].total;
+      firstoffer = cartFee[f].firstoffer;
     }
 
     let postData = {
@@ -1279,6 +1281,7 @@ const HomeRight = props => {
       sourcetype: 'Pos App',
       sourcetypename: {},
       discount_info: discountInfo,
+      firstoffer: firstoffer,
       txnId: '',
       extraJson: {},
       estimate_time: selectedTime,
@@ -1514,11 +1517,10 @@ const HomeRight = props => {
               </View>
             ) : null*/}
             {viewloader === true ? <Loader /> : null}
-            {
-              /*CartDish.isLoading === false && CartDish.list.length > 0 ? (*/
+            {CartDish.isLoading === false && CartDish.list.length > 0 ? (
               <View
                 style={{
-                  borderColor: Colors.blue,
+                  borderColor: Colors.primary,
                   borderWidth: 1.5,
                   borderRadius: 15,
                   paddingHorizontal: responsiveWidth(1),
@@ -1526,14 +1528,6 @@ const HomeRight = props => {
                   minHeight: responsiveHeight(80),
                 }}
               >
-                {/*<View  style={{marginTop: responsiveHeight(0.5), display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                      <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black}}>Sanjeev Kumar Saha</Text>
-                      <TouchableOpacity >
-                        <Icon name="edit" type="AntDesign" size={25} color={Colors.black} />
-                      </TouchableOpacity>
-
-                    </View>*/}
-
                 <View
                   style={{ marginTop: responsiveHeight(0.5), display: 'flex' }}
                 >
@@ -1867,7 +1861,7 @@ const HomeRight = props => {
                                       name="minuscircleo"
                                       type="AntDesign"
                                       size={responsiveWidth(2)}
-                                      color={Colors.blue}
+                                      color={Colors.primaryFontColor}
                                     />
                                   </TouchableOpacity>
                                   <Text
@@ -1893,7 +1887,7 @@ const HomeRight = props => {
                                       name="pluscircleo"
                                       type="AntDesign"
                                       size={responsiveWidth(2)}
-                                      color={Colors.blue}
+                                      color={Colors.primaryFontColor}
                                     />
                                   </TouchableOpacity>
                                 </View>
@@ -1909,7 +1903,7 @@ const HomeRight = props => {
                                     style={{
                                       fontFamily: Inter.regular,
                                       fontSize: responsiveFontSize(1),
-                                      color: Colors.green,
+                                      color: Colors.buttonColor,
                                     }}
                                   >
                                     {activeBusiness != null
@@ -1946,7 +1940,7 @@ const HomeRight = props => {
                                           style={{
                                             fontFamily: Inter.bold,
                                             fontSize: responsiveFontSize(1),
-                                            color: Colors.blue,
+                                            color: Colors.primaryFontColor,
                                           }}
                                         >
                                           {set.name}
@@ -1970,7 +1964,9 @@ const HomeRight = props => {
                                                       name="dot-single"
                                                       type="Entypo"
                                                       size={25}
-                                                      color={Colors.blue}
+                                                      color={
+                                                        Colors.primaryFontColor
+                                                      }
                                                     />
                                                     <Text
                                                       style={{
@@ -2033,7 +2029,7 @@ const HomeRight = props => {
                                             name="dot-single"
                                             type="Entypo"
                                             size={25}
-                                            color={Colors.blue}
+                                            color={Colors.primaryFontColor}
                                           />
                                           {/*<Icon
                                         name="plus"
@@ -2066,7 +2062,7 @@ const HomeRight = props => {
                       <>
                         <View
                           style={{
-                            backgroundColor: Colors.blue,
+                            backgroundColor: Colors.primary,
                             borderRadius: 10,
                             paddingHorizontal: responsiveWidth(1),
                             paddingVertical: responsiveHeight(1),
@@ -2123,16 +2119,6 @@ const HomeRight = props => {
                               {CartSubTotal}
                             </Text>
                           </View>
-
-                          {/*} <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                                           <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>Discount </Text>
-                                           <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>0%</Text>
-                                       </View>
-
-                                       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                                           <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>Total </Text>
-                                           <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.white}}>$ 67.00 </Text>
-                                       </View>*/}
 
                           {cartFee.map((cartfee, index) => {
                             //console.log(cartfee?.firstoffer?.data);
@@ -2408,8 +2394,8 @@ const HomeRight = props => {
                                         }}
                                         size={22}
                                         style={[styles.radioButton, {}]}
-                                        activeColor={Colors.blue}
-                                        inactiveColor={Colors.blue}
+                                        activeColor={Colors.primaryFontColor}
+                                        inactiveColor={Colors.primaryFontColor}
                                       />
                                       <Text
                                         style={{
@@ -2532,8 +2518,47 @@ const HomeRight = props => {
                   </>
                 )}
               </View>
-              /*) : null*/
-            }
+            ) : (
+              <View
+                style={{
+                  borderColor: Colors.primary,
+                  borderWidth: 1.5,
+                  borderRadius: 15,
+                  paddingHorizontal: responsiveWidth(1),
+                  paddingVertical: responsiveHeight(2),
+                  minHeight: responsiveHeight(80),
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <View style={{ alignItems: 'center' }}>
+                    <Icon
+                      name="cart-outline"
+                      type="Ionicons"
+                      size={responsiveFontSize(5)}
+                      color={Colors.primaryFontColor}
+                    />
+                  </View>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text
+                      style={{
+                        fontFamily: Inter.bold,
+                        fontSize: responsiveFontSize(1.5),
+                        color: '#000',
+                      }}
+                    >
+                      No Products in your cart
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -2542,49 +2567,3 @@ const HomeRight = props => {
 };
 
 export default HomeRight;
-
-{
-  /*<View style={{borderColor: Colors.grey, borderWidth: 1, borderRadius: 10, paddingHorizontal: responsiveWidth(0.5), marginVertical: responsiveHeight(1)}}>
-                                <View style={{marginTop: responsiveHeight(0.5), display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                                    <View style={{width: responsiveWidth(15)}}>
-                                    <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black}}>Single Pack –save up to $8.90</Text>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                                        <TouchableOpacity >
-                                          <Icon name="minuscircleo" type="AntDesign" size={25} color={Colors.blue} />
-                                        </TouchableOpacity>
-                                          <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black, marginHorizontal: responsiveWidth(0.5)}}>3</Text>
-                                        <TouchableOpacity >
-                                          <Icon name="pluscircleo" type="AntDesign" size={25} color={Colors.blue} />
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'center'}}>
-                                      <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.green}}>$125.00</Text>
-                                      <TouchableOpacity >
-                                        <Icon name="edit" type="AntDesign" size={25} color={Colors.black} />
-                                      </TouchableOpacity>
-                                    </View>
-                                </View>
-                                <View  >
-                                  <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.blue}}>How Spicy?</Text>
-                                  <View  style={{display: 'flex', flexDirection:'row', alignItems: 'center'}}>
-                                    <Icon name="dot-single" type="Entypo" size={25} color={Colors.blue} />
-                                    <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black}}>Med</Text>
-                                  </View>
-                                </View>
-
-                                <View>
-                                  <Text style={{fontFamily: Inter.bold, fontSize: responsiveFontSize(1), color: Colors.blue}}>Choose Rice Dishes</Text>
-                                  <View style={{display: 'flex', flexDirection:'row', alignItems: 'center'}}>
-                                    <Icon name="dot-single" type="Entypo" size={25} color={Colors.blue} />
-                                    <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black}}>Rice Dishes $3.00</Text>
-                                  </View>
-                                  <View style={{display: 'flex', flexDirection:'row', alignItems: 'center'}}>
-                                    <Icon name="dot-single" type="Entypo" size={25} color={Colors.blue} />
-                                    <Text style={{fontFamily: Inter.regular, fontSize: responsiveFontSize(1), color: Colors.black}}>Coconut Rice $4.00</Text>
-                                  </View>
-                                </View>
-
-
-                              </View>*/
-}

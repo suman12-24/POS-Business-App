@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
   createNativeStackNavigator,
   CardStyleInterpolators,
@@ -23,10 +23,10 @@ import {
   OrderSuccess,
   MyAccountDelete,
 } from '../Screens';
-import {Icons, Images} from '../Constants/ImageIconContant';
-import {Inter} from '../Constants/Fonts';
-import {Colors} from '../Constants/Colors';
-import {Icon} from 'react-native-basic-elements';
+import { Icons, Images } from '../Constants/ImageIconContant';
+import { Inter } from '../Constants/Fonts';
+import { Colors } from '../Constants/Colors';
+import { Icon } from 'react-native-basic-elements';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
@@ -37,13 +37,13 @@ import {
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 const Bottom = createBottomTabNavigator();
-import {NavigationContainer} from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 
-import {useDispatch, useSelector} from 'react-redux';
-import {showToastMsg, getData, setData} from '../Service/localStorage';
-import {postWithOutToken, postWithToken} from '../Service/service';
-import {removeData} from '../Service/localStorage';
-import {clearUserData} from '../Store/Reducers/CommonReducer';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToastMsg, getData, setData } from '../Service/localStorage';
+import { postWithOutToken, postWithToken } from '../Service/service';
+import { removeData } from '../Service/localStorage';
+import { clearUserData } from '../Store/Reducers/CommonReducer';
 
 import Loader from '../Component/loader';
 
@@ -55,7 +55,8 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator
       initialRouteName="H"
-      screenOptions={{headerShown: false}}>
+      screenOptions={{ headerShown: false }}
+    >
       <HomeStack.Screen name="H" component={Home} />
       <HomeStack.Screen name="OrderSuccess" component={OrderSuccess} />
     </HomeStack.Navigator>
@@ -66,7 +67,8 @@ function MyOrderStackScreen() {
   return (
     <MyOrderStack.Navigator
       initialRouteName="MyOrder"
-      screenOptions={{headerShown: false}}>
+      screenOptions={{ headerShown: false }}
+    >
       <MyOrderStack.Screen name="MyOrder" component={MyOrder} />
       <MyOrderStack.Screen
         name="MyOrderInprogress"
@@ -81,14 +83,15 @@ function AccountStackScreen() {
   return (
     <AccountStack.Navigator
       initialRouteName="MyAccount"
-      screenOptions={{headerShown: false}}>
+      screenOptions={{ headerShown: false }}
+    >
       <AccountStack.Screen name="MyAccount" component={MyAccount} />
       <AccountStack.Screen name="MyAccountDelete" component={MyAccountDelete} />
     </AccountStack.Navigator>
   );
 }
 
-const BottomNavigation = ({props, navigation}) => {
+const BottomNavigation = ({ props, navigation }) => {
   const dispatch = useDispatch();
   const {
     baseUrl,
@@ -125,7 +128,7 @@ const BottomNavigation = ({props, navigation}) => {
     postWithToken(
       baseUrl,
       'web-business/logout',
-      {device_id: deviceToken},
+      { device_id: deviceToken },
       userToken,
     )
       .then(response => {
@@ -173,28 +176,29 @@ const BottomNavigation = ({props, navigation}) => {
         screenOptions={{
           headerShown: false,
           tabBarHideOnKeyboard: true,
-          tabBarActiveTintColor: Colors.blue,
+          tabBarActiveTintColor: Colors.primary,
           tabBarInactiveTintColor: Colors.white,
           tabBarShowLabel: true,
           headerShadowVisible: false,
           tabBarStyle: {
             //height: 65,
             //paddingBottom: 5,
-            borderTopColor: Colors.blue,
+            borderTopColor: Colors.primary,
             borderTopWidth: 6,
             borderTopStartRadius: 15,
             borderTopEndRadius: 15,
             overflow: 'hidden',
             backgroundColor: Colors.black,
           },
-        }}>
+        }}
+      >
         {/* == For showing Tabs under sidemenu == */}
         <Bottom.Screen
           name="Home"
           component={HomeStackScreen}
           options={{
             tabBarLabel: 'Create Order',
-            tabBarIcon: ({color, size}) => {
+            tabBarIcon: ({ color, size }) => {
               return (
                 <Icon
                   name="shoppingcart"
@@ -216,7 +220,7 @@ const BottomNavigation = ({props, navigation}) => {
           component={MyOrderStackScreen}
           options={{
             tabBarLabel: 'My Order',
-            tabBarIcon: ({color, size}) => {
+            tabBarIcon: ({ color, size }) => {
               return (
                 <Icon
                   name="shopping-bag"
@@ -239,7 +243,7 @@ const BottomNavigation = ({props, navigation}) => {
           component={AccountStackScreen}
           options={{
             tabBarLabel: 'My Account',
-            tabBarIcon: ({color, size}) => {
+            tabBarIcon: ({ color, size }) => {
               return (
                 <Icon name="user" type="AntDesign" color={color} size={size} />
               );
@@ -256,7 +260,7 @@ const BottomNavigation = ({props, navigation}) => {
           component={Home}
           options={{
             tabBarLabel: 'Logout',
-            tabBarIcon: ({color, size}) => {
+            tabBarIcon: ({ color, size }) => {
               return (
                 <Icon
                   name="poweroff"
@@ -286,4 +290,4 @@ const BottomNavigation = ({props, navigation}) => {
     </>
   );
 };
-export {BottomNavigation};
+export { BottomNavigation };

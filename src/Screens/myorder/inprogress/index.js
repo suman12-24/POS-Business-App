@@ -39,6 +39,7 @@ import {
   CheckBox,
 } from 'react-native-basic-elements';
 // create a component
+import OrderCardSkeleton from '../../../Component/OrderCardSkeleton';
 
 import NetInfo from '@react-native-community/netinfo';
 import Thermalpriter from '../../../Component/prnterConnect';
@@ -63,6 +64,10 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
   const [orderDetails, setOrderDetails] = useState(null);
 
   const [isModalVisible, setModalVisible] = useState(false);
+  const [update_action, setUpdateAction] = useState(false);
+  const [action_order_id, setActionOrderId] = useState('');
+  const [action_order_index, setActionOrderIndex] = useState('');
+  const [cnfModal, setCnfModal] = useState(false);
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
@@ -464,41 +469,9 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
       <>
         {viewmoreloader === true ? (
           <View>
-            <SkeletonPlaceholder borderRadius={4}>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-            </SkeletonPlaceholder>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <OrderCardSkeleton key={'skeleton_lo' + index} />
+            ))}
           </View>
         ) : null}
       </>
@@ -595,7 +568,11 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
   };
 
   const CompleteOrder = (id, index) => {
-    Alert.alert('Warning!', 'Are you sure you want to complete this Order', [
+    setLoader(true);
+    setUpdateAction(true);
+    setActionOrderId(id);
+    setActionOrderIndex(index);
+    /*Alert.alert('Warning!', 'Are you sure you want to complete this Order', [
       {
         text: 'No',
         onPress: () => console.log('Cancel Pressed'),
@@ -607,7 +584,20 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
           CompleteAction(id, index);
         },
       },
-    ]);
+    ]);*/
+
+    setTimeout(() => {
+      setLoader(false);
+      setCnfModal(true);
+    }, 300);
+  };
+
+  const CloseConfimModel = () => {
+    setLoader(false);
+    setCnfModal(false);
+    setUpdateAction(false);
+    setActionOrderId('');
+    setActionOrderIndex('');
   };
 
   const CompleteAction = (order_id, index) => {
@@ -626,6 +616,10 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
     )
       .then(response => {
         setLoader(false);
+        setCnfModal(false);
+        setUpdateAction(false);
+        setActionOrderId('');
+        setActionOrderIndex('');
 
         orderlist.list.splice(index, 1);
 
@@ -669,7 +663,7 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
             justifyContent: 'flex-start',
             gap: 10,
             borderBottomWidth: 1.5,
-            borderBottomColor: Colors.blue,
+            borderBottomColor: Colors.primaryFontColor,
           }}
         >
           <TouchableOpacity
@@ -679,7 +673,7 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
                 backgroundColor: Colors.white,
                 borderTopRightRadius: 10,
@@ -691,7 +685,7 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.medium,
               }}
             >
@@ -706,9 +700,9 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.primaryFontColor,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
@@ -733,7 +727,7 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
                 backgroundColor: Colors.white,
                 borderTopRightRadius: 10,
@@ -745,7 +739,7 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.medium,
               }}
             >
@@ -892,23 +886,41 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
                         gap: 20,
                       }}
                     >
-                      <TouchableOpacity
-                        onPress={() => {
-                          CompleteOrder(item.id, index);
-                        }}
-                        style={styles.button_Complete}
-                      >
-                        <Text
-                          style={{
-                            fontWeight: 'bold',
-                            fontSize: responsiveFontSize(1.1),
-                            color: Colors.white,
-                            fontFamily: Inter.medium,
-                          }}
+                      {update_action === true ? (
+                        <TouchableOpacity
+                          style={styles.button_Complete_disable}
                         >
-                          Complete Order
-                        </Text>
-                      </TouchableOpacity>
+                          <Text
+                            style={{
+                              fontWeight: 'bold',
+                              fontSize: responsiveFontSize(1.1),
+                              color: Colors.black,
+                              fontFamily: Inter.medium,
+                            }}
+                          >
+                            Complete Order
+                          </Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => {
+                            CompleteOrder(item.id, index);
+                          }}
+                          style={styles.button_Complete}
+                        >
+                          <Text
+                            style={{
+                              fontWeight: 'bold',
+                              fontSize: responsiveFontSize(1.1),
+                              color: Colors.white,
+                              fontFamily: Inter.medium,
+                            }}
+                          >
+                            Complete Order
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
                       {/*<TouchableOpacity
                         onPress={() => {
                           fetchOrderData(item.id);
@@ -944,52 +956,11 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
           </View>
         ) : (
           <View>
-            <SkeletonPlaceholder borderRadius={4}>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-            </SkeletonPlaceholder>
+            <View>
+              {Array.from({ length: 4 }).map((_, index) => (
+                <OrderCardSkeleton key={'skeleton_lo_1' + index} />
+              ))}
+            </View>
           </View>
         )}
       </View>
@@ -1144,7 +1115,12 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
                     }}
                   >
                     Payment Information :{' '}
-                    {orderDetails != null ? orderDetails.paymentname : null}
+                    {orderDetails != null
+                      ? orderDetails.paymentmethod != null &&
+                        orderDetails.paymentmethod.length > 0
+                        ? orderDetails.paymentmethod[0].payment_method
+                        : null
+                      : null}
                   </Text>
                 </View>
                 <View
@@ -1451,16 +1427,61 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        transparent={true}
+        visible={cnfModal}
+        animationType="slide"
+        onRequestClose={() => setCnfModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          }}
+        >
+          <View style={styles.warningmodal}>
+            <Text
+              style={{ ...styles.warningh_txt, color: Colors.primaryFontColor }}
+            >
+              {'Warning!'}
+            </Text>
+            <Text
+              style={{
+                ...styles.subwarningh_txt,
+                color: Colors.primaryFontColor,
+              }}
+            >
+              {'Are you sure you want to complete this Order'}
+            </Text>
+            <View style={{ ...styles.button_view, width: '95%' }}>
+              <TouchableOpacity
+                onPress={() => {
+                  CloseConfimModel(false);
+                }}
+                style={{ ...styles.modalbutton, backgroundColor: '#e74c3c' }}
+              >
+                <Text style={styles.mbtton_txt}>{'No'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  CompleteAction(action_order_id, action_order_index);
+                }}
+                style={{
+                  ...styles.modalbutton,
+                  backgroundColor: Colors.buttonColor,
+                }}
+              >
+                <Text style={styles.mbtton_txt}>{'Yes'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Container>
-
-    // <SkeletonPlaceholder >
-    //   <SkeletonPlaceholder.Item width={responsiveWidth(92)} height={160} alignSelf='center' borderRadius={10} />
-    //   <SkeletonPlaceholder.Item width={responsiveWidth(92)} height={40} alignSelf='center' marginTop={20} borderRadius={10} />
-    //   <SkeletonPlaceholder.Item width={responsiveWidth(92)} height={40} alignSelf='center' marginTop={20} borderRadius={10} />
-    //   <SkeletonPlaceholder.Item width={responsiveWidth(92)} height={40} alignSelf='center' marginTop={20} borderRadius={10} />
-    //   <SkeletonPlaceholder.Item width={responsiveWidth(92)} height={40} alignSelf='center' marginTop={20} borderRadius={10} />
-
-    // </SkeletonPlaceholder>
   );
 };
 

@@ -1,6 +1,6 @@
-import {StyleSheet} from 'react-native';
-import {Colors} from '../../../Constants/Colors';
-import {Inter} from '../../../Constants/Fonts';
+import { StyleSheet } from 'react-native';
+import { Colors } from '../../../Constants/Colors';
+import { Inter } from '../../../Constants/Fonts';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -37,11 +37,11 @@ const Styles = () => {
     button: {
       height: responsiveWidth(4),
       width: responsiveWidth(12),
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.buttonColor,
       alignItems: 'center',
       justifyContent: 'center',
       // alignSelf: "center",
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
       marginTop: responsiveHeight(3),
     },
     button_left: {
@@ -58,7 +58,7 @@ const Styles = () => {
       justifyContent: 'center',
       alignSelf: 'center',
       backgroundColor: Colors.red,
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     button_yes: {
       height: responsiveWidth(4),
@@ -66,8 +66,8 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.green,
-      borderRadius: 10,
+      backgroundColor: Colors.buttonColor,
+      borderRadius: responsiveWidth(0.6),
     },
     button_no_disable: {
       height: responsiveWidth(4),
@@ -76,7 +76,7 @@ const Styles = () => {
       justifyContent: 'center',
       alignSelf: 'center',
       backgroundColor: Colors.grey,
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     button_yes_disable: {
       height: responsiveWidth(4),
@@ -85,7 +85,7 @@ const Styles = () => {
       justifyContent: 'center',
       alignSelf: 'center',
       backgroundColor: Colors.grey,
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
   });
 };

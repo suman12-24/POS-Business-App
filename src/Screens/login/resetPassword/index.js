@@ -364,7 +364,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                         navigation.navigate('Login');
                       }}
                       style={{
-                        color: Colors.blue,
+                        color: Colors.primaryFontColor,
                         fontSize: responsiveFontSize(1.5),
                       }}
                     >

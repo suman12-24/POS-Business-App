@@ -51,6 +51,7 @@ import { HomeRight, OptionModelAdd } from '../../Component';
 //import EbPrinter from 'react-native-ebprinter';
 import messaging from '@react-native-firebase/messaging';
 import SoundPlayer from 'react-native-sound-player';
+import ProductCardSkeleton from '../../Component/ProductCardSkeleton';
 
 // create a component
 const Home = ({ props, route, navigation }) => {
@@ -1032,7 +1033,7 @@ const Home = ({ props, route, navigation }) => {
             zIndex: 1,
           }}
         >
-          <ActivityIndicator size="large" color={Colors.blue} />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : null}
 
@@ -1188,12 +1189,12 @@ const Home = ({ props, route, navigation }) => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            borderColor: Colors.blue,
+                            borderColor: Colors.buttonColor,
                             borderWidth: 1.5,
                             backgroundColor:
                               selected_category == item.id
                                 ? Colors.white
-                                : Colors.blue,
+                                : Colors.primary,
                             height: responsiveHeight(12),
                             borderRadius: 10,
                             marginHorizontal: responsiveWidth(0.5),
@@ -1207,7 +1208,7 @@ const Home = ({ props, route, navigation }) => {
                               fontSize: responsiveFontSize(1),
                               color:
                                 selected_category == item.id
-                                  ? Colors.blue
+                                  ? Colors.primaryFontColor
                                   : Colors.white,
                             }}
                           >
@@ -1238,7 +1239,7 @@ const Home = ({ props, route, navigation }) => {
                                 paddingHorizontal: responsiveWidth(0.5),
                                 paddingVertical: responsiveHeight(0.5),
                                 display: 'flex',
-                                borderColor: Colors.blue,
+                                borderColor: Colors.buttonColor,
                                 borderWidth: 1.5,
                                 backgroundColor: Colors.white,
                                 height: responsiveHeight(12),
@@ -1274,7 +1275,7 @@ const Home = ({ props, route, navigation }) => {
                                     style={{
                                       fontFamily: Inter.regular,
                                       fontSize: responsiveFontSize(1),
-                                      color: Colors.green,
+                                      color: Colors.primaryFontColor,
                                     }}
                                   >
                                     {activeBusiness.currency_symbol}
@@ -1286,7 +1287,7 @@ const Home = ({ props, route, navigation }) => {
                                     name="pluscircle"
                                     type="AntDesign"
                                     size={responsiveWidth(2)}
-                                    color={Colors.green}
+                                    color={Colors.primaryFontColor}
                                   />
                                 </View>
                               </View>
@@ -1309,7 +1310,7 @@ const Home = ({ props, route, navigation }) => {
                                   paddingHorizontal: responsiveWidth(0.5),
                                   paddingVertical: responsiveHeight(0.5),
                                   display: 'flex',
-                                  borderColor: Colors.blue,
+                                  borderColor: Colors.buttonColor,
                                   borderWidth: 1.5,
                                   backgroundColor: Colors.white,
                                   height: responsiveHeight(12),
@@ -1345,7 +1346,7 @@ const Home = ({ props, route, navigation }) => {
                                       style={{
                                         fontFamily: Inter.regular,
                                         fontSize: responsiveFontSize(1),
-                                        color: Colors.green,
+                                        color: Colors.primaryFontColor,
                                       }}
                                     >
                                       {activeBusiness.currency_symbol}
@@ -1357,7 +1358,7 @@ const Home = ({ props, route, navigation }) => {
                                       name="pluscircle"
                                       type="AntDesign"
                                       size={responsiveWidth(2)}
-                                      color={Colors.green}
+                                      color={Colors.primaryFontColor}
                                     />
                                   </View>
                                 </View>
@@ -1384,160 +1385,36 @@ const Home = ({ props, route, navigation }) => {
                   </Text>
                 </View>
               ) : (
-                <SkeletonPlaceholder>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <View
+                      key={'skeleton_lo_v' + index}
                       style={{
                         paddingHorizontal: responsiveWidth(0.5),
                         paddingVertical: responsiveHeight(0.5),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderColor: Colors.blue,
+                        borderColor: Colors.grey,
                         borderWidth: 1.5,
                         backgroundColor: Colors.white,
+                        height: responsiveHeight(12),
+                        borderRadius: 10,
                         marginHorizontal: responsiveWidth(0.5),
                         marginVertical: responsiveHeight(1),
+                        width: responsiveWidth(14.5),
                       }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                    <SkeletonPlaceholder.Item
-                      width={responsiveWidth(14.5)}
-                      height={responsiveWidth(10)}
-                      alignSelf="center"
-                      borderRadius={10}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.blue,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                      }}
-                    />
-                  </View>
-                </SkeletonPlaceholder>
+                    >
+                      <ProductCardSkeleton key={'skeleton_lo_1' + index} />
+                    </View>
+                  ))}
+                </View>
               )}
             </ScrollView>
           ) : search_status === true ? (
@@ -1566,7 +1443,7 @@ const Home = ({ props, route, navigation }) => {
                           paddingHorizontal: responsiveWidth(0.5),
                           paddingVertical: responsiveHeight(0.5),
                           display: 'flex',
-                          borderColor: Colors.blue,
+                          borderColor: Colors.buttonColor,
                           borderWidth: 1.5,
                           backgroundColor: Colors.white,
                           height: responsiveHeight(12),
@@ -1602,7 +1479,7 @@ const Home = ({ props, route, navigation }) => {
                               style={{
                                 fontFamily: Inter.regular,
                                 fontSize: responsiveFontSize(1),
-                                color: Colors.green,
+                                color: Colors.primaryFontColor,
                               }}
                             >
                               {activeBusiness.currency_symbol}
@@ -1614,7 +1491,7 @@ const Home = ({ props, route, navigation }) => {
                               name="pluscircle"
                               type="AntDesign"
                               size={responsiveWidth(2)}
-                              color={Colors.green}
+                              color={Colors.primaryFontColor}
                             />
                           </View>
                         </View>
@@ -1637,160 +1514,36 @@ const Home = ({ props, route, navigation }) => {
                     </Text>
                   </View>
                 ) : (
-                  <SkeletonPlaceholder>
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {Array.from({ length: 8 }).map((_, index) => (
+                      <View
+                        key={'skeleton_lo_v' + index}
                         style={{
                           paddingHorizontal: responsiveWidth(0.5),
                           paddingVertical: responsiveHeight(0.5),
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          borderColor: Colors.blue,
+                          borderColor: Colors.buttonColor,
                           borderWidth: 1.5,
                           backgroundColor: Colors.white,
+                          height: responsiveHeight(12),
+                          borderRadius: 10,
                           marginHorizontal: responsiveWidth(0.5),
                           marginVertical: responsiveHeight(1),
+                          width: responsiveWidth(14.5),
                         }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                      <SkeletonPlaceholder.Item
-                        width={responsiveWidth(14.5)}
-                        height={responsiveWidth(10)}
-                        alignSelf="center"
-                        borderRadius={10}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.blue,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                        }}
-                      />
-                    </View>
-                  </SkeletonPlaceholder>
+                      >
+                        <ProductCardSkeleton key={'skeleton_lo_1' + index} />
+                      </View>
+                    ))}
+                  </View>
                 )}
                 {/*category_menu.isLoading === false && category_menu.list != null
                   ? category_menu.list.map((item, item_index) => {
@@ -1958,7 +1711,7 @@ const Home = ({ props, route, navigation }) => {
                     }}
                     style={{
                       ...styles.button_sty,
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.buttonColor,
                     }}
                   >
                     <Text

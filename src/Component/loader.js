@@ -11,10 +11,10 @@ import {
   responsiveFontSize,
   responsiveScreenHeight,
 } from 'react-native-responsive-dimensions';
-import {Colors} from '../Constants/Colors';
+import { Colors } from '../Constants/Colors';
 
 function Loader() {
-  const {height} = useWindowDimensions();
+  const { height } = useWindowDimensions();
   return (
     <Modal transparent={true} visible={true} animationType="fade">
       <View
@@ -29,7 +29,8 @@ function Loader() {
           top: 0,
           right: 0,
           zIndex: 1,
-        }}>
+        }}
+      >
         <View
           style={{
             width: responsiveWidth(15),
@@ -39,21 +40,23 @@ function Loader() {
             padding: responsiveWidth(2),
             // iOS-specific shadow properties
             shadowColor: '#000',
-            shadowOffset: {width: 0, height: 2},
+            shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.25,
             shadowRadius: 3.84,
 
             // Android-specific shadow property
             elevation: 5,
-          }}>
-          <ActivityIndicator color={Colors.blue} size="large" />
+          }}
+        >
+          <ActivityIndicator color={Colors.primary} size="large" />
           <Text
             style={{
               marginTop: responsiveHeight(1),
-              fontSize: responsiveFontSize(2),
+              fontSize: responsiveFontSize(1.8),
               fontWeight: 600,
               color: '#333',
-            }}>
+            }}
+          >
             Loading...
           </Text>
         </View>

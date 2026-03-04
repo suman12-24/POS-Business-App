@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -13,37 +13,37 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Styles from './style';
-import {Colors} from '../../../Constants/Colors';
-import {Inter} from '../../../Constants/Fonts';
-import {Images} from '../../../Constants/ImageIconContant';
+import { Colors } from '../../../Constants/Colors';
+import { Inter } from '../../../Constants/Fonts';
+import { Images } from '../../../Constants/ImageIconContant';
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   showToastMsg,
   getData,
   setData,
   removeData,
 } from '../../../Service/localStorage';
-import {postWithToken} from '../../../Service/service';
-import {useFocusEffect} from '@react-navigation/native';
+import { postWithToken } from '../../../Service/service';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Container,
   Icon,
   AppTextInput,
   CheckBox,
 } from 'react-native-basic-elements';
-import {clearUserData} from '../../../Store/Reducers/CommonReducer';
+import { clearUserData } from '../../../Store/Reducers/CommonReducer';
 import Loader from '../../../Component/loader';
 // create a component
-const MyAccountDelete = ({props, route, navigation}) => {
+const MyAccountDelete = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
-  const {baseUrl, siteUrl, userToken, userData, deviceToken, post_data} =
+  const { baseUrl, siteUrl, userToken, userData, deviceToken, post_data } =
     useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
 
@@ -78,7 +78,7 @@ const MyAccountDelete = ({props, route, navigation}) => {
     postWithToken(
       baseUrl,
       'web-business/logout',
-      {device_id: deviceToken},
+      { device_id: deviceToken },
       userToken,
     )
       .then(response => {
@@ -120,29 +120,36 @@ const MyAccountDelete = ({props, route, navigation}) => {
       <View style={styles.main}>
         <View style={styles.inner_left}>
           <TouchableOpacity
-            style={[styles.button_left, {backgroundColor: '#F0F0F0'}]}
+            style={[styles.button_left, { backgroundColor: '#F0F0F0' }]}
             onPress={() => {
               navigation.navigate('MyAccount');
-            }}>
+            }}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.black,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Update Profile
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button_left, {backgroundColor: Colors.blue}]}>
+            style={[
+              styles.button_left,
+              { backgroundColor: Colors.primaryFontColor },
+            ]}
+          >
             <Text
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
                 color: Colors.white,
                 fontFamily: Inter.medium,
-              }}>
+              }}
+            >
               Delete Profile
             </Text>
           </TouchableOpacity>
@@ -155,7 +162,8 @@ const MyAccountDelete = ({props, route, navigation}) => {
               justifyContent: 'center',
               width: '100%',
               height: '100%',
-            }}>
+            }}
+          >
             <View
               style={{
                 display: 'flex',
@@ -166,13 +174,15 @@ const MyAccountDelete = ({props, route, navigation}) => {
                 borderRadius: 10,
                 width: responsiveWidth(40),
                 height: responsiveHeight(30),
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontFamily: Inter.bold,
                   fontSize: responsiveFontSize(2),
                   color: Colors.black,
-                }}>
+                }}
+              >
                 {' '}
                 Delete Your Account
               </Text>
@@ -185,7 +195,8 @@ const MyAccountDelete = ({props, route, navigation}) => {
                     flexDirection: 'row',
                     gap: 15,
                     marginTop: responsiveHeight(2),
-                  }}>
+                  }}
+                >
                   <TouchableOpacity style={styles.button_no_disable}>
                     <Text
                       style={{
@@ -193,7 +204,8 @@ const MyAccountDelete = ({props, route, navigation}) => {
                         fontSize: responsiveFontSize(1.5),
                         color: '#000',
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       No
                     </Text>
                   </TouchableOpacity>
@@ -204,7 +216,8 @@ const MyAccountDelete = ({props, route, navigation}) => {
                         fontSize: responsiveFontSize(1.5),
                         color: '#000',
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       Yes
                     </Text>
                   </TouchableOpacity>
@@ -218,19 +231,22 @@ const MyAccountDelete = ({props, route, navigation}) => {
                     flexDirection: 'row',
                     gap: 15,
                     marginTop: responsiveHeight(2),
-                  }}>
+                  }}
+                >
                   <TouchableOpacity
                     style={styles.button_no}
                     onPress={() => {
                       navigation.navigate('Home');
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         fontWeight: 'bold',
                         fontSize: responsiveFontSize(1.5),
                         color: Colors.white,
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       No
                     </Text>
                   </TouchableOpacity>
@@ -238,14 +254,16 @@ const MyAccountDelete = ({props, route, navigation}) => {
                     style={styles.button_yes}
                     onPress={() => {
                       DeleteAccount();
-                    }}>
+                    }}
+                  >
                     <Text
                       style={{
                         fontWeight: 'bold',
                         fontSize: responsiveFontSize(1.5),
                         color: Colors.white,
                         fontFamily: Inter.medium,
-                      }}>
+                      }}
+                    >
                       Yes
                     </Text>
                   </TouchableOpacity>

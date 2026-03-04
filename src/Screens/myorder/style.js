@@ -33,8 +33,8 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.green,
-      borderRadius: 10,
+      backgroundColor: Colors.buttonColor,
+      borderRadius: responsiveWidth(0.6),
     },
     button_reject: {
       height: responsiveWidth(4),
@@ -43,7 +43,7 @@ const Styles = () => {
       justifyContent: 'center',
       alignSelf: 'center',
       backgroundColor: Colors.red,
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     button_accept_model: {
       height: responsiveWidth(4),
@@ -51,8 +51,8 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.green,
-      borderRadius: 10,
+      backgroundColor: Colors.buttonColor,
+      borderRadius: responsiveWidth(0.6),
     },
     button_reject_model: {
       height: responsiveWidth(4),
@@ -61,7 +61,7 @@ const Styles = () => {
       justifyContent: 'center',
       alignSelf: 'center',
       backgroundColor: Colors.red,
-      borderRadius: 10,
+      borderRadius: responsiveWidth(0.6),
     },
     //drop down
     dropdown: {
@@ -99,7 +99,7 @@ const Styles = () => {
     },
     selectedText: {
       fontWeight: '600',
-      color: Colors.blue,
+      color: Colors.primaryFontColor,
     },
     iconContainer: {
       flexDirection: 'row',
@@ -180,7 +180,7 @@ const Styles = () => {
       paddingVertical: 10,
       paddingHorizontal: 20,
       borderRadius: 10,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.buttonColor,
     },
     modalbutt2: {
       paddingVertical: 10,

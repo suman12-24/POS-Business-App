@@ -38,6 +38,7 @@ import {
   AppTextInput,
   CheckBox,
 } from 'react-native-basic-elements';
+import OrderCardSkeleton from '../../../Component/OrderCardSkeleton';
 
 import NetInfo from '@react-native-community/netinfo';
 import Thermalpriter from '../../../Component/prnterConnect';
@@ -461,41 +462,9 @@ const MyOrderComplete = ({ props, route, navigation }) => {
       <>
         {viewmoreloader === true ? (
           <View>
-            <SkeletonPlaceholder borderRadius={4}>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-            </SkeletonPlaceholder>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <OrderCardSkeleton key={'skeleton_lo' + index} />
+            ))}
           </View>
         ) : null}
       </>
@@ -621,7 +590,7 @@ const MyOrderComplete = ({ props, route, navigation }) => {
             justifyContent: 'flex-start',
             gap: 10,
             borderBottomWidth: 1.5,
-            borderBottomColor: Colors.blue,
+            borderBottomColor: Colors.primaryFontColor,
           }}
         >
           <TouchableOpacity
@@ -631,7 +600,7 @@ const MyOrderComplete = ({ props, route, navigation }) => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
                 backgroundColor: Colors.white,
                 borderTopRightRadius: 10,
@@ -643,7 +612,7 @@ const MyOrderComplete = ({ props, route, navigation }) => {
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.medium,
               }}
             >
@@ -658,7 +627,7 @@ const MyOrderComplete = ({ props, route, navigation }) => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
                 backgroundColor: Colors.white,
                 borderTopRightRadius: 10,
@@ -670,7 +639,7 @@ const MyOrderComplete = ({ props, route, navigation }) => {
               style={{
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.5),
-                color: Colors.blue,
+                color: Colors.primaryFontColor,
                 fontFamily: Inter.medium,
               }}
             >
@@ -685,9 +654,9 @@ const MyOrderComplete = ({ props, route, navigation }) => {
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.blue,
+                borderColor: Colors.primaryFontColor,
                 borderWidth: 1,
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.primaryFontColor,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
               },
@@ -880,52 +849,9 @@ const MyOrderComplete = ({ props, route, navigation }) => {
           </View>
         ) : (
           <View>
-            <SkeletonPlaceholder borderRadius={4}>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  alignSelf: 'center',
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                <View
-                  style={{ height: responsiveHeight(15), borderRadius: 10 }}
-                />
-              </View>
-            </SkeletonPlaceholder>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <OrderCardSkeleton key={'skeleton_lo_1' + index} />
+            ))}
           </View>
         )}
       </View>
@@ -1080,7 +1006,12 @@ const MyOrderComplete = ({ props, route, navigation }) => {
                     }}
                   >
                     Payment Information :{' '}
-                    {orderDetails != null ? orderDetails.paymentname : null}
+                    {orderDetails != null
+                      ? orderDetails.paymentmethod != null &&
+                        orderDetails.paymentmethod.length > 0
+                        ? orderDetails.paymentmethod[0].payment_method
+                        : null
+                      : null}
                   </Text>
                 </View>
                 <View
