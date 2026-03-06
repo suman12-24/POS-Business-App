@@ -46,6 +46,7 @@ import { removeData } from '../Service/localStorage';
 import { clearUserData } from '../Store/Reducers/CommonReducer';
 
 import Loader from '../Component/loader';
+import Modal from 'react-native-modal';
 
 const MyOrderStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -103,27 +104,22 @@ const BottomNavigation = ({ props, navigation }) => {
     langId,
   } = useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
+  const [cnfModal, setCnfModal] = useState(false);
+
+  const LogoutAction = () => {
+    setCnfModal(true);
+  };
+
+  const CloseConfimModel = () => {
+    setLoader(false);
+    setCnfModal(false);
+  };
 
   function handleLogout() {
     console.log(userData);
     console.log(userData.id);
     setLoader(true);
-    /*postWithOutToken(baseUrl, "module/user/rest-user", {f: 'logout', id: userData.id, device_id: deviceToken})
-    .then((response) => {
-      console.log(response);
-      dispatch(clearUserData());
-      removeData("userDetails");
-      //removeData("userToken");
-     // removeData("device_token");
-        
-      setTimeout(() => {
-          setLoader(false);
-          navigation.navigate('Login');
-      }, 500);	
-    })
-    .catch((error) => {
-      console.log("Error : ", error);
-    });*/
+    setCnfModal(false);
 
     postWithToken(
       baseUrl,
@@ -153,23 +149,6 @@ const BottomNavigation = ({ props, navigation }) => {
 
   return (
     <>
-      {/*viewloader === true ? (
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-          }}>
-          <ActivityIndicator size="large" color={Colors.blue} />
-        </View>
-      ) : null*/}
-
       {viewloader === true ? <Loader /> : null}
       <Bottom.Navigator
         initialRouteName="Home"
@@ -282,12 +261,125 @@ const BottomNavigation = ({ props, navigation }) => {
               e.preventDefault();
 
               //Any custom code here
-              handleLogout();
+              LogoutAction();
             },
           }}
         />
       </Bottom.Navigator>
+
+      <Modal
+        transparent={true}
+        visible={cnfModal}
+        animationType="slide"
+        onRequestClose={() => setCnfModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          }}
+        >
+          <View style={styles.warningmodal}>
+            <Text
+              style={{ ...styles.warningh_txt, color: Colors.primaryFontColor }}
+            >
+              {'Warning!'}
+            </Text>
+            <Text
+              style={{
+                ...styles.subwarningh_txt,
+                color: Colors.primaryFontColor,
+              }}
+            >
+              {'Are you sure you want to Logout your account?'}
+            </Text>
+            <View style={{ ...styles.button_view, width: '95%' }}>
+              <TouchableOpacity
+                onPress={() => {
+                  CloseConfimModel(false);
+                }}
+                style={{ ...styles.modalbutton, backgroundColor: '#e74c3c' }}
+              >
+                <Text style={styles.mbtton_txt}>{'No'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  handleLogout();
+                }}
+                style={{
+                  ...styles.modalbutton,
+                  backgroundColor: Colors.buttonColor,
+                }}
+              >
+                <Text style={styles.mbtton_txt}>{'Yes'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  button_accept_model: {
+    height: responsiveWidth(4),
+    width: responsiveWidth(16),
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: Colors.buttonColor,
+    borderRadius: responsiveWidth(0.6),
+  },
+  button_reject_model: {
+    height: responsiveWidth(4),
+    width: responsiveWidth(16),
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: Colors.red,
+    borderRadius: responsiveWidth(0.6),
+  },
+  button_view: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: responsiveWidth(2),
+    marginTop: responsiveWidth(4),
+  },
+
+  warningh_txt: {
+    fontFamily: Inter.medium,
+    fontSize: responsiveFontSize(1.5),
+  },
+  subwarningh_txt: {
+    fontFamily: Inter.regular,
+    fontSize: responsiveFontSize(1.3),
+    marginTop: responsiveHeight(4),
+    textAlign: 'center',
+    maxWidth: '70%',
+  },
+  modalbutton: {
+    width: '40%',
+    height: responsiveHeight(6),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: responsiveWidth(0.6),
+  },
+  warningmodal: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: responsiveWidth(1),
+    padding: responsiveWidth(2),
+    alignItems: 'center',
+  },
+  mbtton_txt: {
+    fontFamily: Inter.regular,
+    fontSize: responsiveFontSize(1.5),
+    color: '#fff',
+  },
+});
+
 export { BottomNavigation };
