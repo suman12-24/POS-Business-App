@@ -11,3 +11,4 @@ export { default as MyAccountDelete } from "./myaccount/deleteProfile";
 export { default as MyOrder } from "./myorder";
 export { default as MyOrderInprogress } from "./myorder/inprogress";
 export { default as MyOrderComplete } from "./myorder/complete";
+export { default as SplashScreen} from "./splashscreen"

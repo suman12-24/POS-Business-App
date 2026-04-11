@@ -268,6 +268,7 @@ const BottomNavigation = ({ props, navigation }) => {
       </Bottom.Navigator>
 
       <Modal
+        supportedOrientations={['landscape']}
         transparent={true}
         visible={cnfModal}
         animationType="slide"

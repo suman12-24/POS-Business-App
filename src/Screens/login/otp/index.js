@@ -20,7 +20,6 @@ import {
 } from 'react-native-responsive-dimensions';
 import { Inter } from '../../../Constants/Fonts';
 import { Images } from '../../../Constants/ImageIconContant';
-import VersionNumber from 'react-native-version-number';
 import OTPTextInput from 'react-native-otp-textinput';
 import { useDispatch, useSelector } from 'react-redux';
 import { showToastMsg, getData, setData } from '../../../Service/localStorage';
@@ -43,13 +42,6 @@ const ForgotOtp = ({ props, route, navigation }) => {
   const [minutes, setMinutes] = useState(1);
   const [seconds, setSeconds] = useState(30);
   const ref = useRef();
-
-  useEffect(() => {
-    /*console.log(VersionNumber.appVersion);
-    console.log(VersionNumber.buildVersion);
-    console.log(VersionNumber.bundleIdentifier);*/
-    setVersionCode(VersionNumber.appVersion + '.' + VersionNumber.buildVersion);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -91,30 +83,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
 
     if (flg == true) {
       setLoader(true);
-      /*postWithOutToken(baseUrl, 'forgot-password-check-otp', {
-        email: route.params.email,
-        otp: otp,
-      })
-        .then(response => {
-          setLoader(false);
-          console.log(response);
-          if (response.success == true) {
-            setOTP('');
-            ref.current?.clear('');
-            showToastMsg(response.message);
-            setTimeout(() => {
-              navigation.navigate('ResetPassword', {email: route.params.email});
-            }, 500);
-          } else {
-            setOTP('');
-            ref.current?.clear('');
-            showToastMsg(response.message);
-          }
-        })
-        .catch(error => {
-          console.log('Error : ', error);
-        });*/
-
+      
       postWithOutToken(baseUrl, 'forgot-password-check-otp', {
         email: route.params.email,
         user: route.params.userId,
@@ -146,24 +115,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
   }
 
   function resetPasswordOtp() {
-    /*setLoader(true);
-    setOTP('');
-    ref.current?.clear('');
-    postWithOutToken(baseUrl, 'forgot-password', {email: route.params.email})
-      .then(response => {
-        setLoader(false);
-        if (response.success == true) {
-          showToastMsg(response.message);
-          setMinutes(1);
-          setSeconds(30);
-        } else {
-          showToastMsg(response.message);
-        }
-      })
-      .catch(error => {
-        console.log('Error : ', error);
-      });*/
-
+   
     setLoader(true);
     setOTP('');
     ref.current?.clear('');
@@ -189,20 +141,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-      {/* viewloader === true ?<View style={{ 
-				alignItems: 'center',
-				justifyContent: 'center', 
-				display: 'flex',
-				width: '100%', 
-				height: '100%', 
-				position: 'absolute', 
-				left:0,
-				top:0,
-				zIndex: 1}}>
-					<ActivityIndicator size="large" color={Colors.activityIndicator}  />
-				</View>
-				: null */}
-
+      
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -369,16 +308,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                 </TouchableOpacity>
               )}
             </View>
-            {/*<Text
-              style={{
-                fontSize: responsiveFontSize(1.2),
-                color: Colors.grey,
-                fontFamily: Inter.regular,
-                paddingTop: responsiveHeight(2),
-                textAlign: 'center',
-              }}>
-              @ Indus v {version_code != null ? version_code : null}
-            </Text>*/}
+           
           </View>
         </View>
       </View>
