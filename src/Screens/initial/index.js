@@ -141,7 +141,8 @@ const Initial = props => {
           props.navigation.navigate('Main');
         } else {
           dispatch(clearUserData());
-          props.navigation.navigate('Login');
+          //props.navigation.navigate('Login');
+          props.navigation.navigate('SplashScreen');
         }
       });
     }, 1000);

@@ -23,7 +23,6 @@ import { Inter } from '../../../Constants/Fonts';
 import { useDispatch, useSelector } from 'react-redux';
 import { showToastMsg, getData, setData } from '../../../Service/localStorage';
 import { postWithOutToken } from '../../../Service/service';
-import VersionNumber from 'react-native-version-number';
 import {
   Container,
   Icon,
@@ -37,15 +36,7 @@ const Forgot = ({ props, route, navigation }) => {
   const dispatch = useDispatch();
   const { baseUrl, siteUrl, langId } = useSelector(state => state.common);
   const [email, setEmail] = useState('');
-  const [version_code, setVersionCode] = useState(null);
   const [viewloader, setLoader] = useState(false);
-
-  useEffect(() => {
-    /*console.log(VersionNumber.appVersion);
-    console.log(VersionNumber.buildVersion);
-    console.log(VersionNumber.bundleIdentifier);*/
-    setVersionCode(VersionNumber.appVersion + '.' + VersionNumber.buildVersion);
-  }, []);
 
   const SubmitEmail = () => {
     let flg = true;
@@ -106,23 +97,7 @@ const Forgot = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-      {/*viewloader === true ? (
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-          }}>
-          <ActivityIndicator size="large" color={Colors.activityIndicator} />
-        </View>
-      ) : null*/}
-
+      
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -235,16 +210,6 @@ const Forgot = ({ props, route, navigation }) => {
               </Text>
             </TouchableOpacity>
 
-            {/*<Text
-              style={{
-                fontSize: responsiveFontSize(1.2),
-                color: Colors.grey,
-                fontFamily: Inter.regular,
-                paddingTop: responsiveHeight(2),
-                textAlign: 'center',
-              }}>
-              @ Indus v {version_code != null ? version_code : null}
-            </Text>*/}
           </View>
         </View>
       </View>

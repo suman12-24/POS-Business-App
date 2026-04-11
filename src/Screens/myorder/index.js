@@ -40,8 +40,6 @@ import {
 } from 'react-native-basic-elements';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-import NetInfo from '@react-native-community/netinfo';
-import Thermalpriter from '../../Component/prnterConnect';
 import Loader from '../../Component/loader';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -130,42 +128,6 @@ const MyOrder = () => {
     }, [route.params]),
   );
 
-  useEffect(() => {
-    /*async function WifiPermission() {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location permission is required for WiFi connections',
-          message:
-            'This app needs location permission as this is required  ' +
-            'to scan for wifi networks.',
-          buttonNegative: 'DENY',
-          buttonPositive: 'ALLOW',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        // You can now use react-native-wifi-reborn
-      } else {
-        // Permission denied
-      }
-    }
-    WifiPermission();*/
-  }, []);
-
-  useEffect(() => {
-    /*const fetchIPAddress = async () => {
-      try {
-        const state = await NetInfo.fetch();
-        if (state.details && state.details.ipAddress) {
-          setipaddresprinter(state.details.ipAddress);
-        }
-      } catch (error) {
-        console.error('Error fetching IP address:', error);
-      }
-    };
-
-    fetchIPAddress();*/
-  }, []);
 
   const getOrderById = order_id => {
     postWithToken(
@@ -215,221 +177,7 @@ const MyOrder = () => {
         //console.log(response);
         setLoader(false);
 
-        /*let OrderDate = response.date;
-        let Bname = response.bname;
-        let OrderNo = response.id;
-
-        //cost part
-        let subtotal = response.subtotal;
-        let deliverycost = response.deliverycost;
-        let tax = response.tax_price;
-        let servicefee = response.servicefee;
-        let servicefee_price = response.servicefee_price;
-        let discount = response.discount;
-        let tips = response.tips;
-        let total = response.total;
-        //cost part
-        //buyer details
-        let buyername = response.buyerdata.name;
-        let buyeradd = response.buyerdata.delievryaddress;
-        if (
-          response.buyerdata.specialaddress != '' &&
-          response.buyerdata.specialaddress != null
-        ) {
-          buyeradd = response.buyerdata.specialaddress;
-        }
-        let buyercel = response.buyerdata.cel;
-        //buyer details
-        let ordertype = response.order_type;
-        let ordtype_txt = '';
-
-        if (ordertype == 1) {
-          ordtype_txt = 'delivery';
-        } else if (ordertype == 2) {
-          ordtype_txt = 'pickup';
-        } else if (ordertype == 3) {
-          ordtype_txt = 'dinein';
-        }
-
-        let dish_str = '';
-
-        response.dishdata.map((dishdata, dishdata_index) => {
-          dishdata.data.map((dish, dish_index) => {
-            dish_str +=
-              '[L]\n' +
-              '[L]<b>' +
-              dish.quantity +
-              ' X ' +
-              dish.name +
-              '</b> [R]' +
-              dish.total +
-              'e\n';
-            if (dish.sets.length > 0) {
-              dish.sets.map((set, set_index) => {
-                dish_str += '[L]' + set.name + ' - ' + set.choiceText + '\n';
-              });
-            }
-
-            dish_str += '[L]\n';
-          });
-        });
-
-        let text =
-          '[C]<b>Welcome</b>\n' +
-          '[L]\n' +
-          '[C]================================\n' +
-          '[L]\n' +
-          "[L]<font size='big'>" +
-          Bname +
-          '</font>\n' +
-          "[L]<font size='tall'>" +
-          OrderDate +
-          '</font>\n' +
-          "[L]<font size='tall'>" +
-          ordtype_txt +
-          '</font>\n' +
-          '[C]--------------------------------\n' +
-          '[L]\n' +
-          "[C]<u><font size='big'>Order No: " +
-          OrderNo +
-          '</font></u>\n' +
-          '[L]\n' +
-          '[C]--------------------------------\n' +
-          '[L]\n' +
-          dish_str +
-          '[C]--------------------------------\n';
-
-        if (discount > 0) {
-          text += '[R]Discount :[R]' + discount + 'e\n';
-        }
-
-        if (tax > 0) {
-          text += '[R]Tax :[R]' + tax + 'e\n';
-        }
-
-        if (servicefee_price > 0) {
-          text += '[R]Service Fee :[R]' + servicefee_price + 'e\n';
-        }
-
-        text +=
-          '[R]TOTAL :[R]' +
-          total +
-          'e\n' +
-          '[L]\n' +
-          '[C]--------------------------------\n' +
-          '[L]\n' +
-          "[L]<font size='tall'>Customer :</font>\n" +
-          '[L]' +
-          buyername +
-          '\n' +
-          '[L]' +
-          buyeradd +
-          '\n' +
-          '[L]Mobile : ' +
-          buyercel +
-          '\n' +
-          '[L]\n' +
-          '[C]--------------------------------\n' +
-          '[C]<b>Thanks!</b>\n' +
-          '[L]\n' +
-          '[L]\n' +
-          '[L]\n' +
-          '[L]\n' +
-          '[L]\n';
-
-        setTcpString(text);
-        //console.log(text);
-
-        let bill_dish_str = '';
-
-        response.dishdata.map((dishdata, dishdata_index) => {
-          dishdata.data.map((dish, dish_index) => {
-            bill_dish_str +=
-              '\n' +
-              '<M>' +
-              dish.quantity +
-              ' X ' +
-              dish.name +
-              ' ' +
-              dish.total +
-              '</M>\n';
-            if (dish.sets.length > 0) {
-              dish.sets.map((set, set_index) => {
-                bill_dish_str +=
-                  '<M>' + set.name + ' - ' + set.choiceText + '</M>\n';
-              });
-            }
-
-            bill_dish_str += '\n';
-          });
-        });
-
-        let bill_text =
-          '<CD>Welcome</CD>\n' +
-          '\n' +
-          '<C>================================</C>\n' +
-          '\n' +
-          '<CD>' +
-          Bname +
-          '</CD>\n' +
-          '<CM>' +
-          OrderDate +
-          '</CM>\n' +
-          '<CM>' +
-          ordtype_txt +
-          '</CM>>\n' +
-          '<C>--------------------------------</C>\n' +
-          '\n' +
-          '<CD>Order No: ' +
-          OrderNo +
-          '</CD>\n' +
-          '\n' +
-          '<C>--------------------------------</C>\n' +
-          '\n' +
-          bill_dish_str +
-          '<C>--------------------------------</C>\n';
-
-        if (discount > 0) {
-          bill_text += '<M>Discount : ' + discount + '</M>\n';
-        }
-
-        if (tax > 0) {
-          bill_text += '<M>Tax : ' + tax + '</M>\n';
-        }
-
-        if (servicefee_price > 0) {
-          bill_text += '<M>Service Fee : ' + servicefee_price + 'e\n';
-        }
-
-        bill_text +=
-          '<B>TOTAL : ' +
-          total +
-          '</B>\n' +
-          '\n' +
-          '<C>--------------------------------</C>\n' +
-          '\n' +
-          '<D>Customer :</D>\n' +
-          '<M>' +
-          buyername +
-          '</M>\n' +
-          '<M>' +
-          buyeradd +
-          '</M>\n' +
-          '<M>Mobile : ' +
-          buyercel +
-          '</M>\n' +
-          '\n' +
-          '<C>--------------------------------</C>\n' +
-          '<CD>Thanks!</CD>\n' +
-          '\n' +
-          '\n' +
-          '\n' +
-          '\n' +
-          '\n';
-        setBillString(bill_text);
-        //console.log(bill_text);
-
-        setvisiblemodal(true);*/
+       
       })
       .catch(error => {
         console.log('Error : ', error);
@@ -1120,6 +868,7 @@ const MyOrder = () => {
       </View>
 
       <Modal
+        supportedOrientations={['landscape']}
         isVisible={isModalVisible}
         style={{ width: '80%', margin: 'auto' }}
       >
@@ -1536,6 +1285,7 @@ const MyOrder = () => {
       </Modal>
 
       <Modal
+        supportedOrientations={['landscape']}
         isVisible={isModalVisible_accept}
         style={{ width: '60%', margin: 'auto' }}
       >
@@ -1691,6 +1441,7 @@ const MyOrder = () => {
         </View>
       </Modal>
       <Modal
+        supportedOrientations={['landscape']}
         isVisible={isModalVisible_reject}
         style={{ width: '60%', margin: 'auto' }}
       >
@@ -1797,53 +1548,7 @@ const MyOrder = () => {
         </View>
       </Modal>
 
-      <Modal animationType="slide" transparent={true} visible={visiblemodal}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            position: 'relative',
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              setvisiblemodal(false);
-            }}
-            style={{
-              position: 'absolute',
-              right: responsiveWidth(1),
-              top: responsiveHeight(1.5),
-              zIndex: 1,
-            }}
-          >
-            <Icon
-              name="closecircleo"
-              type="AntDesign"
-              size={30}
-              color={Colors.red}
-            />
-          </TouchableOpacity>
-          <View
-            style={{
-              height: 78,
-              width: 300,
-              backgroundColor: '#ffffff',
-              borderRadius: 5,
-            }}
-          >
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Thermalpriter
-                Tcp_string={tcp_string}
-                Bill_string={bill_string}
-                close_model={close_model}
-                printer_type={printer_type}
-              />
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+     
     </Container>
 
     // <SkeletonPlaceholder >

@@ -1037,7 +1037,7 @@ const Home = ({ props, route, navigation }) => {
         </View>
       ) : null}
 
-      <Modal animationType="slide" transparent={true} visible={visiblemodal}>
+      <Modal supportedOrientations={['landscape']} animationType="slide" transparent={true} visible={visiblemodal}>
         <View
           style={{
             flex: 1,
@@ -1632,6 +1632,7 @@ const Home = ({ props, route, navigation }) => {
         </View>
 
         <Modal
+          supportedOrientations={['landscape']}
           transparent={true}
           visible={isOrderModel}
           animationType="slide"

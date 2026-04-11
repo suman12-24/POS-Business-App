@@ -16,7 +16,7 @@ import { Colors } from '../Constants/Colors';
 function Loader() {
   const { height } = useWindowDimensions();
   return (
-    <Modal transparent={true} visible={true} animationType="fade">
+    <Modal supportedOrientations={['landscape']} transparent={true} visible={true} animationType="fade">
       <View
         style={{
           flex: 1,

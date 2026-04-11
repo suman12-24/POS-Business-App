@@ -29,7 +29,6 @@ import {
 } from '../../Service/service';
 import { clearUserData } from '../../Store/Reducers/CommonReducer';
 import { useFocusEffect } from '@react-navigation/native';
-import VersionNumber from 'react-native-version-number';
 import {
   Container,
   Icon,
@@ -44,7 +43,6 @@ const Login = ({ props, route, navigation }) => {
   const { baseUrl, siteUrl, deviceToken, langId } = useSelector(
     state => state.common,
   );
-  const [version_code, setVersionCode] = useState(null);
   const [viewloader, setLoader] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,13 +103,6 @@ const Login = ({ props, route, navigation }) => {
     }, []),
   );
 
-  useEffect(() => {
-    /*console.log(VersionNumber.appVersion);
-    console.log(VersionNumber.buildVersion);
-    console.log(VersionNumber.bundleIdentifier);*/
-    setVersionCode(VersionNumber.appVersion + '.' + VersionNumber.buildVersion);
-  }, []);
-
   const handleLogin = () => {
     let flg = true;
     if (email.search(/\S/) == -1) {
@@ -141,15 +132,7 @@ const Login = ({ props, route, navigation }) => {
 
     if (flg == true) {
       setLoader(true);
-      /* postWithOutToken(baseUrl, 'module/user/rest-user', {
-        f: 'login',
-        email: email,
-        pass: password,
-        langId: langId,
-        level: 1,
-        device_id: deviceToken,
-      })*/
-
+     
       postWithOutToken(baseUrl, 'business/login', {
         email: email,
         password: password,
@@ -179,28 +162,11 @@ const Login = ({ props, route, navigation }) => {
         });
     }
 
-    //setTimeout(() => {navigation.navigate('Main')}, 200);
   };
 
   return (
     <Container style={styles.container}>
-      {/*viewloader === true ? (
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-          }}>
-          <ActivityIndicator size="large" color={Colors.activityIndicator} />
-        </View>
-      ) : null*/}
-
+      
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -319,17 +285,7 @@ const Login = ({ props, route, navigation }) => {
             >
               Forgot Password?
             </Text>
-            {/*<Text
-              style={{
-                fontSize: responsiveFontSize(1.2),
-                color: Colors.grey,
-                fontFamily: Inter.regular,
-                paddingTop: responsiveHeight(2),
-                textAlign: 'center',
-              }}
-            >
-              @ Indus v {version_code != null ? version_code : null}
-            </Text>*/}
+           
           </View>
         </View>
       </View>

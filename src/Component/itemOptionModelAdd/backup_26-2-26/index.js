@@ -1290,6 +1290,7 @@ const OptionModelAdd = props => {
     <>
       {dataItem != null && dish != null ? (
         <Modal
+          supportedOrientations={['landscape']}
           isVisible={isModalVisible}
           style={{ width: '60%', margin: 'auto' }}
         >

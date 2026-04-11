@@ -19,12 +19,6 @@ import {
   FlatList,
   useColorScheme,
 } from 'react-native';
-import {
-  USBPrinter,
-  NetPrinter,
-  BLEPrinter,
-} from 'react-native-thermal-receipt-printer';
-import NetInfo from '@react-native-community/netinfo';
 
 import Styles from './Styles';
 import { Colors } from '../../Constants/Colors';
@@ -55,8 +49,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Element } from 'react-native-render-html';
-import Thermalpriter from '../prnterConnect';
-//import EbPrinter from 'react-native-ebprinter';
 import { Picker } from '@react-native-picker/picker';
 import Loader from '../../Component/loader';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -148,128 +140,6 @@ const HomeRight = props => {
     }
   }, []);
 
-  /*const USBPrinterModule = NativeModules?.USBPrinter || {};
-  USBPrinterModule.addListener = USBPrinterModule.addListener || (() => {});
-  USBPrinterModule.removeListeners =
-    USBPrinterModule.removeListeners || (() => {});
-
-  const USBPrinterEmitter = new NativeEventEmitter(USBPrinterModule);
-
-  useEffect(() => {
-    const fetchIPAddress = async () => {
-      try {
-        const state = await NetInfo.fetch();
-        if (state.details && state.details.ipAddress) {
-          setipaddresprinter(state.details.ipAddress);
-        }
-      } catch (error) {
-        console.error('Error fetching IP address:', error);
-      }
-    };
-
-    fetchIPAddress();
-  }, []);
-
-  const Print_printer = () => {
-    if (PRINTER_OPTION == 'USBPRINTER') {
-      // console.log('usb print')
-      USBPrinter.printBill('<C>sample text</C>\n', {beep: true})
-        .then(() => {
-          return USBPrinter.closeConn();
-        })
-        .then(() => setPrinters(null));
-    } else {
-      // console.log('net print')
-      NetPrinter.printBill('<C>sample text</C>')
-        .then(() => {
-          return NetPrinter.closeConn();
-        })
-        .then(() => setPrinters(null));
-    }
-  };
-  const initializePrinters = async PRINTER_OPTION => {
-    if (PRINTER_OPTION == 'USBPRINTER') {
-      console.log('usb printrere');
-      try {
-        if (Platform.OS === 'android') {
-          // Initialize the USBPrinter
-          USBPrinter.init()
-            .then(() => {
-              // Get the list of connected printers
-              return USBPrinter.getDeviceList();
-            })
-            .then(devices => {
-              // Update the state with the list of printers
-
-              // Check if there are any printers available
-              if (devices.length > 0) {
-                Alert.alert(
-                  'USB Device Connected',
-                  `Device Name: ${devices[0].device_name}`,
-                  [
-                    {
-                      text: 'Cancel',
-                      onPress: () => console.log('Cancel Pressed'),
-                      style: 'cancel',
-                    },
-                    {
-                      text: 'OK',
-                      onPress: () =>
-                        USBPrinter.connectPrinter(
-                          devices[0].vendor_id,
-                          devices[0].product_id,
-                        ).then(() => setPrinters('USBPRINTER')),
-                    },
-                  ],
-                );
-              } else {
-                Alert.alert('No devices found');
-              }
-            })
-            .then(() => {
-              setvisiblemodal(false);
-            })
-            .catch(error => {
-              // Handle errors during initialization or fetching device list
-              console.error('Error:', error);
-              Alert.alert('Error', 'Failed to initialize or find printers.');
-            });
-        }
-      } catch (error) {
-        // Handle any unexpected errors
-        console.error('Unexpected Error:', error);
-        Alert.alert('Error', 'An unexpected error occurred.');
-      }
-    } else {
-      LANPrinterConnected(ipAddressPrinter);
-    }
-  };
-
-  // conncted via lan port..
-  const LANPrinterConnected = ipaddress => {
-    console.log(ipaddress, 'ipadders connted');
-    try {
-      if (Platform.OS === 'android') {
-        NetPrinter.init().then(np => {
-          NetPrinter.connectPrinter(ipaddress, 9100)
-            .then(printer => setPrinters('LANPRINTER'))
-            .finally(() => {
-              setvisiblemodal(false);
-              console.log(printers, 'cokfdsfk');
-            })
-            .catch(error => console.warn('Connection Error:', error));
-        });
-      }
-    } catch (error) {
-      // Handle any unexpected errors
-      console.error('Unexpected Error:', error);
-      Alert.alert('Error', 'An unexpected error occurred.');
-    }
-  };
-  const _connectPrinter = printer =>
-    USBPrinter.connectPrinter(printer.vendorID, printer.productId).then(() =>
-      setCurrentPrinter(printer),
-    );*/
 
   useFocusEffect(
     React.useCallback(() => {
@@ -1317,31 +1187,9 @@ const HomeRight = props => {
     <>
       <SafeAreaProvider>
         <SafeAreaView>
-          {/*<Modal
-            animationType="slide"
-            transparent={true}
-            visible={visiblemodal}>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}>
-              <View
-                style={{
-                  height: 270,
-                  width: 300,
-                  backgroundColor: '#ffffff',
-                  borderRadius: 5,
-                }}>
-                <Thermalpriter />
-               
-              </View>
-            </View>
-          </Modal>*/}
-
+          
           <Modal
+            supportedOrientations={['landscape']}
             animationType="slide"
             transparent={true}
             visible={visiblemodal}

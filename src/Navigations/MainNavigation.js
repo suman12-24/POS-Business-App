@@ -12,6 +12,7 @@ import {
   Main,
   MyAccount,
   MyOrder,
+  SplashScreen
 } from '../Screens';
 import { Platform } from 'react-native';
 
@@ -74,6 +75,12 @@ const MainNavigation = props => {
         name="Main"
         component={Main}
         options={horizontalAnimation}
+      />
+
+      <Stack.Screen
+        name="SplashScreen"
+        component={SplashScreen}
+        options={{ headerTitle: 'Splash Screen', headerShown: false }}
       />
 
       <Stack.Screen
