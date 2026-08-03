@@ -10,7 +10,7 @@ import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 
-//import com.goodcom.react.EbPrinter.EbPrinterPackage;
+import com.goodcom.react.EbPrinter.EbPrinterPackage;
 
 class MainApplication : Application(), ReactApplication {
 

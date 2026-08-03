@@ -1,13 +1,12 @@
-
 const Inter = {
   black: 'Inter Black',
   bold: 'Inter Bold',
-  extrablod: 'Inter ExtraBlod',
+  extrabold: 'Inter ExtraBold',
   extralight: 'Inter ExtraLight',
   light: 'Inter Light',
   medium: 'Inter Medium',
   regular: 'Inter Regular',
-  semiblod: 'Inter SemiBlod',
+  semibold: 'Inter SemiBold',
 };
 
-export {Inter};
+export { Inter };

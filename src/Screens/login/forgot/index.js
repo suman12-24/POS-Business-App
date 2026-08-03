@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import Styles from './style';
-import { Colors } from '../../../Constants/Colors';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -29,20 +28,23 @@ import {
   AppTextInput,
   AppButton,
 } from 'react-native-basic-elements';
-import Loader from '../../../Component/loader';
+import { useAppTheme } from '../../../Hooks/useAppTheme';
+import useTranslation from '../../../Hooks/useTranslation';
+//import Loader from '../../Component/loader';
 
 const Forgot = ({ props, route, navigation }) => {
-  const styles = Styles();
+  const theme = useAppTheme();
+  const styles = Styles(theme);
   const dispatch = useDispatch();
-  const { baseUrl, siteUrl, langId } = useSelector(state => state.common);
+  const { baseUrl, siteUrl, langId, loginImages } = useSelector(state => state.common);
   const [email, setEmail] = useState('');
   const [viewloader, setLoader] = useState(false);
-
+  const { t } = useTranslation();
   const SubmitEmail = () => {
     let flg = true;
 
     if (email.search(/\S/) == -1) {
-      showToastMsg('Please enter your email Id');
+      showToastMsg(t('PLEASE_ENTER_EMAIL'));
       if (flg == true) {
         flg = false;
       }
@@ -50,8 +52,7 @@ const Forgot = ({ props, route, navigation }) => {
     } else if (email.search(/\S/) != -1) {
       let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
       if (reg.test(email) === false) {
-        showToastMsg('Please enter valid email Id');
-
+        showToastMsg(t('ENTER_VALID_EMAIL_ADDRESS'));
         if (flg == true) {
           flg = false;
         }
@@ -97,25 +98,30 @@ const Forgot = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-      
-      {viewloader === true ? <Loader /> : null}
 
-      <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
+      {/* {viewloader === true ? <Loader /> : null} */}
+
+      {/* <Image style={styles.Bg} resizeMode="contain" source={Images.bg} /> */}
 
       <View style={styles.main}>
         <View style={styles.main_inner}>
           <View
             style={{
-              width: responsiveWidth(20),
-              height: responsiveHeight(14),
+              width: responsiveWidth(25),
+              height: responsiveHeight(15),
               overflow: 'hidden',
               borderRadius: 10,
               margin: 'auto',
             }}
           >
             <Image
-              source={Images.login_logo}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              // source={
+              //   loginImages?.logo
+              //     ? { uri: loginImages.logo }
+              //     : Images.login_logo
+              // }
+              source={Images.splash_logo}
+              style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
             />
           </View>
 
@@ -128,12 +134,12 @@ const Forgot = ({ props, route, navigation }) => {
           >
             <Text
               style={{
-                color: Colors.black,
-                fontFamily: Inter.light,
-                fontSize: responsiveFontSize(2.5),
+                fontSize: responsiveFontSize(1.8),
+                color: theme.fontColorOnBackground,
+                fontFamily: Inter.regular,
               }}
             >
-              Forgot Password!
+              {t('FORGOT_PASSWORD_BT')}!
             </Text>
           </View>
           <View>
@@ -142,14 +148,11 @@ const Forgot = ({ props, route, navigation }) => {
               onChangeText={setEmail}
               value={email}
               placeholder="Email"
+              placeholderTextColor={theme.fontColorOnBackground}
               leftIcon={{
                 name: 'mail',
                 type: 'AntDesign',
-                color: Colors.black,
-              }}
-              inputContainerStyle={{
-                borderColor: Colors.grey,
-                marginBottom: responsiveHeight(1),
+                color: theme.fontColorOnBackground,
               }}
               autoCapitalize="none"
             />
@@ -158,13 +161,12 @@ const Forgot = ({ props, route, navigation }) => {
               <TouchableOpacity style={styles.button_dis}>
                 <Text
                   style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#000',
+                    fontSize: responsiveFontSize(1),
+                    color: theme.fontColor,
                     fontFamily: Inter.medium,
                   }}
                 >
-                  Submit
+                  {t('SUBMIT')}
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -176,13 +178,13 @@ const Forgot = ({ props, route, navigation }) => {
               >
                 <Text
                   style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#fff',
+
+                    fontSize: responsiveFontSize(1),
+                    color: theme.fontColor,
                     fontFamily: Inter.medium,
                   }}
                 >
-                  Submit
+                  {t('SUBMIT')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -200,13 +202,12 @@ const Forgot = ({ props, route, navigation }) => {
             >
               <Text
                 style={{
-                  fontWeight: 'bold',
                   fontSize: responsiveFontSize(1),
-                  color: Colors.primaryFontColor,
-                  fontFamily: Inter.medium,
+                  color: theme.primary,
+                  fontFamily: Inter.regular,
                 }}
               >
-                Go Back To Login
+                {t('GO_BACK_TO_LOGIN')}
               </Text>
             </TouchableOpacity>
 

@@ -28,15 +28,16 @@ import {
   AppTextInput,
   AppButton,
 } from 'react-native-basic-elements';
-import Loader from '../../../Component/loader';
+import Loader from '../../Component/loader';
 import { useFocusEffect } from '@react-navigation/native';
-
+import useTranslation from '../../../Hooks/useTranslation';
 const ResetPassword = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
   const { baseUrl, siteUrl, deviceToken, langId } = useSelector(
     state => state.common,
   );
+  const { t } = useTranslation();
   const [newpass, setNewPass] = useState('');
   const [confirmpass, setConfirmpass] = useState('');
   const [viewloader, setLoader] = useState(false);
@@ -102,7 +103,7 @@ const ResetPassword = ({ props, route, navigation }) => {
     const minLengthRegExp = /.{8,}/;
 
     if (newpass.search(/\S/) == -1) {
-      showToastMsg('Please enter your password');
+      showToastMsg(t('ENTER_YOUR_PASSWORD'));
       if (flg == true) {
         flg = false;
       }
@@ -146,7 +147,7 @@ const ResetPassword = ({ props, route, navigation }) => {
     }*/
 
     if (confirmpass.search(/\S/) == -1) {
-      showToastMsg('please enter confirm password');
+      showToastMsg(t('ENTER_CONFIRM_PASSWORD'));
       if (flg == true) {
         flg = false;
       }
@@ -154,7 +155,7 @@ const ResetPassword = ({ props, route, navigation }) => {
     }
 
     if (newpass != confirmpass) {
-      showToastMsg('Mismatch confirm password');
+      showToastMsg(t('CONFIRM_PASSWORD_NOT_MATCHED'));
       if (flg == true) {
         flg = false;
       }
@@ -196,7 +197,7 @@ const ResetPassword = ({ props, route, navigation }) => {
           setLoader(false);
           if (response.status == true) {
             setResetPassword(true);
-            showToastMsg('Password Successfully Changed.');
+            showToastMsg(t('PASSWORD_SUCCESSFULLY_CHANGED'));
 
             /*setTimeout(() => {
               navigation.navigate('Login');
@@ -211,7 +212,7 @@ const ResetPassword = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-     
+
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -248,7 +249,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                     fontSize: responsiveFontSize(2.5),
                   }}
                 >
-                  Reset Password
+                  {t('RESET_PASSWORD')}
                 </Text>
               </View>
 
@@ -297,7 +298,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                         fontFamily: Inter.medium,
                       }}
                     >
-                      Reset Password
+                      {t('RESET_PASSWORD')}
                     </Text>
                   </TouchableOpacity>
                 ) : (
@@ -333,7 +334,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                       fontSize: responsiveFontSize(1.5),
                     }}
                   >
-                    Already Have an account ?
+                    {t('ALREADY_HAVE_ACCOUNT')}
                     <Text
                       onPress={() => {
                         navigation.navigate('Login');
@@ -349,7 +350,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                   </Text>
                 </View>
 
-               
+
               </View>
             </View>
           ) : (
@@ -383,7 +384,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                     fontSize: responsiveFontSize(1.5),
                   }}
                 >
-                  Password Changed Successfully
+                  {t('PASSWORD_CHANGED_SUCESSFULLY')}
                 </Text>
               </View>
 
@@ -401,7 +402,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                     fontFamily: Inter.medium,
                   }}
                 >
-                  Go Back To Login
+                  {t('GO_BACK_TO_LOGIN')}
                 </Text>
               </TouchableOpacity>
               {/*<Text

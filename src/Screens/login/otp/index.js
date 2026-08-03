@@ -30,12 +30,13 @@ import {
   AppTextInput,
   AppButton,
 } from 'react-native-basic-elements';
-import Loader from '../../../Component/loader';
-
+import Loader from '../../Component/loader';
+import useTranslation from '../../../Hooks/useTranslation';
 const ForgotOtp = ({ props, route, navigation }) => {
   const styles = Styles();
   const dispatch = useDispatch();
   const { baseUrl, siteUrl, langId } = useSelector(state => state.common);
+  const { t } = useTranslation();
   const [version_code, setVersionCode] = useState(null);
   const [viewloader, setLoader] = useState(false);
   const [otp, setOTP] = useState('');
@@ -83,7 +84,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
 
     if (flg == true) {
       setLoader(true);
-      
+
       postWithOutToken(baseUrl, 'forgot-password-check-otp', {
         email: route.params.email,
         user: route.params.userId,
@@ -115,7 +116,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
   }
 
   function resetPasswordOtp() {
-   
+
     setLoader(true);
     setOTP('');
     ref.current?.clear('');
@@ -141,7 +142,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-      
+
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -222,7 +223,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                     fontFamily: Inter.medium,
                   }}
                 >
-                  Submit
+                  {t('SUBMIT')}
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -240,7 +241,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                     fontFamily: Inter.medium,
                   }}
                 >
-                  Submit
+                 {t('SUBMIT')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -260,7 +261,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                     fontSize: responsiveFontSize(1.2),
                   }}
                 >
-                  Time Remaining: {minutes < 10 ? `0${minutes}` : minutes}:
+                  {t('TIME_REMAINING')}: {minutes < 10 ? `0${minutes}` : minutes}:
                   {seconds < 10 ? `0${seconds}` : seconds}
                 </Text>
               ) : (
@@ -271,7 +272,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                     fontSize: responsiveFontSize(1.2),
                   }}
                 >
-                  Didn't recieve code?
+                 {t('DID_NOT_RECEIVE_CODE')}?
                 </Text>
               )}
             </View>
@@ -290,7 +291,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                     fontSize: responsiveFontSize(1.5),
                   }}
                 >
-                  Resend OTP
+                  {t('RESEND_OTP')}
                 </Text>
               ) : (
                 <TouchableOpacity
@@ -303,12 +304,12 @@ const ForgotOtp = ({ props, route, navigation }) => {
                       fontSize: responsiveFontSize(1.5),
                     }}
                   >
-                    Resend OTP
+                    {t('RESEND_OTP')}
                   </Text>
                 </TouchableOpacity>
               )}
             </View>
-           
+
           </View>
         </View>
       </View>

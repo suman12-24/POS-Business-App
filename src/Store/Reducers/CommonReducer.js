@@ -7,12 +7,20 @@ const initialState = {
   deviceToken: '',
   //baseUrl: 'https://menuhuts.com/apiv/',
   //siteUrl: 'https://menuhuts.com/',
-  baseUrl: 'https://staging-api.nexordr.com/api/',
+  //baseUrl: 'https://staging-api.nexordr.com/api/',
   siteUrl: 'https://staging-api.nexordr.com/',
   //baseUrl: 'https://staging-api.acuitysoftware.in/api/',
   //siteUrl: 'https://staging-api.acuitysoftware.in/',
   //baseUrl: 'https://api.nexordr.com/api/',
   //siteUrl: 'https://api.nexordr.com/',
+
+  baseUrl: 'https://staging-api.nexordr.cloud/api/web-business/',
+
+  siteSetting: 'https://staging-api.nexordr.cloud/api/',
+
+  user_slug: "PQAMDUKCBISJ",
+  loginImages: {},
+
   tempEmailorMobile: '',
   google_api_key: '',
   //Navigation state
@@ -25,6 +33,27 @@ const initialState = {
   newOrderNotification: {},
   newOrderData: {},
   orderid: null,
+
+  languagesList: [],
+  languageStrings: {},
+  isLanguageLoading: false,
+  businessTheme: {
+    business_primary_color: '#2916A1',
+    business_secondary_color: '#FD8324',
+    business_background: '#ffffff',
+    business_cancelbutton: '#FF0000',
+    business_font_color: '#ffffff',
+    business_secondary_font_color: null,
+    business_font_color_on_background: '#000000',
+    business_selected_button_color: '#d56510',
+    business_secondary_background: '#d9d9d9',
+    business_font_color_on_secondary_background: '#525459',
+    businees_highlighted_color: '#FF0000',
+    business_login_image_path: '',
+  },
+  isThemeLoaded: false,
+
+  UsbPrinter: null,
 };
 
 export const commonReducer = createSlice({
@@ -114,6 +143,36 @@ export const commonReducer = createSlice({
     setNewOrderData: (state, action) => {
       state.newOrderData = action.payload;
     },
+
+    setLoginImages: (state, action) => {
+      state.loginImages = action.payload;
+    },
+
+    setLanguagesList: (state, action) => {
+      state.languagesList = action.payload;
+    },
+    setLangId: (state, action) => {
+      state.langId = action.payload;
+    },
+    setLanguageStrings: (state, action) => {
+      state.languageStrings = action.payload;
+    },
+    setIsLanguageLoading: (state, action) => {
+      state.isLanguageLoading = action.payload;
+    },
+    setBusinessTheme: (state, action) => {
+      state.businessTheme = action.payload;
+      state.isThemeLoaded = true;
+    },
+
+    setUsbPrinterValue: (state, action) => {
+      console.log('payload');
+      console.log(action.payload);
+      state.UsbPrinter = action.payload;
+    },
+    unsetUsbPrinterValue: state => {
+      state.UsbPrinter = null;
+    },
   },
 });
 
@@ -143,6 +202,17 @@ export const {
   setNewOrderData,
   saveOrderId,
   deleteOrderId,
+  setLoginImages,
+
+  setLanguagesList,
+  setLangId,
+  setLanguageStrings,
+  setIsLanguageLoading,
+
+  setBusinessTheme,
+
+  setUsbPrinterValue,
+  unsetUsbPrinterValue,
 } = commonReducer.actions;
 
 export default commonReducer.reducer;
