@@ -13,13 +13,13 @@ const getDataWithOutToken = (ApiURL, endpoint) => {
         "Content-Type": "application/json",
       }
     })
-    .then((response) => {
-      resolve(response.data);
-    })
-    .catch((error) => {
-      console.error(error);
-      reject(error);
-    });
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+        reject(error);
+      });
   });
 };
 
@@ -27,38 +27,38 @@ const getDataWithOutToken = (ApiURL, endpoint) => {
 const getDataWithToken = (ApiURL, endpoint, token) => {
   // console.log("end point : ", endpoint);
   return new Promise((resolve, reject) => {
-  axios.get(ApiURL + endpoint, {
-    headers: {
-      'Accept': "application/json",
-      "Content-Type": "application/json",
-      "x-access-token": token,
-    }
-  })
-    // .then(response => response.json())
-    .then((response) => {
-      resolve(response.data);
+    axios.get(ApiURL + endpoint, {
+      headers: {
+        'Accept': "application/json",
+        "Content-Type": "application/json",
+        "x-access-token": token,
+      }
     })
-    .catch((error) => {
-      console.error(error);
-      reject(error);
-    });
-  });  
+      // .then(response => response.json())
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+        reject(error);
+      });
+  });
 };
 
 // == Post with token API
-const postWithToken = (ApiURL,endpoint, data,authToken) => {
-  console.log("URL ===>",ApiURL + endpoint);
-   console.log(data);
-   console.log(authToken);
+const postWithToken = (ApiURL, endpoint, data, authToken) => {
+  console.log("URL ===>", ApiURL + endpoint);
+  console.log(data);
+  console.log(authToken);
   const config = {
-    headers: { 
+    headers: {
       'Accept': "application/json",
       "Content-Type": "application/json",
-      'Authorization': `Bearer ${authToken}` 
+      'Authorization': `Bearer ${authToken}`
     }
-};
+  };
   return new Promise((resolve, reject) => {
-    try{
+    try {
       axios.post(ApiURL + endpoint, data, config)
         .then((response) => {
           resolve(response.data);
@@ -68,11 +68,11 @@ const postWithToken = (ApiURL,endpoint, data,authToken) => {
           reject(error);
         });
 
-    }catch (error) {
+    } catch (error) {
       reject("catch error found");
     }
   });
-  
+
 };
 
 //== Post without token API
@@ -114,22 +114,22 @@ const postWithOutTokenWithoutData = (ApiURL, endpoint) => {
   });
 };
 
-const postWithTokenWithoutData = (ApiURL,endpoint, authToken) => {
-  console.log("URL ===>",ApiURL + endpoint);
-   console.log(authToken);
+const postWithTokenWithoutData = (ApiURL, endpoint, authToken) => {
+  console.log("URL ===>", ApiURL + endpoint);
+  console.log(authToken);
 
   const config = {
-    headers: { 
+    headers: {
       'Accept': "application/json",
       "Content-Type": "application/json",
-      'Authorization': `Bearer ${authToken}`  
+      'Authorization': `Bearer ${authToken}`
     }
   }
 
-console.log(config);
+  console.log(config);
   return new Promise((resolve, reject) => {
-    try{
-      axios.post(ApiURL + endpoint,{}, config)
+    try {
+      axios.post(ApiURL + endpoint, {}, config)
         .then((response) => {
           resolve(response.data);
         })
@@ -138,11 +138,39 @@ console.log(config);
           reject(error);
         });
 
-    }catch (error) {
+    } catch (error) {
       reject("catch error found");
     }
   });
-  
+
+};
+
+
+const postWithTokenForImage = (ApiURL, endpoint, data, authToken) => {
+  console.log(authToken);
+  const config = {
+    headers: {
+      'Accept': "application/json",
+      "Content-Type": "multipart/form-data",
+      'Authorization': `Bearer ${authToken}`
+    }
+  };
+  return new Promise((resolve, reject) => {
+    try {
+      axios.post(ApiURL + endpoint, data, config)
+        .then((response) => {
+          resolve(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+          reject(error);
+        });
+
+    } catch (error) {
+      reject("catch error found");
+    }
+  });
+
 };
 
 export {
@@ -152,4 +180,5 @@ export {
   postWithOutToken,
   postWithOutTokenWithoutData,
   postWithTokenWithoutData,
+  postWithTokenForImage
 };

@@ -10,15 +10,9 @@ import {
   ActivityIndicator,
   BackHandler,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Styles from './style';
 import { Colors } from '../../Constants/Colors';
-import {
-  responsiveHeight,
-  responsiveWidth,
-  responsiveFontSize,
-} from 'react-native-responsive-dimensions';
-import { Inter } from '../../Constants/Fonts';
 import { Images } from '../../Constants/ImageIconContant';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserData } from '../../Store/Reducers/CommonReducer';
@@ -35,32 +29,40 @@ import {
   AppTextInput,
   AppButton,
 } from 'react-native-basic-elements';
-import Loader from '../../Component/loader';
 
+import SkeletonLogin from './SkeletonLogin';
+import { useAppTheme } from '../../Hooks/useAppTheme';
+import useTranslation from '../../Hooks/useTranslation';
 const Login = ({ props, route, navigation }) => {
-  const styles = Styles();
   const dispatch = useDispatch();
+<<<<<<< HEAD
   const { baseUrl, siteUrl, deviceToken, langId } = useSelector(
     state => state.common,
   );
+=======
+  const { baseUrl, siteUrl, deviceToken, langId, user_slug, loginImages } = useSelector(state => state.common,);
+  const theme = useAppTheme();
+  const styles = useMemo(() => Styles(theme), [theme]);
+  const { t } = useTranslation();
+>>>>>>> development
   const [viewloader, setLoader] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password_field_type, setPasswordFieldType] = useState(true);
 
   const [password_eye, setPasswordEye] = useState(
-    <Icon name="eye" type="Ionicon" color={Colors.black} />,
+    <Icon name="eye" type="Ionicon" color={theme.fontColorOnBackground} size={18} />,
   );
 
   const changeFieldType = () => {
     if (password_field_type == true) {
       setPasswordFieldType(false);
       setPasswordEye(
-        <Icon name="eye-off" type="Ionicon" color={Colors.black} />,
+        <Icon name="eye-off" type="Ionicon" color={theme.fontColorOnBackground} size={18} />,
       );
     } else {
       setPasswordFieldType(true);
-      setPasswordEye(<Icon name="eye" type="Ionicon" color={Colors.black} />);
+      setPasswordEye(<Icon name="eye" type="Ionicon" color={theme.fontColorOnBackground} size={18} />);
     }
   };
 
@@ -77,19 +79,6 @@ const Login = ({ props, route, navigation }) => {
       };
 
       const ExitAlert = () => {
-        /*Alert.alert('Jatayu Supplier', 'do you want to close app?', [
-            {
-              text: 'No',
-              onPress: () => console.log('Cancel Pressed'),
-              style: 'cancel',
-            },
-            {
-              text: 'Yes',
-              onPress: () => {
-                backAction();
-              },
-            },
-          ]);*/
         backAction();
         return true;
       };
@@ -106,7 +95,7 @@ const Login = ({ props, route, navigation }) => {
   const handleLogin = () => {
     let flg = true;
     if (email.search(/\S/) == -1) {
-      showToastMsg('Please enter email');
+      showToastMsg(t('PLEASE_ENTER_EMAIL'));
       if (flg == true) {
         flg = false;
       }
@@ -114,7 +103,7 @@ const Login = ({ props, route, navigation }) => {
     } else if (email.search(/\S/) != -1) {
       let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
       if (reg.test(email) === false) {
-        showToastMsg('Please enter valid email Id');
+        showToastMsg(t('ENTER_VALID_EMAIL_ADDRESS'));
         if (flg == true) {
           flg = false;
         }
@@ -123,7 +112,7 @@ const Login = ({ props, route, navigation }) => {
     }
 
     if (password.search(/\S/) == -1) {
-      showToastMsg('Please enter your password');
+      showToastMsg(t('ENTER_YOUR_PASSWORD'));
       if (flg == true) {
         flg = false;
       }
@@ -132,16 +121,21 @@ const Login = ({ props, route, navigation }) => {
 
     if (flg == true) {
       setLoader(true);
+<<<<<<< HEAD
      
       postWithOutToken(baseUrl, 'business/login', {
+=======
+
+      postWithOutToken(baseUrl, 'login', {
+>>>>>>> development
         email: email,
         password: password,
         lang_id: langId,
         level: 1,
         device_id: deviceToken,
+        user_slug: user_slug,
       })
         .then(response => {
-          //console.log(response);
           setLoader(false);
           if (response.status == true) {
             setEmail('');
@@ -158,121 +152,54 @@ const Login = ({ props, route, navigation }) => {
           }
         })
         .catch(error => {
-          console.log('Error : ', error);
+          console.log('Error status:', error.response?.status);
+          console.log('Error data:', error.response?.data);
         });
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> development
   };
 
   return (
     <Container style={styles.container}>
+<<<<<<< HEAD
       
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
 
+=======
+      {/* Background image - the lavender triangle artwork */}
+      {/* <Image
+        style={styles.Bg}
+        resizeMode="cover"
+        source={Images.bg}
+      /> */}
+>>>>>>> development
       <View style={styles.main}>
-        <View style={styles.main_inner}>
-          <View
-            style={{
-              width: responsiveWidth(20),
-              height: responsiveHeight(14),
-              overflow: 'hidden',
-              borderRadius: 10,
-              margin: 'auto',
-            }}
-          >
-            <Image
-              source={Images.login_logo}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          </View>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              marginBottom: 20,
-            }}
-          >
-            <Text
-              style={{
-                color: Colors.black,
-                fontFamily: Inter.light,
-                fontSize: responsiveFontSize(2.5),
-              }}
-            >
-              Welcome Back!
-            </Text>
-          </View>
-          <View>
-            <AppTextInput
-              inputStyle={{ paddingLeft: 10 }}
-              onChangeText={setEmail}
-              value={email}
-              placeholder="Email"
-              leftIcon={{
-                name: 'mail',
-                type: 'AntDesign',
-                color: Colors.black,
-              }}
-              inputContainerStyle={{
-                borderColor: Colors.grey,
-                marginBottom: responsiveHeight(1),
-              }}
-              autoCapitalize="none"
-            />
-
-            <AppTextInput
-              inputStyle={{ paddingLeft: 10, borderColor: Colors.grey }}
-              onChangeText={setPassword}
-              value={password}
-              secureTextEntry={password_field_type}
-              rightAction={password_eye}
-              onRightIconPress={changeFieldType}
-              placeholder="Password"
-              leftIcon={{
-                name: 'lock',
-                type: 'AntDesign',
-                color: Colors.black,
-              }}
-              inputContainerStyle={{ borderColor: Colors.grey }}
-              autoCapitalize="none"
-            />
-
-            {viewloader === true ? (
-              <TouchableOpacity style={styles.button_dis}>
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#000',
-                    fontFamily: Inter.medium,
-                  }}
-                >
-                  Login
-                </Text>
-              </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.main_inner}>
+            {viewloader ? (
+              <SkeletonLogin />
             ) : (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  handleLogin();
-                }}
-              >
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#fff',
-                    fontFamily: Inter.medium,
-                  }}
-                >
-                  Login
-                </Text>
-              </TouchableOpacity>
-            )}
+              <>
+                {/* Logo image */}
+                <View style={styles.logoWrap}>
+                  <Image
+                    source={Images.splash_logo}
+                    style={styles.logoImage}
+                    resizeMode="cover"
+                  />
+                </View>
+                <Text style={styles.welcomeText}>{t('WELCOME_BACK')}</Text>
 
+<<<<<<< HEAD
             <Text
               onPress={() => navigation.navigate('Forgot')}
               style={{
@@ -286,8 +213,69 @@ const Login = ({ props, route, navigation }) => {
               Forgot Password?
             </Text>
            
+=======
+                <View style={styles.formWrap}>
+                  <View style={styles.inputRow}>
+                    <Icon
+                      name="person"
+                      type="Ionicon"
+                      color={theme.fontColorOnBackground}
+                      size={15}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      onChangeText={setEmail}
+                      value={email}
+                      placeholder={t('LOGIN_EMAIL_PLACEHOLDER')}
+                      placeholderTextColor={theme.fontColorOnBackground}
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                  <View style={styles.inputRow}>
+                    <Icon
+                      name="lock-closed"
+                      type="Ionicon"
+                      color={theme.fontColorOnBackground}
+                      size={15}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      onChangeText={setPassword}
+                      value={password}
+                      secureTextEntry={password_field_type}
+                      placeholder={t('LOGIN_PASSWORD_PLACEHOLDER')}
+                      placeholderTextColor={theme.fontColorOnBackground}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity onPress={changeFieldType} style={styles.eyeIcon}>
+                      {password_eye}
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                      handleLogin();
+                    }}
+                  >
+                    <Text style={styles.buttonText}>{t('LOGIN')}</Text>
+                  </TouchableOpacity>
+
+                  <Text
+                    onPress={() => navigation.navigate('Forgot')}
+                    style={styles.forgotText}
+                  >
+                    {t('FORGOT_PASSWORD')}
+                  </Text>
+                </View>
+              </>
+            )}
+>>>>>>> development
           </View>
-        </View>
+        </ScrollView>
       </View>
     </Container>
   );

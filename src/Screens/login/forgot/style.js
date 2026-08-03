@@ -1,5 +1,4 @@
 // LoginFormStyles.js
-
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../../Constants/Colors';
 import {
@@ -7,13 +6,12 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import { Inter } from '../../../Constants/Fonts';
 
-const Styles = () => {
+const Styles = (theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: Colors.backgroundColor,
+      backgroundColor: theme.background,
       position: 'relative',
     },
     Bg: {
@@ -25,7 +23,7 @@ const Styles = () => {
     button: {
       height: responsiveWidth(4.5),
       width: '100%',
-      backgroundColor: Colors.buttonColor,
+      backgroundColor: theme.primary,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
@@ -51,7 +49,7 @@ const Styles = () => {
       justifyContent: 'center',
     },
     main_inner: {
-      backgroundColor: Colors.white,
+      backgroundColor: theme.background,
       shadowColor: '#000',
       shadowOffset: { width: 1, height: 1 },
       shadowOpacity: 0.8,

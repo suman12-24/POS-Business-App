@@ -1,35 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Text,
-  View,
-  TextInput,
-  ScrollView,
-  useColorScheme,
-  Image,
-  Pressable,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-  Platform,
-  ActivityIndicator,
-  NativeModules,
-  NativeEventEmitter,
-} from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, TouchableOpacity, FlatList, useWindowDimensions } from 'react-native';
 import Styles from './style';
-import { Colors } from '../../../Constants/Colors';
 import { Inter } from '../../../Constants/Fonts';
-import { Images } from '../../../Constants/ImageIconContant';
-import {
-  responsiveHeight,
-  responsiveWidth,
-  responsiveFontSize,
-} from 'react-native-responsive-dimensions';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { useDispatch, useSelector } from 'react-redux';
-import { showToastMsg, getData, setData } from '../../../Service/localStorage';
-import { postWithToken, postWithOutToken } from '../../../Service/service';
-import { useFocusEffect } from '@react-navigation/native';
+import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-dimensions';
+import { useSelector } from 'react-redux';
+import { postWithToken } from '../../../Service/service';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Moment from 'moment';
+<<<<<<< HEAD
 import Modal from 'react-native-modal';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -45,30 +23,29 @@ import Loader from '../../../Component/loader';
 
 const MyOrderInprogress = ({ props, route, navigation }) => {
   const styles = Styles();
+=======
+import useTranslation from '../../../Hooks/useTranslation';
+import Loader from '../../Component/loader';
+import OrderCardSkeleton from '../../Component/OrderCardSkeleton';
+import OrderCard, { OrderTableHeader } from '../../Component/OrderCard';
+import { useAppTheme } from '../../../Hooks/useAppTheme';
+const MyOrderInprogress = () => {
+  const theme = useAppTheme();
+  const styles = Styles(theme);
+>>>>>>> development
   Moment.locale('en');
-  const dispatch = useDispatch();
-  const colorScheme = useColorScheme();
-  const { baseUrl, siteUrl, userToken, userData, post_data, langId } =
-    useSelector(state => state.common);
+  const navigation = useNavigation();
+  const { baseUrl, userToken, langId } = useSelector(state => state.common);
+  const { t } = useTranslation();
+  const { width: winWidth, height: winHeight } = useWindowDimensions();
+  const isLandscape = winWidth > winHeight;
+  const shortSide = Math.min(winWidth, winHeight);
+  const isTablet = shortSide >= 600;
+  const isCompact = !isTablet && !isLandscape;
   const [viewloader, setLoader] = useState(false);
-  const [color_theme, setColorTheme] = useState('#000000');
-  const [color_theme_selected, setColorThemeSelected] = useState('#000000');
-  const [orderlist, setOrderList] = useState({
-    isLoading: true,
-    list: [],
-  });
+  const [orderlist, setOrderList] = useState({ isLoading: true, list: [] });
   const [viewmoreloader, setMoreLoader] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [orderDetails, setOrderDetails] = useState(null);
-
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [update_action, setUpdateAction] = useState(false);
-  const [action_order_id, setActionOrderId] = useState('');
-  const [action_order_index, setActionOrderIndex] = useState('');
-  const [cnfModal, setCnfModal] = useState(false);
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -76,6 +53,7 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
     }, []),
   );
 
+<<<<<<< HEAD
   useEffect(() => {
     if (colorScheme == 'dark') {
       setColorTheme('#ffffff');
@@ -139,70 +117,48 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
 
   /*printer coce */
 
+=======
+>>>>>>> development
   const getOrderList = () => {
-    //setMoreLoader(true);
-    let search_status = [1, 2, 3, 9, 10, 11, 12];
     const nextPage = 1;
+    let search_status = [1, 2, 3, 9, 10, 11, 12];
     postWithToken(
       baseUrl,
-      'web-business/orders/list',
-      {
-        lang_id: langId,
-        pageNo: nextPage,
-        status: search_status,
-      },
+      'orders/list',
+      { lang_id: langId, pageNo: nextPage, status: search_status },
       userToken,
     )
       .then(response => {
-        //setMoreLoader(false);
-
-        if (response.status == true) {
-          if (response.data.length > 0) {
-            setCurrentPage(nextPage);
-            setOrderList({
-              isLoading: false,
-              list: response.data,
-            });
-          } else {
-            setOrderList({ isLoading: false, list: [] });
-          }
+        if (response.status == true && response.data.length > 0) {
+          setCurrentPage(nextPage);
+          setOrderList({ isLoading: false, list: response.data });
         } else {
           setOrderList({ isLoading: false, list: [] });
         }
       })
       .catch(error => {
-        //setMoreLoader(false);
+        setLoader(false);
+        setOrderList({ isLoading: false, list: [] });
         console.log('Error : ', error);
       });
   };
 
   const getOrderListRefresh = () => {
+    if (viewmoreloader) return;
     setMoreLoader(true);
-    let search_status = [1, 2, 3, 9, 10, 11, 12];
     const nextPage = currentPage + 1;
+    let search_status = [1, 2, 3, 9, 10, 11, 12];
     postWithToken(
       baseUrl,
-      'web-business/orders/list',
-      {
-        lang_id: langId,
-        pageNo: nextPage,
-        status: search_status,
-      },
+      'orders/list',
+      { lang_id: langId, pageNo: nextPage, status: search_status },
       userToken,
     )
       .then(response => {
         setMoreLoader(false);
-        //console.log(response);
-        if (response.status == true) {
-          if (response.data.length > 0) {
-            setCurrentPage(nextPage);
-            setOrderList({
-              isLoading: false,
-              list: [...orderlist.list, ...response.data],
-            });
-          } else {
-            setOrderList({ isLoading: false, list: orderlist.list });
-          }
+        if (response.status == true && response.data.length > 0) {
+          setCurrentPage(nextPage);
+          setOrderList({ isLoading: false, list: [...orderlist.list, ...response.data] });
         } else {
           setOrderList({ isLoading: false, list: orderlist.list });
         }
@@ -213,194 +169,15 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
       });
   };
 
-  const renderLoader = () => {
-    return (
-      <>
-        {viewmoreloader === true ? (
-          <View>
-            {Array.from({ length: 4 }).map((_, index) => (
-              <OrderCardSkeleton key={'skeleton_lo' + index} />
-            ))}
-          </View>
-        ) : null}
-      </>
-    );
+  // Tapping a card now opens the detail screen. Complete Order lives there.
+  const openOrderDetail = item => {
+    navigation.navigate('OrderDetailInprogress', { order: item });
   };
-
-  const openDetails = item => {
-    setOrderDetails(item);
-    toggleModal();
-  };
-
-  const displayVal = val => {
-    if (val == 0) {
-      return 'Pending';
-    }
-    if (val == 1) {
-      return 'Accepted By Restaurant';
-    }
-    if (val == 2) {
-      return 'Accepted by Driver';
-    }
-    if (val == 3) {
-      return 'Delivery Complete by Driver';
-    }
-    if (val == 4) {
-      return 'Completed by Resturant';
-    }
-    if (val == 5) {
-      return 'Complete';
-    }
-    if (val == 6) {
-      return 'Cancelled by Resturant';
-    }
-    if (val == 7) {
-      return 'Rejected by Driver';
-    }
-    if (val == 8) {
-      return 'Cancelled';
-    }
-    if (val == 9) {
-      return 'Pickup Complete by Driver';
-    }
-    if (val == 10) {
-      return 'Pickup Complete from user by Driver';
-    }
-    if (val == 11) {
-      return 'Delivery Complete to Business by Driver';
-    }
-    if (val == 12) {
-      return 'Verified by Resturant';
-    }
-  };
-
-  const displayValColor = val => {
-    if (val == 0) {
-      return '#ee4336';
-    }
-    if (val == 1) {
-      return '#e6b90e';
-    }
-    if (val == 2) {
-      return '#e6b90e';
-    }
-    if (val == 3) {
-      return '#4ac112';
-    }
-    if (val == 4) {
-      return '#4ac112';
-    }
-    if (val == 5) {
-      return '#4ac112';
-    }
-    if (val == 6) {
-      return '#888';
-    }
-    if (val == 7) {
-      return '#888';
-    }
-    if (val == 8) {
-      return '#888';
-    }
-    if (val == 9) {
-      return '#4ac112';
-    }
-    if (val == 10) {
-      return '#e6b90e';
-    }
-    if (val == 11) {
-      return '#e6b90e';
-    }
-    if (val == 12) {
-      return '#4ac112';
-    }
-  };
-
-  const CompleteOrder = (id, index) => {
-    setLoader(true);
-    setUpdateAction(true);
-    setActionOrderId(id);
-    setActionOrderIndex(index);
-    /*Alert.alert('Warning!', 'Are you sure you want to complete this Order', [
-      {
-        text: 'No',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      {
-        text: 'Yes',
-        onPress: () => {
-          CompleteAction(id, index);
-        },
-      },
-    ]);*/
-
-    setTimeout(() => {
-      setLoader(false);
-      setCnfModal(true);
-    }, 300);
-  };
-
-  const CloseConfimModel = () => {
-    setLoader(false);
-    setCnfModal(false);
-    setUpdateAction(false);
-    setActionOrderId('');
-    setActionOrderIndex('');
-  };
-
-  const CompleteAction = (order_id, index) => {
-    console.log(order_id, index);
-    setLoader(true);
-    console.log(order_id);
-    postWithToken(
-      baseUrl,
-      'web-business/orders/status-change',
-      {
-        id: order_id,
-        status: 4,
-        lang_id: langId,
-      },
-      userToken,
-    )
-      .then(response => {
-        setLoader(false);
-        setCnfModal(false);
-        setUpdateAction(false);
-        setActionOrderId('');
-        setActionOrderIndex('');
-
-        orderlist.list.splice(index, 1);
-
-        setTimeout(() => {
-          setOrderList({ isLoading: false, list: orderlist.list });
-        }, 1000);
-      })
-      .catch(error => {
-        setMoreLoader(false);
-        console.log('Error : ', error);
-      });
-  };
-
+  const handleComplete = (item) => {
+    navigation.navigate('OrderDetailInprogress', { order: item });
+  }
   return (
-    <Container style={styles.container}>
-      {/*viewloader === true ? (
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-          }}>
-          <ActivityIndicator size="large" color={Colors.activityIndicator} />
-        </View>
-      ) : null*/}
-
+    <View style={styles.container}>
       {viewloader === true ? <Loader /> : null}
 
       <View style={styles.main}>
@@ -408,91 +185,114 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
           style={{
             display: 'flex',
             flexDirection: 'row',
+            flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'flex-start',
             gap: 10,
-            borderBottomWidth: 1.5,
-            borderBottomColor: Colors.primaryFontColor,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.primary,
           }}
         >
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('MyOrder');
-            }}
+            onPress={() => navigation.navigate('MyOrder')}
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.primaryFontColor,
+                borderColor: theme.primary,
                 borderWidth: 1,
-                backgroundColor: Colors.white,
+                backgroundColor: theme.background,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
+                paddingHorizontal: isCompact ? 10 : 14,
+                paddingVertical: isCompact ? 8 : 6,
               },
             ]}
           >
             <Text
               style={{
-                fontWeight: 'bold',
-                fontSize: responsiveFontSize(1.5),
-                color: Colors.primaryFontColor,
-                fontFamily: Inter.medium,
+                fontSize: isCompact ? responsiveFontSize(1.3) : responsiveFontSize(1.1),
+                color: theme.fontColorOnBackground,
+                fontFamily: Inter.semibold,
               }}
             >
-              Current
+              {t('CURRENT')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPressIn={() => {
-              navigation.navigate('MyOrderInprogress');
-            }}
+            onPress={() => navigation.navigate('MyOrderInprogress')}
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.primaryFontColor,
+                borderColor: theme.primary,
                 borderWidth: 1,
-                backgroundColor: Colors.primaryFontColor,
+                backgroundColor: theme.primary,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
+                paddingHorizontal: isCompact ? 10 : 14,
+                paddingVertical: isCompact ? 8 : 6,
               },
             ]}
           >
             <Text
               style={{
-                fontWeight: 'bold',
-                fontSize: responsiveFontSize(1.5),
-                color: Colors.white,
+                fontSize: isCompact ? responsiveFontSize(1.3) : responsiveFontSize(1.1),
+                color: theme.fontColor,
                 fontFamily: Inter.medium,
               }}
             >
-              Inprogress
+              {t('INPROGRESS')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPressIn={() => {
-              navigation.navigate('MyOrderComplete');
-            }}
+            onPress={() => navigation.navigate('MyOrderComplete')}
             style={[
               styles.tab_button,
               {
-                borderColor: Colors.primaryFontColor,
+                borderColor: theme.primary,
                 borderWidth: 1,
-                backgroundColor: Colors.white,
+                backgroundColor: theme.background,
                 borderTopRightRadius: 10,
                 borderTopLeftRadius: 10,
+                paddingHorizontal: isCompact ? 10 : 14,
+                paddingVertical: isCompact ? 8 : 6,
               },
             ]}
           >
             <Text
               style={{
-                fontWeight: 'bold',
-                fontSize: responsiveFontSize(1.5),
-                color: Colors.primaryFontColor,
-                fontFamily: Inter.medium,
+                fontSize: isCompact ? responsiveFontSize(1.3) : responsiveFontSize(1.1),
+                color: theme.fontColorOnBackground,
+                fontFamily: Inter.semibold,
               }}
             >
-              Complete
+              {t('COMPLETE')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('MyOrderCancel')}
+            style={[
+              styles.tab_button,
+              {
+                borderColor: theme.primary,
+                borderWidth: 1,
+                backgroundColor: theme.background,
+                borderTopRightRadius: 10,
+                borderTopLeftRadius: 10,
+                paddingHorizontal: isCompact ? 10 : 14,
+                paddingVertical: isCompact ? 8 : 6,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                fontSize: isCompact ? responsiveFontSize(1.3) : responsiveFontSize(1.1),
+                color: theme.fontColorOnBackground,
+                fontFamily: Inter.semibold,
+              }}
+            >
+              {t('CANCELLED')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -500,194 +300,35 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
         {orderlist.isLoading === false && orderlist.list.length > 0 ? (
           <FlatList
             data={orderlist.list}
+            numColumns={1}
             contentContainerStyle={{
-              marginHorizontal: 10,
               paddingBottom: responsiveHeight(10),
             }}
-            ListFooterComponent={renderLoader}
-            onMomentumScrollEnd={() => {
-              getOrderListRefresh();
-            }}
-            onEndReachedThreshold={0.1}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item, index }) => {
-              return (
-                <View key={index}>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      gap: 20,
-                      paddingTop: responsiveHeight(2),
-                      borderBottomColor: Colors.grey,
-                      borderBottomWidth: 1,
-                    }}
-                  >
-                    <TouchableOpacity
-                      onPress={() => {
-                        openDetails(item);
-                      }}
-                      style={{
-                        flexDirection: 'column',
-                        display: 'flex',
-                        flex: 1,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: Inter.medium,
-                          fontSize: responsiveFontSize(1.3),
-                          color: Colors.black,
-                        }}
-                      >
-                        Order Id: #{item.id}
-                        {'    '}
-                        <Text
-                          style={{
-                            fontFamily: Inter.medium,
-                            fontSize: responsiveFontSize(1.3),
-                            color: Colors.red,
-                            marginLeft: responsiveWidth(10),
-                          }}
-                        >
-                          {item.sourcetype == 'Uber' ? 'UberEats' : null}
-                        </Text>
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: Inter.medium,
-                          fontSize: responsiveFontSize(1.3),
-                          color: Colors.black,
-                          marginBottom: responsiveHeight(0.5),
-                        }}
-                      >
-                        {item.buyername}
-                      </Text>
-
-                      {/*item.is_img == 1 ? (
-                        <View
-                          style={{
-                            width: responsiveWidth(6),
-                            height: responsiveWidth(4),
-                            overflow: 'hidden',
-                          }}>
-                          <Image
-                            source={{uri: item.img}}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                          />
-                        </View>
-                      ) : (
-                        <View
-                          style={{
-                            width: responsiveWidth(6),
-                            height: responsiveWidth(4),
-                            overflow: 'hidden',
-                          }}>
-                          <Image
-                            source={Images.profile}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                          />
-                        </View>
-                      )*/}
-
-                      <Text
-                        style={{
-                          fontFamily: Inter.medium,
-                          fontSize: responsiveFontSize(1),
-                          color: Colors.black,
-                          marginTop: responsiveHeight(0.5),
-                        }}
-                      >
-                        {item.date}
-                      </Text>
-                    </TouchableOpacity>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        display: 'flex',
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: Inter.medium,
-                          fontSize: responsiveFontSize(1.3),
-                          color: Colors.black,
-                        }}
-                      >
-                        {item.currency_symbol}
-                        {item.total}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        display: 'flex',
-                        gap: 20,
-                      }}
-                    >
-                      {update_action === true ? (
-                        <TouchableOpacity
-                          style={styles.button_Complete_disable}
-                        >
-                          <Text
-                            style={{
-                              fontWeight: 'bold',
-                              fontSize: responsiveFontSize(1.1),
-                              color: Colors.black,
-                              fontFamily: Inter.medium,
-                            }}
-                          >
-                            Complete Order
-                          </Text>
-                        </TouchableOpacity>
-                      ) : (
-                        <TouchableOpacity
-                          onPress={() => {
-                            CompleteOrder(item.id, index);
-                          }}
-                          style={styles.button_Complete}
-                        >
-                          <Text
-                            style={{
-                              fontWeight: 'bold',
-                              fontSize: responsiveFontSize(1.1),
-                              color: Colors.white,
-                              fontFamily: Inter.medium,
-                            }}
-                          >
-                            Complete Order
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-
-                      {/*<TouchableOpacity
-                        onPress={() => {
-                          fetchOrderData(item.id);
-                        }}
-                        style={styles.button_accept}>
-                        <Icon
-                          style={{}}
-                          type="AntDesign"
-                          name="printer"
-                          color={'#fff'}
-                          size={responsiveWidth(4)}
-                        />
-                      </TouchableOpacity>*/}
-                    </View>
-                  </View>
+            ListHeaderComponent={OrderTableHeader}
+            stickyHeaderIndices={[0]}
+            ListFooterComponent={
+              viewmoreloader ? (
+                <View>
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <OrderCardSkeleton key={'skeleton_lo' + index} />
+                  ))}
                 </View>
-              );
-            }}
+              ) : null
+            }
+            onMomentumScrollEnd={getOrderListRefresh}
+            onEndReachedThreshold={0.1}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <OrderCard
+                item={item}
+                tabType="inprogress"
+                onPress={() => openOrderDetail(item)}
+                //onAccept={() => handleAccept(item)}
+                // onReject={() => handleReject(item)}
+                onComplete={() => handleComplete(item)}
+                onPrint={() => handlePrint(item)}
+              />
+            )}
           />
         ) : orderlist.isLoading === false && orderlist.list.length == 0 ? (
           <View>
@@ -697,22 +338,21 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
                 alignSelf: 'center',
                 fontFamily: Inter.bold,
                 fontSize: 18,
-                color: Colors.red,
+                color: theme.cancelButton,
               }}
             >
-              No Record Found{' '}
+              {t('NO_RECORD_FOUND')}{' '}
             </Text>
           </View>
         ) : (
           <View>
-            <View>
-              {Array.from({ length: 4 }).map((_, index) => (
-                <OrderCardSkeleton key={'skeleton_lo_1' + index} />
-              ))}
-            </View>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <OrderCardSkeleton key={'skeleton_lo_1' + index} />
+            ))}
           </View>
         )}
       </View>
+<<<<<<< HEAD
 
       <Modal
        supportedOrientations={['landscape']}
@@ -1186,6 +826,9 @@ const MyOrderInprogress = ({ props, route, navigation }) => {
         </View>
       </Modal>
     </Container>
+=======
+    </View>
+>>>>>>> development
   );
 };
 

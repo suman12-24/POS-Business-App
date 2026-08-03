@@ -1,16 +1,16 @@
 //import liraries
 import React, { useEffect, useState } from "react";
-import {View,} from "react-native";
+import { View, } from "react-native";
 
 import { DrawerNavigation } from "../../Navigations/DrawerNavigation";
 
 // create a component
-const Main = ({props}) => {
+const Main = ({ props }) => {
 
   return (
-         <View style={{flex: 1}}>
-                <DrawerNavigation />
-          </View>
+    <View style={{ flex: 1 }}>
+      <DrawerNavigation />
+    </View>
   );
 };
 

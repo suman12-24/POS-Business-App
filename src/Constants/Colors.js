@@ -2,11 +2,11 @@ export const Colors = {
   splashScreen: '#6CC57C',
   header: '#ffffff',
   backgroundColor: '#ffffff',
-  primary: '#5B21B6',
-  primaryFontColor: '#5B21B6',
+  primary: '#2916A1',
+  primaryFontColor: '#4310bc',
   secondary: '#01293A',
   background: '#fcfcfc',
-  grey: '#ccc',
+  grey: '#8C8C8C',
   red: '#FF0A0A',
   white: '#ffffff',
   black: '#000000',
@@ -15,6 +15,8 @@ export const Colors = {
   inputBorder: '#00000024',
   activityIndicator: '#5B21B6',
   green: '#17BF14',
-  accent: '#8B5CF6',
-  buttonColor: '#8B5CF6',
+  accent: '#4310bc',
+  buttonColor: '#4310bc',
+
+  textColor: "#000000"
 };

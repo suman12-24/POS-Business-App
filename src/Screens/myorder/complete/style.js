@@ -6,11 +6,11 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-const Styles = () => {
+const Styles = (theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: Colors.backgroundColor,
+      backgroundColor: theme.background,
       position: 'relative',
     },
     main: {
@@ -22,7 +22,7 @@ const Styles = () => {
     },
     tab_button: {
       height: responsiveWidth(4),
-      width: responsiveWidth(15),
+      width: responsiveWidth(13),
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
@@ -33,7 +33,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.buttonColor,
+      backgroundColor: theme.primary,
       borderRadius: responsiveWidth(0.6),
     },
     button_accept: {
@@ -42,7 +42,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.buttonColor,
+      backgroundColor: theme.primary,
       borderRadius: responsiveWidth(0.6),
     },
     button_reject: {
@@ -51,7 +51,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.red,
+      backgroundColor: theme.cancelButton,
       borderRadius: responsiveWidth(0.6),
     },
     button_accept_model: {
@@ -60,7 +60,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.buttonColor,
+      backgroundColor: theme.primary,
       borderRadius: responsiveWidth(0.6),
     },
     button_reject_model: {
@@ -69,7 +69,7 @@ const Styles = () => {
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
-      backgroundColor: Colors.red,
+      backgroundColor: theme.cancelButton,
       borderRadius: responsiveWidth(0.6),
     },
   });

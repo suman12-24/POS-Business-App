@@ -1,25 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Text,
-  View,
-  BackHandler,
-  Dimensions,
-  TextInput,
-  ScrollView,
-  Image,
-  Pressable,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  Alert,
-  Platform,
-  ActivityIndicator,
-  FlatList,
-} from 'react-native';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { Text, View, BackHandler, useWindowDimensions, TextInput, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator, FlatList, } from 'react-native';
 import Styles from './style';
 import { Colors } from '../../Constants/Colors';
 import { Inter } from '../../Constants/Fonts';
 import { Images } from '../../Constants/ImageIconContant';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -47,18 +33,67 @@ import {
   CheckBox,
 } from 'react-native-basic-elements';
 import Modal from 'react-native-modal';
-import { HomeRight, OptionModelAdd } from '../../Component';
+import { HomeRight, OptionModelAdd } from '../Component/index';
 //import EbPrinter from 'react-native-ebprinter';
 import messaging from '@react-native-firebase/messaging';
 import SoundPlayer from 'react-native-sound-player';
-import ProductCardSkeleton from '../../Component/ProductCardSkeleton';
+import useTranslation from '../../Hooks/useTranslation';
+import ProductCardSkeleton, {
+  CategoryRowSkeleton,
+  EmptyCartSkeleton,
+  SubCategoryRowSkeleton,
+} from '../Component/ProductCardSkeleton';
+import useOrderTypes from '../../Hooks/useOrderTypes';
+import { useAppTheme } from '../../Hooks/useAppTheme';
+
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// A business can have more than one active menu (e.g. lunch/dinner), each
+// with its own weekly schedule. A day counts as "open" if any menu is open
+// that day; its time windows are the union of every open menu's windows.
+// This is what lets HomeRight build the preorder date/time pickers off
+// activeBusiness.schedule.
+const mergeMenuSchedules = menus => {
+  const merged = {};
+  WEEKDAY_NAMES.forEach(name => {
+    merged[name] = { name, status: false, times: [] };
+  });
+
+  (menus || []).forEach(menu => {
+    (menu.schedule || []).forEach(day => {
+      if (!merged[day.name]) return;
+      if (day.status) {
+        merged[day.name].status = true;
+        merged[day.name].times = merged[day.name].times.concat(day.times || []);
+      }
+    });
+  });
+  return Object.values(merged);
+};
 
 // create a component
 const Home = ({ props, route, navigation }) => {
-  const styles = Styles();
+  const { width: windowWidth } = useWindowDimensions();
+  // inner_left is always 66% of the full screen width (see styles.inner_left).
+  const innerLeftWidth = windowWidth * 0.66;
+  // Tune these two numbers to match your target design:
+  // TARGET_CARD_WIDTH = how wide you want a card to look
+  // CARD_GAP = the visual gap between cards, in dp
+  const TARGET_CARD_WIDTH = 251;
+  const CARD_GAP = 14;
+  const columns = Math.min(
+    5,
+    Math.max(
+      3,
+      Math.round((innerLeftWidth + CARD_GAP) / (TARGET_CARD_WIDTH + CARD_GAP)),
+    ),
+  );
+  const theme = useAppTheme();
+  // const styles = Styles(columns);
+  const styles = useMemo(() => Styles(theme, columns), [theme, columns]);
+  const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails } =
-    useSelector(state => state.common);
+  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails } = useSelector(state => state.common);
   const [viewloader, setLoader] = useState(false);
   const [selected_category, setSelectedCategory] = useState(null);
   const [activeBusiness, setActiveBusiness] = useState(null);
@@ -73,6 +108,7 @@ const Home = ({ props, route, navigation }) => {
     isLoading: true,
     list: [],
   });
+
   const [categoryDetails_temp, setcategoryDetailsTemp] = useState([]);
   const [category_menu, setCategoryMenu] = useState({
     isLoading: true,
@@ -87,6 +123,8 @@ const Home = ({ props, route, navigation }) => {
     list: [],
   });
 
+  const [selected_subcategory, setSelectedSubCategory] = useState(null);
+
   const [cartQuantity, setcartQuantity] = useState(0);
   const [orderType, setOrderType] = useState(1);
   const [CartDish, setCartDish] = useState({ isLoading: true, list: [] });
@@ -96,13 +134,62 @@ const Home = ({ props, route, navigation }) => {
   const [notification_data, setNotificationData] = useState(null);
   const [order_data, setOrderData] = useState(null);
 
+  const { getAvailableOrderTypes } = useOrderTypes();
+  const [noActiveMenu, setNoActiveMenu] = useState(false);
+  const [noActiveMenuSignal, setNoActiveMenuSignal] = useState(0);
+
+
+  const [expandedQtyDishId, setExpandedQtyDishId] = useState({});
+  const qtyCollapseTimers = useRef({});
+  const startQtyCollapseTimer = dishId => {
+    if (qtyCollapseTimers.current[dishId]) {
+      clearTimeout(qtyCollapseTimers.current[dishId]);
+    }
+    qtyCollapseTimers.current[dishId] = setTimeout(() => {
+      setExpandedQtyDishId(prev => ({ ...prev, [dishId]: false }));
+      delete qtyCollapseTimers.current[dishId];
+    }, 5000);
+  };
+  useEffect(() => {
+    if (userData != null) {
+      ActiveBusiness();
+    }
+  }, [userData]);
+  const categoryPillLayouts = useRef({});
+  useEffect(() => {
+    return () => {
+      Object.values(qtyCollapseTimers.current).forEach(clearTimeout);
+    };
+  }, []);
+  useEffect(() => {
+    const restoreCart = async () => {
+      try {
+        const savedCartRaw = await getData('cartDetails');
+        if (savedCartRaw) {
+          const savedCart = JSON.parse(savedCartRaw);
+          if (Array.isArray(savedCart) && savedCart.length > 0) {
+            dispatch(setCartDetails(savedCart));
+            setCartDish({ isLoading: false, list: savedCart });
+
+            let cartQty = 0;
+            for (const cartDish of savedCart) {
+              for (const dish of cartDish.dish) {
+                cartQty += dish.quantity;
+              }
+            }
+            setcartQuantity(cartQty);
+            dispatch(setCartQuantity(cartQty));
+          }
+        }
+      } catch (e) {
+        console.log('Error restoring cart:', e);
+      }
+    };
+    restoreCart();
+  }, []);
+
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      //Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-      /* Alert.alert(
-        remoteMessage.notification.title,
-        remoteMessage.notification.body,
-      );*/
       dispatch(setNewOrder(1));
       dispatch(setNewOrderNotification(remoteMessage.notification));
       dispatch(setNewOrderData(remoteMessage.data));
@@ -115,9 +202,6 @@ const Home = ({ props, route, navigation }) => {
   useEffect(() => {
     // Handle notifications when the app is opened from the background
     messaging().onNotificationOpenedApp(remoteMessage => {
-      //console.log('[FCMService] OnNotificationOpenedApp', remoteMessage);
-
-      //Alert.alert('OnNotificationOpenedApp', JSON.stringify(remoteMessage));
       if (remoteMessage) {
         navigation.navigate('MyOrder_Tab', {
           screen: 'MyOrder',
@@ -132,8 +216,6 @@ const Home = ({ props, route, navigation }) => {
     messaging()
       .getInitialNotification()
       .then(remoteMessage => {
-        //console.log('[FCMService] getInitialNotification', remoteMessage);
-        //Alert.alert('getInitialNotification', JSON.stringify(remoteMessage));
         if (remoteMessage) {
           navigation.navigate('MyOrder_Tab', {
             screen: 'MyOrder',
@@ -141,8 +223,6 @@ const Home = ({ props, route, navigation }) => {
               id: remoteMessage.data.order_id,
             },
           });
-
-          //dispatch(saveOrderId(remoteMessage.data.order_id));
         }
       });
   }, []);
@@ -154,19 +234,6 @@ const Home = ({ props, route, navigation }) => {
       };
 
       const ExitAlert = () => {
-        /*Alert.alert('Jatayu Supplier', 'do you want to close app?', [
-              {
-                text: 'No',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel',
-              },
-              {
-                text: 'Yes',
-                onPress: () => {
-                  backAction();
-                },
-              },
-            ]);*/
         backAction();
         return true;
       };
@@ -180,30 +247,33 @@ const Home = ({ props, route, navigation }) => {
     }, []),
   );
 
+  // const SoundPlay = () => {
+  //   console.log('call sound');
+  //   try {
+  //     SoundPlayer.playAsset(require('../../assets/sound/newbook.wav'));
+  //   } catch (e) {
+  //     console.log(`cannot play the sound file`, e);
+  //   }
+  // };
   const SoundPlay = () => {
-    console.log('call sound');
     try {
-      // or play file from folder
-      SoundPlayer.playAsset(require('../../assets/sound/newbook.wav'));
+      // Non-blocking invocation
+      requestAnimationFrame(() => {
+        SoundPlayer.playAsset(require('../../assets/sound/newbook.wav'));
+      });
     } catch (e) {
-      console.log(`cannot play the sound file`, e);
+      console.log('Cannot play sound file', e);
     }
   };
 
   const OpenNewOrderModel = (notification, data) => {
-    console.log('data notification');
-    console.log(notification);
-
     SoundPlay();
-
-    console.log(data);
     setNotificationData(notification);
     setOrderData(data);
-
-    setTimeout(() => {
-      console.log('model open');
-      setNewOrderModel(true);
-    }, 1000);
+    setNewOrderModel(true);
+    // setTimeout(() => {
+    //   setNewOrderModel(true);
+    // }, 1000);
   };
 
   useFocusEffect(
@@ -219,89 +289,177 @@ const Home = ({ props, route, navigation }) => {
     }
   }, [userData]);
 
-  /*const ActiveBusiness = () => {
-    postWithOutToken(baseUrl, 'module/business/rest-business-pos', {
-      f: 'react_getbusinessid',
-      langId: langId,
-      uid: userData.id,
-    })
-      .then(response => {
-        //console.log(response);
-        setActiveBusiness(response);
-        dineIn(response);
-      })
-      .catch(error => {
-        console.log('Error : ', error);
-      });
-  };*/
+  const getOrderTypeFromBusinessFlags = business => {
+    if (!business) return null;
+    const flags = business.business || business;
+    if (Number(flags.is_delivery) === 1) return 1;
+    if (Number(flags.is_pickup) === 1) return 2;
+    if (Number(flags.is_dinein) === 1) return 3;
+    if (Number(flags.is_catering) === 1) return 4;
+    return null;
+  };
 
   const ActiveBusiness = () => {
+    fetchBusinessMenu(2);
+  };
+  // Keeps only dishes whose menu_status is 1, at both the category-level
+  // dish array and inside each subCat's dish array. A category (or subCat)
+  // that ends up with zero dishes after filtering is dropped entirely so
+  // no empty pill shows up in the UI.
+  const filterByMenuStatus = (categories) => {
+    return (categories || [])
+      .map(cat => {
+        const filteredDish = (cat.dish || []).filter(
+          d => Number(d.menu_status) === 1,
+        );
+        const filteredSubCat = (cat.subCat || [])
+          .map(sc => ({
+            ...sc,
+            dish: (sc.dish || []).filter(d => Number(d.menu_status) === 1),
+          }))
+          .filter(sc => sc.dish.length > 0);
+
+        return {
+          ...cat,
+          dish: filteredDish,
+          subCat: filteredSubCat,
+        };
+      })
+      .filter(cat => cat.dish.length > 0 || cat.subCat.length > 0);
+  };
+
+  const fetchBusinessMenu = typeToFetch => {
     postWithToken(
       baseUrl,
-      'web-business/get-business-info',
-      { lang_id: langId, type: 1 },
+      'get-business-info',
+      { business_id: userData?.business_id, lang_id: langId, type: typeToFetch },
       userToken,
     )
       .then(response => {
-        //console.log(response.business);
-        // console.log(response.category[0]);
-        //setActiveBusiness(response);
-        //dineIn(response);
+        const hasMenu = response.status === true && response?.menu && Object.keys(response.menu).length > 0;
 
-        if (response.status === true) {
-          setActiveBusiness(response.business);
-          if (Object.keys(response.menu).length === 0) {
-            Alert.alert('Sorry!', 'Not Have Active Menu Now', [
-              {
-                text: 'Ok',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel',
-              },
-            ]);
-            setCategoryDetails({ isLoading: false, list: [] });
-            setCategoryMenu({ isLoading: false, list: null });
-            setcategoryDetailsTemp([]);
-            setCategoryMenuTemp([]);
-            return false;
-          } else {
-            //console.log(response.category[0]);
-            setCategoryDetails({ isLoading: false, list: response.category });
-            setcategoryDetailsTemp(response.category);
+        const businessWithSchedule = {
+          ...response.business,
+          schedule: mergeMenuSchedules(response.menu),
+        };
+        setActiveBusiness(businessWithSchedule);
+        setOrderType(typeToFetch);
 
-            let menu_temp = null;
-
-            response.category.map((item, index) => {
-              if (menu_temp == null) {
-                menu_temp = item.dish;
-              } else {
-                menu_temp = [...menu_temp, ...item.dish];
-              }
-
-              if (item.subCat.length > 0) {
-                //menu_temp.concat(item.subCat.dish);
-
-                item.subCat.map((sutitem, subindex) => {
-                  if (menu_temp == null) {
-                    menu_temp = sutitem.dish;
-                  } else {
-                    menu_temp = [...menu_temp, ...sutitem.dish];
-                  }
-                });
-              }
-              //console.log(item);
-            });
-
-            //console.log('Menu Temp');
-            //console.log(menu_temp);
-
-            setCategoryMenuTemp(menu_temp);
-          }
+        if (!hasMenu) {
+          setNoActiveMenu(true);
+          setNoActiveMenuSignal(prev => prev + 1)
+          setCategoryDetails({ isLoading: false, list: [] });
+          setCategoryMenu({ isLoading: false, list: null });
+          setcategoryDetailsTemp([]);
+          setCategoryMenuTemp([]);
+          return;
         }
+        const activeCategories = filterByMenuStatus(response.category);
+        if (activeCategories.length === 0) {
+          // menu exists, but nothing in it has an active menu_status
+          setNoActiveMenu(true);
+          setNoActiveMenuSignal(prev => prev + 1)
+          setCategoryDetails({ isLoading: false, list: [] });
+          setCategoryMenu({ isLoading: false, list: null });
+          setcategoryDetailsTemp([]);
+          setCategoryMenuTemp([]);
+          return;
+        }
+
+        setNoActiveMenu(false);
+        setCategoryDetails({ isLoading: false, list: activeCategories });
+        setcategoryDetailsTemp(activeCategories);
+
+        const firstCategory = activeCategories[0];
+        setSelectedCategory(firstCategory.id);
+        setCategoryMenu({ isLoading: false, list: firstCategory });
+        setSelectedSubCategory(null);
+
+        let menu_temp = null;
+        activeCategories.forEach(item => {
+          menu_temp = menu_temp == null ? item.dish : [...menu_temp, ...(item.dish || [])];
+          if (item.subCat && item.subCat.length > 0) {
+            item.subCat.forEach(subitem => {
+              menu_temp = menu_temp == null ? subitem.dish : [...menu_temp, ...(subitem.dish || [])];
+            });
+          }
+        });
+        setCategoryMenuTemp(menu_temp);
       })
       .catch(error => {
         console.log('Error : ', error);
+        setNoActiveMenu(true);
       });
   };
+  // const ActiveBusiness = () => {
+  //   postWithToken(
+  //     baseUrl,
+  //     'get-business-info',
+  //     { business_id: userData?.business_id, lang_id: langId, type: 1 },
+  //     userToken,
+  //   )
+  //     .then(response => {
+  //       if (response.status === true) {
+
+  //         const businessWithSchedule = {
+  //           ...response.business,
+  //           schedule: mergeMenuSchedules(response.menu),
+  //         };
+  //         setActiveBusiness(businessWithSchedule);
+  //         if (!response?.menu || Object.keys(response.menu).length === 0) {
+  //           Alert.alert('Sorry!', 'Not Have Active Menu Now', [
+  //             {
+  //               text: 'Ok',
+  //               onPress: () => console.log('Cancel Pressed'),
+  //               style: 'cancel',
+  //             },
+  //           ]);
+
+  //           setCategoryDetails({ isLoading: false, list: [] });
+  //           setCategoryMenu({ isLoading: false, list: null });
+  //           setcategoryDetailsTemp([]);
+  //           setCategoryMenuTemp([]);
+  //           return false;
+  //         }
+  //         else {
+  //           setCategoryDetails({ isLoading: false, list: response.category });
+  //           setcategoryDetailsTemp(response.category);
+  //           // Automatically pre-select the 1st category
+  //           if (response.category && response.category.length > 0) {
+  //             const firstCategory = response.category[0];
+  //             setSelectedCategory(firstCategory.id);
+  //             setCategoryMenu({ isLoading: false, list: firstCategory });
+  //             setSelectedSubCategory(null);
+  //           }
+
+  //           let menu_temp = null;
+
+  //           response.category.map((item, index) => {
+  //             if (menu_temp == null) {
+  //               menu_temp = item.dish;
+  //             } else {
+  //               menu_temp = [...menu_temp, ...(item.dish || [])];
+  //             }
+
+  //             if (item.subCat.length > 0) {
+  //               item.subCat.map((sutitem, subindex) => {
+  //                 if (menu_temp == null) {
+  //                   menu_temp = sutitem.dish;
+  //                 } else {
+  //                   menu_temp = [...menu_temp, ...(sutitem.dish || [])];
+  //                 }
+  //               });
+  //             }
+  //           });
+
+  //           setCategoryMenuTemp(menu_temp);
+  //         }
+  //       }
+  //     })
+  //     .catch(error => {
+  //       console.log('Error : ', error);
+  //     });
+  // };
 
   const dineIn = res => {
     postWithOutToken(baseUrl, 'module/product/rest-product-pos', {
@@ -312,7 +470,7 @@ const Home = ({ props, route, navigation }) => {
       preorder: preorderDetails,
     })
       .then(response => {
-        if (Object.keys(response.menu).length === 0) {
+        if (!response?.menu || Object.keys(response.menu).length === 0) {
           Alert.alert('Sorry!', 'Not Have Active Menu Now', [
             {
               text: 'Ok',
@@ -320,13 +478,13 @@ const Home = ({ props, route, navigation }) => {
               style: 'cancel',
             },
           ]);
+
           setCategoryDetails({ isLoading: false, list: [] });
           setCategoryMenu({ isLoading: false, list: null });
           setcategoryDetailsTemp([]);
           setCategoryMenuTemp([]);
           return false;
         } else {
-          //console.log(response.category[0]);
           setCategoryDetails({ isLoading: false, list: response.category });
           setcategoryDetailsTemp(response.category);
 
@@ -339,9 +497,7 @@ const Home = ({ props, route, navigation }) => {
               menu_temp = [...menu_temp, ...item.dish];
             }
 
-            if (item.subCat.length > 0) {
-              //menu_temp.concat(item.subCat.dish);
-
+            if (item.subCat && item.subCat.length > 0) {
               if (menu_temp == null) {
                 menu_temp = item.dish;
               } else {
@@ -357,21 +513,13 @@ const Home = ({ props, route, navigation }) => {
         console.log('Error : ', error);
       });
   };
-
   const openProduct = (cat_id, cat, cat_index) => {
-    console.log('on click category');
-    console.log(cat_id);
-    console.log(cat);
-
     setSelectedCategory(cat_id);
     setCategoryMenu({ isLoading: false, list: cat });
+    setSelectedSubCategory(null);
+    scrollToCategoryPill(cat_id);
   };
-
   const productDetails = item => {
-    /*if (item.sets.length > 0 || item.ingredientsarray.length > 0) {*/
-    /*for (const ingre of item.ingredientsarray) {
-        ingre.status = true;
-      }*/
     if (item.sets.length > 0) {
       productDetailsItem(item);
     } else {
@@ -468,8 +616,8 @@ const Home = ({ props, route, navigation }) => {
                   Alert.alert(
                     'Warning!',
                     dishItem.sets[i].options[j].name +
-                      ' minimum choice is ' +
-                      dishItem.sets[i].options[j].min,
+                    ' minimum choice is ' +
+                    dishItem.sets[i].options[j].min,
                     [
                       {
                         text: 'Ok',
@@ -533,10 +681,8 @@ const Home = ({ props, route, navigation }) => {
     };
     let activeIngredients;
     activeIngredients = new Array();
-    for (const ingre of dishItem.ingredientsarray) {
-      /*if (ingre.status === false) {*/
+    for (const ingre of (dishItem.ingredientsarray || [])) {
       activeIngredients.push(ingre);
-      /*}*/
     }
 
     let data;
@@ -748,7 +894,7 @@ const Home = ({ props, route, navigation }) => {
     if (cart.length > 0) {
       setCartDish({ isLoading: false, list: cart });
       dispatch(setCartDetails(cart));
-
+      setData('cartDetails', JSON.stringify(cart));
       showToastMsg('Item added successfully.');
       let cartQty = 0;
       for (const cartDish of cart) {
@@ -760,6 +906,7 @@ const Home = ({ props, route, navigation }) => {
       dispatch(setCartQuantity(cartQty));
     } else {
       setCartQuantity(0);
+      setData('cartDetails', JSON.stringify([]));
     }
   };
   const CheckBusinessAddtoCart = (d, cDish) => {
@@ -886,6 +1033,118 @@ const Home = ({ props, route, navigation }) => {
     }
     return -1;
   };
+
+  const getCartQtyForDish = dishId => {
+    if (!CartDish.list || CartDish.list.length === 0) return 0;
+    let qty = 0;
+    for (const business of CartDish.list) {
+      for (const d of business.dish) {
+        if (d.id === dishId) {
+          qty += d.quantity;
+        }
+      }
+    }
+    return qty;
+  };
+  const incrementProductQty = dish => {
+    addToCart(dish);
+  };
+  const incrementSameOptionsQty = dish => {
+    if (!activeBusiness) return;
+    let cart = JSON.parse(JSON.stringify(CartDish.list));
+    const parent_index = CheckBusinessAddtoCart(activeBusiness.id, cart);
+    if (parent_index === -1) return;
+
+    const index = CheckAddtoCart(dish.id, parent_index, cart);
+    if (index === -1) return;
+
+    cart[parent_index].dish[index].quantity =
+      parseInt(cart[parent_index].dish[index].quantity, 10) + 1;
+
+    const dataArr = cart[parent_index].dish[index].data;
+    if (dataArr.length > 0) {
+      const dataIndex = dataArr.length - 1; // increment the most recently added customization
+      dataArr[dataIndex].quantity =
+        parseInt(dataArr[dataIndex].quantity, 10) + 1;
+      dataArr[dataIndex].total = (
+        parseFloat(dataArr[dataIndex].totalprice) *
+        parseInt(dataArr[dataIndex].quantity, 10)
+      ).toFixed(2);
+    }
+
+    updateCartDetailsFromChild(cart);
+  };
+
+  // "-" on a simple product card — mirrors HomeRight's decrement logic,
+  // scoped to the flat product-grid card (no set/ingredient variants here).
+  const decrementProductQty = dish => {
+    if (!activeBusiness) return;
+    let cart = JSON.parse(JSON.stringify(CartDish.list));
+    const parent_index = CheckBusinessAddtoCart(activeBusiness.id, cart);
+    if (parent_index === -1) return;
+
+    const index = CheckAddtoCart(dish.id, parent_index, cart);
+    if (index === -1) return;
+
+    cart[parent_index].dish[index].quantity =
+      parseInt(cart[parent_index].dish[index].quantity, 10) - 1;
+
+    const dataArr = cart[parent_index].dish[index].data;
+    if (dataArr.length > 0) {
+      const dataIndex = dataArr.length - 1; // decrement the most recently added customization
+      dataArr[dataIndex].quantity =
+        parseInt(dataArr[dataIndex].quantity, 10) - 1;
+      dataArr[dataIndex].total = (
+        parseFloat(dataArr[dataIndex].totalprice) *
+        parseInt(dataArr[dataIndex].quantity, 10)
+      ).toFixed(2);
+
+      if (dataArr[dataIndex].quantity <= 0) {
+        dataArr.splice(dataIndex, 1);
+      }
+    }
+
+    if (cart[parent_index].dish[index].data.length === 0) {
+      cart[parent_index].dish.splice(index, 1);
+    }
+    if (cart[parent_index].dish.length === 0) {
+      cart.splice(parent_index, 1);
+    }
+
+    updateCartDetailsFromChild(cart);
+  };
+
+  // Same cart-writing logic as before, just also keeps the stepper expanded
+  // and restarts the 2s collapse countdown on every tap. Dishes with sets
+  // that are already in the cart bump the existing customization instead of
+  // routing through addToCart/the options modal.
+  const handleIncrementTap = dish => {
+    if (dish.sets && dish.sets.length > 0) {
+      incrementSameOptionsQty(dish);
+    } else {
+      incrementProductQty(dish);
+    }
+    setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+    startQtyCollapseTimer(dish.id);
+  };
+
+  const handleDecrementTap = dish => {
+    decrementProductQty(dish);
+    setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+    startQtyCollapseTimer(dish.id);
+  };
+
+  // Tapping the collapsed number badge re-opens the stepper without
+  // changing the quantity.
+  const handleQtyBadgeTap = dish => {
+    setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+    startQtyCollapseTimer(dish.id);
+  };
+  const handleOptionModalAdded = (dishId) => {
+    setExpandedQtyDishId(prev => ({ ...prev, [dishId]: true }));
+    startQtyCollapseTimer(dishId);
+  };
+
   const arrayDiff = (arr1, arr2) => {
     let diff;
     diff = {
@@ -914,7 +1173,7 @@ const Home = ({ props, route, navigation }) => {
   const updateCartDetailsFromChild = cart => {
     setCartDish({ isLoading: false, list: cart });
     dispatch(setCartDetails(cart));
-
+    setData('cartDetails', JSON.stringify(cart));
     let cartQty = 0;
     for (const cartDish of cart) {
       for (const dish of cartDish.dish) {
@@ -931,79 +1190,60 @@ const Home = ({ props, route, navigation }) => {
   const [SelectedUsb, setSelectedUsb] = useState(null);
 
   const OpenCashDrawer = async () => {
-    console.log('openCashBox');
     EbPrinter.openCashBox();
     setCodeRun('Code Is Run');
   };
 
   const GetUsbDeviceList = async () => {
-    /*const usbdevicelist = await EbPrinter.getUsbDeviceList();
-
-    if (usbdevicelist) {
-      setPrinterList(usbdevicelist);
-      //setPrinterList(['Devin', 'Dan']);
-      setvisiblemodal(true);
-    }
-    console.log(usbdevicelist);*/
+    /* left as-is (native printer integration currently disabled) */
   };
 
   const selectDevice = item => {
     setSelectedUsb(item);
-    //EbPrinter.selectUsbPrinter(item);
     setvisiblemodal(false);
   };
 
   const [search_status, setSearchStatus] = useState(false);
 
+  const categoryScrollRef = useRef(null);
+  const [categoryScrollX, setCategoryScrollX] = useState(0);
+  const [categoryContentWidth, setCategoryContentWidth] = useState(0);
+  const [categoryViewWidth, setCategoryViewWidth] = useState(0);
+
+  const scrollCategoriesForward = () => {
+    if (!categoryScrollRef.current) {
+      return;
+    }
+    const maxScrollX = Math.max(categoryContentWidth - categoryViewWidth, 0);
+    const nextX = Math.min(categoryScrollX + responsiveWidth(40), maxScrollX);
+    categoryScrollRef.current.scrollTo({ x: nextX, animated: true });
+  };
+  const scrollToCategoryPill = catId => {
+    const layout = categoryPillLayouts.current[catId];
+    if (!layout || !categoryScrollRef.current || categoryViewWidth === 0) {
+      return;
+    }
+
+    const { x, width } = layout;
+    const maxScrollX = Math.max(categoryContentWidth - categoryViewWidth, 0);
+
+    // Center the pill inside the visible scroll window
+    let targetX = x + width / 2 - categoryViewWidth / 2;
+
+    targetX = Math.max(0, Math.min(targetX, maxScrollX));
+
+    categoryScrollRef.current.scrollTo({ x: targetX, animated: true });
+  };
   function search_category(val) {
-    /*if (val != '') {
-      const items = categoryDetails_temp.filter(
-        item => item.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
-      );
-
-      setCategoryDetails({isLoading: false, list: items});
-    } else {
-      setCategoryDetails({
-        isLoading: false,
-        list: categoryDetails_temp,
-      });
-    }*/
-
     if (val != '') {
       setCategoryMenuSearch({
         isLoading: true,
         list: [],
       });
 
-      /*const items_one = [];
-
-      category_menu_temp.map((item, item_index) => {
-        items_one.push(
-          item.filter(product => {
-            product.name.toLowerCase().indexOf(val.toLowerCase()) !== -1;
-          }),
-        );
-      });*/
-
-      /*const items_one = category_menu_temp.filter(obj => {
-        // Use .some() to check if ANY item in the 'tags' sub-array matches the condition
-        return obj.some(
-          tag => tag.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
-        );
-      });*/
-      console.log('Search');
-      console.log(category_menu_temp);
-
       const items_one = category_menu_temp.filter(
         item => item.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
       );
-
-      /*const items_two = category_menu_temp_subcat.filter(obj => {
-        // Use .some() to check if ANY item in the 'tags' sub-array matches the condition
-        return obj.some(
-          tag => tag.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
-        );
-      });*/
 
       setSearchStatus(true);
 
@@ -1016,6 +1256,173 @@ const Home = ({ props, route, navigation }) => {
       });
     }
   }
+
+  const renderBadgeRow = (dish) => {
+    const hasVegMark = dish.veg || dish.nonveg;
+    if (!hasVegMark && !dish.spicy && !dish.feature) return null;
+    return (
+      <View style={styles.productBadgeRow}>
+        {hasVegMark ? (
+          <View
+            style={[
+              styles.vegNonVegBox,
+              dish.nonveg ? styles.nonVegBox : styles.vegBox,
+            ]}
+          >
+            <View
+              style={[
+                styles.vegNonVegDot,
+                dish.nonveg ? styles.nonVegDot : styles.vegDot,
+              ]}
+            />
+          </View>
+        ) : null}
+        {dish.spicy ? (
+          <Image source={Images.spicy} style={styles.spicyBadge} />
+        ) : null}
+
+        {dish.feature ? (
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>{t('FEATURED')}</Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+  const renderProductCard = (dish, key, index = 0) => {
+    const isLastInRow = index % columns === columns - 1;
+    const hasSets = dish.sets && dish.sets.length > 0;
+    const qtyInCart = getCartQtyForDish(dish.id);
+    const isQtyExpanded = expandedQtyDishId[dish.id] === true;
+    const hasImage = !!dish?.is_img;
+    const hasBadges = !!(dish.veg || dish.nonveg || dish.spicy || dish.feature);
+    return (
+      <TouchableOpacity
+        key={key}
+        onPress={() => {
+          productDetailsItem(dish);
+        }}
+        activeOpacity={hasSets || qtyInCart === 0 ? 0.7 : 1}
+        style={[styles.productCard, isLastInRow && styles.productCardLastInRow]}
+      >
+        {hasImage ? (
+          <View style={styles.productImageWrap}>
+            <Image source={{ uri: dish.is_img }} style={styles.productImage} resizeMode="cover" />
+          </View>
+        ) : null}
+        <View
+          style={[
+            styles.productInfo,
+            !hasImage && styles.productInfoNoImage,
+            !(hasImage && hasBadges) && styles.productInfoCentered,
+          ]}
+        >
+          {hasBadges ? renderBadgeRow(dish) : null}
+          <View style={styles.productTextGroup}>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[styles.productName]}
+            >
+              {dish.name}
+            </Text>
+          </View>
+          <View style={styles.productFooterRow}>
+            <View style={styles.offerPriceRow}>
+              <Text numberOfLines={1} style={styles.productPrice}>
+                {activeBusiness.currency_symbol}
+                {Number(dish.price).toFixed(2)}
+              </Text>
+              {dish?.offerprice ? (
+                <Text numberOfLines={1} style={styles.productOfferPrice}>
+                  {activeBusiness.currency_symbol}
+                  {Number(dish.delprice).toFixed(2)}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+        <View style={styles.productQtyControlWrap}>
+          {renderQtyControl(dish, hasSets, qtyInCart, isQtyExpanded)}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  const renderQtyControl = (dish, hasSets, qtyInCart, isQtyExpanded) => {
+    if (qtyInCart > 0) {
+      return isQtyExpanded ? (
+        <View style={styles.productQtyStepper}>
+          <TouchableOpacity style={styles.productQtyBtn}
+            onPress={() => handleDecrementTap(dish)}>
+            <Ionicons name="remove" size={responsiveFontSize(1)} color={theme.primary} />
+          </TouchableOpacity>
+          <View style={styles.productQtyValueWrap}>
+            <Text style={styles.productQtyValue}>{qtyInCart}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.productQtyBtn}
+            onPress={() => handleIncrementTap(dish)}
+          >
+            <Ionicons name="add" size={responsiveFontSize(1)} color={theme.primary} />
+          </TouchableOpacity>
+        </View>
+      ) :
+        (
+          <TouchableOpacity style={styles.productQtyBadge} onPress={() => handleQtyBadgeTap(dish)}>
+            <Text style={styles.productQtyBadgeText}>{qtyInCart}</Text>
+          </TouchableOpacity>
+        );
+    }
+    return (
+      <TouchableOpacity
+        style={styles.productAddBtn}
+        onPress={() => (hasSets ? productDetails(dish) : handleIncrementTap(dish))}
+      >
+        <Ionicons name="add" size={responsiveFontSize(0.9)} color="#fff" />
+      </TouchableOpacity>
+    );
+  };
+  const renderProductSkeletons = () => (
+    <View style={styles.productGrid}>
+      {Array.from({ length: 8 }).map((_, index) => {
+        const isLastInRow = index % columns === columns - 1;
+        return (
+          <View
+            key={'skeleton_lo_v' + index}
+            style={[styles.productCard, isLastInRow && styles.productCardLastInRow]}
+          >
+            <ProductCardSkeleton key={'skeleton_lo_1' + index} />
+          </View>
+        );
+      })}
+    </View>
+  );
+
+  const buildFlatDishList = (categoryItem, subCatId = null) => {
+    if (categoryItem == null) {
+      return [];
+    }
+
+    if (subCatId != null) {
+      const subCat = (categoryItem.subCat || []).find(
+        sc => sc.id === subCatId,
+      );
+      return subCat ? subCat.dish || [] : [];
+    }
+
+    const flat = [];
+    (categoryItem.dish || []).forEach(dish => {
+      if (dish.subcategory == 0) {
+        flat.push(dish);
+      }
+    });
+    (categoryItem.subCat || []).forEach(subCat => {
+      (subCat.dish || []).forEach(dish => {
+        flat.push(dish);
+      });
+    });
+    return flat;
+  };
 
   return (
     <Container style={styles.container}>
@@ -1033,7 +1440,7 @@ const Home = ({ props, route, navigation }) => {
             zIndex: 1,
           }}
         >
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : null}
 
@@ -1069,7 +1476,7 @@ const Home = ({ props, route, navigation }) => {
             style={{
               height: responsiveHeight(35),
               width: responsiveWidth(35),
-              backgroundColor: '#ffffff',
+              backgroundColor: theme.background,
               borderRadius: 5,
             }}
           >
@@ -1077,7 +1484,7 @@ const Home = ({ props, route, navigation }) => {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: Colors.backgroundColor,
+                  backgroundColor: theme.background,
                   position: 'relative',
                 }}
               >
@@ -1098,7 +1505,7 @@ const Home = ({ props, route, navigation }) => {
                         <Text
                           style={{
                             fontSize: responsiveFontSize(1.8),
-                            color: Colors.blue,
+                            color: theme.primary,
                           }}
                         >
                           {item}
@@ -1114,508 +1521,230 @@ const Home = ({ props, route, navigation }) => {
       </Modal>
 
       <View style={styles.main}>
-        <View style={styles.inner_left}>
-          {/*<View>
-            {SelectedUsb == null ? (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => GetUsbDeviceList()}>
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#fff',
-                    fontFamily: Inter.medium,
-                  }}>
-                  Select Usb Device
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => OpenCashDrawer()}>
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#fff',
-                    fontFamily: Inter.medium,
-                  }}>
-                  Open Cash Box
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>*/}
 
-          <AppTextInput
-            inputStyle={{ paddingLeft: 10 }}
-            onChangeText={text => {
-              search_category(text);
-            }}
-            placeholder={'Search Here'}
-            leftIcon={{
-              name: 'search',
-              type: 'Feather',
-              color: Colors.black,
-            }}
-            inputContainerStyle={{
-              borderColor: Colors.grey,
-              marginBottom: responsiveHeight(1),
-            }}
-          />
+        <View style={styles.inner_left}>
+          {/* ---------- search row --------*/}
+          <View style={styles.searchRow}>
+            <View style={styles.searchBox}>
+              <Feather name="search" size={responsiveFontSize(1.5)} color={theme.fontColorOnBackground} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={'Search for products...'}
+                placeholderTextColor={theme.fontColorOnBackground}
+                onChangeText={text => {
+                  search_category(text);
+                }}
+              />
+              <TouchableOpacity style={styles.searchSortBtn}>
+                <Feather
+                  name="sliders"
+                  size={responsiveFontSize(1.5)}
+                  color={theme.fontColorOnBackground}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {search_status === false ? (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {categoryDetails.isLoading === false &&
-              categoryDetails.list.length > 0 ? (
-                <>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {categoryDetails.list.map((item, index) => {
+            <>
+              {/* ---------- category pills (icon + name) ---------- */}
+              <View style={styles.categoryRow}>
+                <ScrollView
+                  ref={categoryScrollRef}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.categoryScroll}
+                  contentContainerStyle={{ paddingRight: responsiveWidth(3) }} // leave space so pills don't hide under the floating button
+                  scrollEventThrottle={16}
+                  onScroll={e => {
+                    setCategoryScrollX(e.nativeEvent.contentOffset.x);
+                  }}
+                  onLayout={e => {
+                    setCategoryViewWidth(e.nativeEvent.layout.width);
+                  }}
+                  onContentSizeChange={contentWidth => {
+                    setCategoryContentWidth(contentWidth);
+                  }}
+                >
+                  {categoryDetails.isLoading === true ? (
+                    <CategoryRowSkeleton count={12} />
+                  ) : (
+                    categoryDetails.list.map((item, index) => {
+                      const isSelected = selected_category == item.id;
                       return (
                         <TouchableOpacity
                           key={'cat_' + index}
                           onPress={() => {
                             openProduct(item.id, item, index);
                           }}
-                          style={{
-                            paddingHorizontal: responsiveWidth(0.5),
-                            paddingVertical: responsiveHeight(0.5),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderColor: Colors.buttonColor,
-                            borderWidth: 1.5,
-                            backgroundColor:
-                              selected_category == item.id
-                                ? Colors.white
-                                : Colors.primary,
-                            height: responsiveHeight(12),
-                            borderRadius: 10,
-                            marginHorizontal: responsiveWidth(0.5),
-                            marginVertical: responsiveHeight(1),
-                            width: responsiveWidth(14.5),
+                          onLayout={e => {
+                            categoryPillLayouts.current[item.id] = {
+                              x: e.nativeEvent.layout.x,
+                              width: e.nativeEvent.layout.width,
+                            };
                           }}
+                          style={[
+                            styles.categoryPill,
+                            isSelected && styles.categoryPillSelected,
+                          ]}
+                        >
+                          {item.icon ? (
+                            <View style={styles.categoryPillImageWrap}>
+                              <Image
+                                source={{ uri: item.icon }}
+                                style={styles.categoryPillImage}
+                                resizeMode="contain"
+                              />
+                            </View>
+                          ) : null}
+
+                          <View style={styles.categoryPillTextWrap}>
+                            <Text
+                              numberOfLines={2}
+                              style={[
+                                styles.categoryPillText,
+                                isSelected && styles.categoryPillTextSelected,
+                              ]}
+                            >
+                              {item.name}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })
+
+                  )}
+                </ScrollView>
+
+                {/* Floating chevron button - overlays on top, position stays fixed */}
+                <TouchableOpacity
+                  style={styles.categoryNextBtn}
+                  onPress={scrollCategoriesForward}
+                >
+                  <Ionicons
+                    name="chevron-forward"
+                    size={responsiveFontSize(1.4)}
+                    color={theme.fontColorOnBackground}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* ---------- subcategory pills (text-only filter chips) ---------- */}
+              <View style={[styles.categoryRow, { marginTop: responsiveHeight(2) }]}>
+                {category_menu.isLoading === true ? (
+                  <SubCategoryRowSkeleton count={4} />
+                ) : category_menu.list != null &&
+                  category_menu.list.subCat &&
+                  category_menu.list.subCat.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.categoryScroll}
+                    contentContainerStyle={{ paddingRight: responsiveWidth(3) }}
+                    scrollEventThrottle={16}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.subCategoryPill,
+                        selected_subcategory === null &&
+                        styles.subCategoryPillSelected,
+                      ]}
+                      onPress={() => setSelectedSubCategory(null)}
+                    >
+                      <Text
+                        style={[
+                          styles.subCategoryPillText,
+                          selected_subcategory === null &&
+                          styles.subCategoryPillTextSelected,
+                        ]}
+                      >
+                        All
+                      </Text>
+                    </TouchableOpacity>
+                    {category_menu.list.subCat.map((subCatItem, subCatIndex) => {
+                      const isSelected = selected_subcategory === subCatItem.id;
+                      return (
+                        <TouchableOpacity
+                          key={'subcat_' + subCatIndex}
+                          style={[
+                            styles.subCategoryPill,
+                            isSelected && styles.subCategoryPillSelected,
+                          ]}
+                          onPress={() => setSelectedSubCategory(subCatItem.id)}
                         >
                           <Text
-                            style={{
-                              fontFamily: Inter.bold,
-                              fontSize: responsiveFontSize(1),
-                              color:
-                                selected_category == item.id
-                                  ? Colors.primaryFontColor
-                                  : Colors.white,
-                            }}
+                            numberOfLines={1}
+                            style={[
+                              styles.subCategoryPillText,
+                              isSelected && styles.subCategoryPillTextSelected,
+                            ]}
                           >
-                            {item.name}
+                            {subCatItem.name}
                           </Text>
                         </TouchableOpacity>
                       );
                     })}
-                  </View>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                      marginBottom: responsiveHeight(25),
-                    }}
-                  >
-                    {category_menu.isLoading === false &&
-                    category_menu.list != null
-                      ? category_menu.list.dish.map((dish, dish_index) => {
-                          return dish.subcategory == 0 ? (
-                            <TouchableOpacity
-                              key={'dish_' + dish_index}
-                              onPress={() => {
-                                productDetails(dish);
-                              }}
-                              style={{
-                                paddingHorizontal: responsiveWidth(0.5),
-                                paddingVertical: responsiveHeight(0.5),
-                                display: 'flex',
-                                borderColor: Colors.buttonColor,
-                                borderWidth: 1.5,
-                                backgroundColor: Colors.white,
-                                height: responsiveHeight(12),
-                                borderRadius: 10,
-                                marginHorizontal: responsiveWidth(0.5),
-                                marginVertical: responsiveHeight(1),
-                                width: responsiveWidth(14.5),
-                              }}
-                            >
-                              <Text
-                                numberOfLines={2}
-                                ellipsizeMode="tail"
-                                style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.black,
-                                  height: responsiveHeight(5.4),
-                                }}
-                              >
-                                {dish.name}
-                              </Text>
-                              <View
-                                style={{
-                                  marginTop: responsiveHeight(0.5),
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                }}
-                              >
-                                <View>
-                                  <Text
-                                    style={{
-                                      fontFamily: Inter.regular,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.primaryFontColor,
-                                    }}
-                                  >
-                                    {activeBusiness.currency_symbol}
-                                    {dish.price}
-                                  </Text>
-                                </View>
-                                <View>
-                                  <Icon
-                                    name="pluscircle"
-                                    type="AntDesign"
-                                    size={responsiveWidth(2)}
-                                    color={Colors.primaryFontColor}
-                                  />
-                                </View>
-                              </View>
-                            </TouchableOpacity>
-                          ) : null;
-                        })
-                      : null}
-                    {category_menu.isLoading === false &&
-                    category_menu.list != null
-                      ? category_menu.list.subCat.map((subCat, subindex) => {
-                          return subCat.dish.map((dish, dish_index) => {
-                            console.log(dish.name);
-                            return (
-                              <TouchableOpacity
-                                key={'sub_' + dish_index}
-                                onPress={() => {
-                                  productDetails(dish);
-                                }}
-                                style={{
-                                  paddingHorizontal: responsiveWidth(0.5),
-                                  paddingVertical: responsiveHeight(0.5),
-                                  display: 'flex',
-                                  borderColor: Colors.buttonColor,
-                                  borderWidth: 1.5,
-                                  backgroundColor: Colors.white,
-                                  height: responsiveHeight(12),
-                                  borderRadius: 10,
-                                  marginHorizontal: responsiveWidth(0.5),
-                                  marginVertical: responsiveHeight(1),
-                                  width: responsiveWidth(14.5),
-                                }}
-                              >
-                                <Text
-                                  numberOfLines={2}
-                                  ellipsizeMode="tail"
-                                  style={{
-                                    fontFamily: Inter.regular,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.black,
-                                    height: responsiveHeight(5.4),
-                                  }}
-                                >
-                                  {dish.name}
-                                </Text>
-                                <View
-                                  style={{
-                                    marginTop: responsiveHeight(0.5),
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                  }}
-                                >
-                                  <View>
-                                    <Text
-                                      style={{
-                                        fontFamily: Inter.regular,
-                                        fontSize: responsiveFontSize(1),
-                                        color: Colors.primaryFontColor,
-                                      }}
-                                    >
-                                      {activeBusiness.currency_symbol}
-                                      {dish.price}
-                                    </Text>
-                                  </View>
-                                  <View>
-                                    <Icon
-                                      name="pluscircle"
-                                      type="AntDesign"
-                                      size={responsiveWidth(2)}
-                                      color={Colors.primaryFontColor}
-                                    />
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                            );
-                          });
-                        })
-                      : null}
-                  </View>
-                </>
-              ) : categoryDetails.isLoading === false &&
-                categoryDetails.list.length == 0 ? (
-                <View>
-                  <Text
-                    style={{
-                      marginTop: responsiveHeight(10),
-                      alignSelf: 'center',
-                      fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2),
-                      color: Colors.red,
-                    }}
-                  >
-                    No Record Found
-                  </Text>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {Array.from({ length: 8 }).map((_, index) => (
-                    <View
-                      key={'skeleton_lo_v' + index}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.grey,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        height: responsiveHeight(12),
-                        borderRadius: 10,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                        width: responsiveWidth(14.5),
-                      }}
-                    >
-                      <ProductCardSkeleton key={'skeleton_lo_1' + index} />
-                    </View>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-          ) : search_status === true ? (
-            <ScrollView showsVerticalScrollIndicator={false}>
+                  </ScrollView>
+                ) : null}
+              </View>
               <View
                 style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  marginBottom: responsiveHeight(25),
+                  paddingVertical: responsiveHeight(1.6),
                 }}
               >
+                <View
+                  style={{
+                    height: 1.2,
+                    backgroundColor: "#D9D6ED",
+                    width: "100%",
+                  }}
+                />
+              </View>
+              {/* ---------- product grid ---------- */}
+              <View style={styles.productScrollRow}>
+                <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+                  {categoryDetails.isLoading === false &&
+                    categoryDetails.list.length > 0 ? (
+                    <View style={styles.productGrid}>
+                      {category_menu.isLoading === false &&
+                        category_menu.list != null
+                        ? buildFlatDishList(
+                          category_menu.list,
+                          selected_subcategory,
+                        ).map((dish, dish_index) =>
+                          renderProductCard(dish, 'prod_' + dish_index, dish_index),
+                        )
+                        : null}
+                    </View>
+                  ) : categoryDetails.isLoading === false &&
+                    categoryDetails.list.length == 0 ? (
+                    <Text style={styles.noRecordText}>{t('NO_RECORD_FOUND')}</Text>
+                  ) : (
+                    renderProductSkeletons()
+                  )}
+                </ScrollView>
+              </View>
+            </>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.productGrid}>
                 {category_menu_search.isLoading === false &&
-                category_menu_search.list.length > 0 ? (
-                  category_menu_search.list.map((dish, dish_index) => {
-                    console.log('in');
-                    console.log(dish.subcategory);
-
-                    return dish.subcategory == 0 ? (
-                      <TouchableOpacity
-                        key={'dish_' + dish_index}
-                        onPress={() => {
-                          productDetails(dish);
-                        }}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          borderColor: Colors.buttonColor,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          height: responsiveHeight(12),
-                          borderRadius: 10,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                          width: responsiveWidth(14.5),
-                        }}
-                      >
-                        <Text
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                          style={{
-                            fontFamily: Inter.regular,
-                            fontSize: responsiveFontSize(1),
-                            color: Colors.black,
-                            height: responsiveHeight(5.4),
-                          }}
-                        >
-                          {dish.name}
-                        </Text>
-                        <View
-                          style={{
-                            marginTop: responsiveHeight(0.5),
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <View>
-                            <Text
-                              style={{
-                                fontFamily: Inter.regular,
-                                fontSize: responsiveFontSize(1),
-                                color: Colors.primaryFontColor,
-                              }}
-                            >
-                              {activeBusiness.currency_symbol}
-                              {dish.price}
-                            </Text>
-                          </View>
-                          <View>
-                            <Icon
-                              name="pluscircle"
-                              type="AntDesign"
-                              size={responsiveWidth(2)}
-                              color={Colors.primaryFontColor}
-                            />
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    ) : null;
-                  })
+                  category_menu_search.list.length > 0 ? (
+                  category_menu_search.list
+                    .filter(dish => dish.subcategory == 0)
+                    .map((dish, dish_index) =>
+                      renderProductCard(dish, 'search_' + dish_index, dish_index),
+                    )
                 ) : category_menu_search.isLoading === false &&
                   category_menu_search.list.length == 0 ? (
-                  <View>
-                    <Text
-                      style={{
-                        marginTop: responsiveHeight(10),
-                        alignSelf: 'center',
-                        fontFamily: Inter.regular,
-                        fontSize: responsiveFontSize(2),
-                        color: Colors.red,
-                      }}
-                    >
-                      No Record Found
-                    </Text>
-                  </View>
+                  <Text style={styles.noRecordText}>{t('NO_RECORD_FOUND')}</Text>
                 ) : (
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {Array.from({ length: 8 }).map((_, index) => (
-                      <View
-                        key={'skeleton_lo_v' + index}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.buttonColor,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          height: responsiveHeight(12),
-                          borderRadius: 10,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                          width: responsiveWidth(14.5),
-                        }}
-                      >
-                        <ProductCardSkeleton key={'skeleton_lo_1' + index} />
-                      </View>
-                    ))}
-                  </View>
+                  renderProductSkeletons()
                 )}
-                {/*category_menu.isLoading === false && category_menu.list != null
-                  ? category_menu.list.map((item, item_index) => {
-                      return item.subCat.map((subCat, subindex) => {
-                        return subCat.dish.map((dish, dish_index) => {
-                          console.log(dish.name);
-                          return (
-                            <TouchableOpacity
-                              key={'sub_' + dish_index}
-                              onPress={() => {
-                                productDetails(dish);
-                              }}
-                              style={{
-                                paddingHorizontal: responsiveWidth(0.5),
-                                paddingVertical: responsiveHeight(0.5),
-                                display: 'flex',
-                                borderColor: Colors.blue,
-                                borderWidth: 1.5,
-                                backgroundColor: Colors.white,
-                                height: responsiveHeight(12),
-                                borderRadius: 10,
-                                marginHorizontal: responsiveWidth(0.5),
-                                marginVertical: responsiveHeight(1),
-                                width: responsiveWidth(14.5),
-                              }}>
-                              <Text
-                                style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.black,
-                                }}>
-                                {dish.name}
-                              </Text>
-                              <View
-                                style={{
-                                  marginTop: responsiveHeight(0.5),
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                }}>
-                                <View>
-                                  <Text
-                                    style={{
-                                      fontFamily: Inter.regular,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.green,
-                                    }}>
-                                    {activeBusiness.currency_symbol}
-                                    {dish.price} {'sub'}
-                                  </Text>
-                                </View>
-                                <View>
-                                  <Icon
-                                    name="pluscircle"
-                                    type="AntDesign"
-                                    size={responsiveWidth(2)}
-                                    color={Colors.green}
-                                  />
-                                </View>
-                              </View>
-                            </TouchableOpacity>
-                          );
-                        });
-                      });
-                    })
-                  : null*/}
               </View>
             </ScrollView>
-          ) : null}
+          )}
         </View>
-
         <View style={styles.inner_right}>
           {activeBusiness != null ? (
             <HomeRight
@@ -1627,10 +1756,25 @@ const Home = ({ props, route, navigation }) => {
               activeBusiness={activeBusiness}
               updateCartDetails={updateCartDetailsFromChild}
               productDetailsEdit={productDetailsEdit}
+              updatePreorderDetails={setPreorderDetails}
+              noActiveMenu={noActiveMenu}
+              noActiveMenuSignal={noActiveMenuSignal}
+              onOrderTypeSelected={fetchBusinessMenu}
             />
-          ) : null}
+          ) : categoryDetails.isLoading === true ? (
+            <View style={styles.cartPanel}>
+              <EmptyCartSkeleton />
+            </View>
+          ) : (
+            <View style={styles.cartPanel}>
+              <View style={styles.cartIconCircle}>
+                <Ionicons name="cart-outline" size={responsiveFontSize(4)} color={theme.primary} />
+              </View>
+              <Text style={styles.cartEmptyTitle}>{t('NO_PRODUCTS_IN_YOUR_CART')}</Text>
+              <Text style={styles.cartEmptySubtitle}>{t('ADD_ITEMS_FROM_THE_MENU_TO_GET_STARTTED')}!</Text>
+            </View>
+          )}
         </View>
-
         <Modal
           supportedOrientations={['landscape']}
           transparent={true}
@@ -1652,9 +1796,10 @@ const Home = ({ props, route, navigation }) => {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     flexDirection: 'column',
-                    gap: 10,
-                    padding: 30,
+                    gap: 5,
+                    padding: 10,
                   }}
                 >
                   <Image
@@ -1663,25 +1808,25 @@ const Home = ({ props, route, navigation }) => {
                   />
                   <Text
                     style={{
-                      fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2.5),
-                      color: Colors.black,
+                      fontFamily: Inter.semibold,
+                      fontSize: responsiveFontSize(1.8),
+                      color:theme.fontColorOnBackground,
                     }}
                   >
-                    Received a New Order!
+                    {t('RECEIVED_A_NEW_ORDER')}!
                   </Text>
                   <Text
                     style={{
                       fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2),
-                      color: Colors.black,
+                      fontSize: responsiveFontSize(1.3),
+                      color: theme.fontColorOnBackground,
                     }}
                   >
-                    Order ID{' '}
+                    {t('ORDERID')}{' '}
                     <Text
                       style={{
                         fontFamily: Inter.regular,
-                        fontSize: responsiveFontSize(2.2),
+                        fontSize: responsiveFontSize(1.4),
                         color: 'red',
                       }}
                     >
@@ -1691,38 +1836,50 @@ const Home = ({ props, route, navigation }) => {
                   <Text
                     style={{
                       fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2),
-                      color: Colors.black,
+                      fontSize: responsiveFontSize(1.5),
+                      color: theme.fontColorOnBackground,
                     }}
                   >
                     {order_data != null ? order_data.order_type : null}
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => {
+                    // onPress={() => {
+                    //   setNewOrderModel(false);
+                    //   SoundPlayer.stop();
+                    //   navigation.navigate('MyOrder_Tab', {
+                    //     screen: 'OrderDetail',
+                    //     params: {
+                    //       id: order_data != null ? order_data.order_id : null,
+                    //     },
+                    //   });
+                    // }}
+                    onPress={async () => {
                       setNewOrderModel(false);
                       SoundPlayer.stop();
 
+                      const orderId = order_data != null ? order_data.order_id : null;
+                      if (!orderId) {
+                        Alert.alert('Error', 'No order ID found in notification data.');
+                        return;
+                      }
                       navigation.navigate('MyOrder_Tab', {
-                        screen: 'MyOrder',
-                        params: {
-                          id: order_data != null ? order_data.order_id : null,
-                        },
+                        screen: 'OrderDetailFromNotification',
+                        params: { orderId },
                       });
                     }}
                     style={{
                       ...styles.button_sty,
-                      backgroundColor: Colors.buttonColor,
+                      backgroundColor: theme.primary,
                     }}
                   >
+
                     <Text
                       style={{
                         ...styles.button_txt,
-                        color: '#fff',
+                        color: theme.fontColor,
                       }}
-                    >
-                      OK
-                    </Text>
+                    >{t('OK')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1739,6 +1896,7 @@ const Home = ({ props, route, navigation }) => {
           setoptionModelAdd={setoptionModelAdd}
           cartQty={cartQuantity}
           updateCartDetails={updateCartDetailsFromChild}
+          onAdded={handleOptionModalAdded}
         />
       ) : null}
     </Container>

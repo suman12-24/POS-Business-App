@@ -28,4 +28,4 @@ const showToastMsg = async (msg) => {
   }
 }
 
-export {getData, setData, deleteData,showToastMsg, removeData};
+export { getData, setData, deleteData, showToastMsg, removeData };
