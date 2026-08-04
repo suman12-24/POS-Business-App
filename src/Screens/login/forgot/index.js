@@ -39,11 +39,7 @@ const Forgot = ({ props, route, navigation }) => {
   const { baseUrl, siteUrl, langId, loginImages } = useSelector(state => state.common);
   const [email, setEmail] = useState('');
   const [viewloader, setLoader] = useState(false);
-<<<<<<< HEAD
-
-=======
   const { t } = useTranslation();
->>>>>>> development
   const SubmitEmail = () => {
     let flg = true;
 
@@ -102,13 +98,8 @@ const Forgot = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-<<<<<<< HEAD
-      
-      {viewloader === true ? <Loader /> : null}
-=======
 
       {/* {viewloader === true ? <Loader /> : null} */}
->>>>>>> development
 
       {/* <Image style={styles.Bg} resizeMode="contain" source={Images.bg} /> */}
 

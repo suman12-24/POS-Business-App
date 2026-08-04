@@ -84,11 +84,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
 
     if (flg == true) {
       setLoader(true);
-<<<<<<< HEAD
-      
-=======
 
->>>>>>> development
       postWithOutToken(baseUrl, 'forgot-password-check-otp', {
         email: route.params.email,
         user: route.params.userId,
@@ -120,11 +116,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
   }
 
   function resetPasswordOtp() {
-<<<<<<< HEAD
-   
-=======
 
->>>>>>> development
     setLoader(true);
     setOTP('');
     ref.current?.clear('');
@@ -150,11 +142,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-<<<<<<< HEAD
-      
-=======
 
->>>>>>> development
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -321,11 +309,7 @@ const ForgotOtp = ({ props, route, navigation }) => {
                 </TouchableOpacity>
               )}
             </View>
-<<<<<<< HEAD
-           
-=======
 
->>>>>>> development
           </View>
         </View>
       </View>

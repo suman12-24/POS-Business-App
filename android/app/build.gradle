@@ -119,10 +119,7 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-<<<<<<< HEAD
-=======
     implementation project(':react-native-ebprinter')
->>>>>>> development
     
 }
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle";

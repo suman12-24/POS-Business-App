@@ -35,16 +35,10 @@ import { useAppTheme } from '../../Hooks/useAppTheme';
 import useTranslation from '../../Hooks/useTranslation';
 const Login = ({ props, route, navigation }) => {
   const dispatch = useDispatch();
-<<<<<<< HEAD
-  const { baseUrl, siteUrl, deviceToken, langId } = useSelector(
-    state => state.common,
-  );
-=======
   const { baseUrl, siteUrl, deviceToken, langId, user_slug, loginImages } = useSelector(state => state.common,);
   const theme = useAppTheme();
   const styles = useMemo(() => Styles(theme), [theme]);
   const { t } = useTranslation();
->>>>>>> development
   const [viewloader, setLoader] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -121,13 +115,8 @@ const Login = ({ props, route, navigation }) => {
 
     if (flg == true) {
       setLoader(true);
-<<<<<<< HEAD
-     
-      postWithOutToken(baseUrl, 'business/login', {
-=======
 
       postWithOutToken(baseUrl, 'login', {
->>>>>>> development
         email: email,
         password: password,
         lang_id: langId,
@@ -156,28 +145,16 @@ const Login = ({ props, route, navigation }) => {
           console.log('Error data:', error.response?.data);
         });
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> development
   };
 
   return (
     <Container style={styles.container}>
-<<<<<<< HEAD
-      
-      {viewloader === true ? <Loader /> : null}
-
-      <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
-
-=======
       {/* Background image - the lavender triangle artwork */}
       {/* <Image
         style={styles.Bg}
         resizeMode="cover"
         source={Images.bg}
       /> */}
->>>>>>> development
       <View style={styles.main}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -199,21 +176,6 @@ const Login = ({ props, route, navigation }) => {
                 </View>
                 <Text style={styles.welcomeText}>{t('WELCOME_BACK')}</Text>
 
-<<<<<<< HEAD
-            <Text
-              onPress={() => navigation.navigate('Forgot')}
-              style={{
-                fontSize: responsiveFontSize(1.5),
-                color: Colors.primaryFontColor,
-                fontFamily: Inter.regular,
-                paddingTop: responsiveHeight(2),
-                textAlign: 'center',
-              }}
-            >
-              Forgot Password?
-            </Text>
-           
-=======
                 <View style={styles.formWrap}>
                   <View style={styles.inputRow}>
                     <Icon
@@ -273,7 +235,6 @@ const Login = ({ props, route, navigation }) => {
                 </View>
               </>
             )}
->>>>>>> development
           </View>
         </ScrollView>
       </View>

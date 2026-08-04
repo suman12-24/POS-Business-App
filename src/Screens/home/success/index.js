@@ -24,21 +24,9 @@ import {
   setCartQuantity,
 } from '../../../Store/Reducers/CommonReducer';
 import Moment from 'moment';
-<<<<<<< HEAD
-import {
-  Container,
-  Icon,
-  AppTextInput,
-  CheckBox,
-} from 'react-native-basic-elements';
-import { PermissionsAndroid } from 'react-native';
-
-// create a component
-=======
 import { Container } from 'react-native-basic-elements';
 import useTranslation from '../../../Hooks/useTranslation';
 import { useAppTheme } from '../../../Hooks/useAppTheme';
->>>>>>> development
 const OrderSuccess = ({ props, route, navigation }) => {
   const theme = useAppTheme();
   const styles = Styles(theme);
@@ -50,149 +38,7 @@ const OrderSuccess = ({ props, route, navigation }) => {
   const [viewloader, setLoader] = useState(false);
   const { t } = useTranslation();
   const [order, setOrder] = useState({ isLoading: true, list: [] });
-<<<<<<< HEAD
-
-  const [ipAddressPrinter, setipaddresprinter] = useState();
-  const [visiblemodal, setvisiblemodal] = useState(false);
-  const [printers, setPrinters] = useState();
-
-  const USBPrinterModule = NativeModules?.USBPrinter || {};
-  USBPrinterModule.addListener = USBPrinterModule.addListener || (() => {});
-  USBPrinterModule.removeListeners =
-    USBPrinterModule.removeListeners || (() => {});
-
-  const USBPrinterEmitter = new NativeEventEmitter(USBPrinterModule);
-
-  const [tcp_string, setTcpString] = useState(null);
-  const [bill_string, setBillString] = useState(null);
-
-  const [printer_type, setPrinterType] = useState([]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      //PrinterType();
-    }, []),
-  );
-
-
-
-  const PrinterType = () => {
-    /*postWithOutToken(baseUrl, 'module/common/rest-common', {
-      f: 'printer_type',
-    })
-      .then(response => {
-        console.log(response);
-        setPrinterType(response);
-      })
-      .catch(error => {
-        console.log('Error : ', error);
-      });*/
-  };
-
-  const Print_printer = () => {
-    if (PRINTER_OPTION == 'USBPRINTER') {
-      // console.log('usb print')
-      USBPrinter.printBill('<C>sample text</C>\n', { beep: true })
-        .then(() => {
-          return USBPrinter.closeConn();
-        })
-        .then(() => setPrinters(null));
-    } else {
-      // console.log('net print')
-      NetPrinter.printBill('<C>sample text</C>')
-        .then(() => {
-          return NetPrinter.closeConn();
-        })
-        .then(() => setPrinters(null));
-    }
-  };
-  const initializePrinters = async PRINTER_OPTION => {
-    if (PRINTER_OPTION == 'USBPRINTER') {
-      console.log('usb printrere');
-      try {
-        if (Platform.OS === 'android') {
-          // Initialize the USBPrinter
-          USBPrinter.init()
-            .then(() => {
-              // Get the list of connected printers
-              return USBPrinter.getDeviceList();
-            })
-            .then(devices => {
-              // Update the state with the list of printers
-
-              // Check if there are any printers available
-              if (devices.length > 0) {
-                Alert.alert(
-                  'USB Device Connected',
-                  `Device Name: ${devices[0].device_name}`,
-                  [
-                    {
-                      text: 'Cancel',
-                      onPress: () => console.log('Cancel Pressed'),
-                      style: 'cancel',
-                    },
-                    {
-                      text: 'OK',
-                      onPress: () =>
-                        USBPrinter.connectPrinter(
-                          devices[0].vendor_id,
-                          devices[0].product_id,
-                        ).then(() => setPrinters('USBPRINTER')),
-                    },
-                  ],
-                );
-              } else {
-                Alert.alert('No devices found');
-              }
-            })
-            .then(() => {
-              setvisiblemodal(false);
-            })
-            .catch(error => {
-              // Handle errors during initialization or fetching device list
-              console.error('Error:', error);
-              Alert.alert('Error', 'Failed to initialize or find printers.');
-            });
-        }
-      } catch (error) {
-        // Handle any unexpected errors
-        console.error('Unexpected Error:', error);
-        Alert.alert('Error', 'An unexpected error occurred.');
-      }
-    } else {
-      LANPrinterConnected(ipAddressPrinter);
-    }
-  };
-
-  // conncted via lan port..
-  const LANPrinterConnected = ipaddress => {
-    console.log(ipaddress, 'ipadders connted');
-    try {
-      if (Platform.OS === 'android') {
-        NetPrinter.init().then(np => {
-          NetPrinter.connectPrinter(ipaddress, 9100)
-            .then(printer => setPrinters('LANPRINTER'))
-            .finally(() => {
-              setvisiblemodal(false);
-              console.log(printers, 'cokfdsfk');
-            })
-            .catch(error => console.warn('Connection Error:', error));
-        });
-      }
-    } catch (error) {
-      // Handle any unexpected errors
-      console.error('Unexpected Error:', error);
-      Alert.alert('Error', 'An unexpected error occurred.');
-    }
-  };
-  const _connectPrinter = printer =>
-    USBPrinter.connectPrinter(printer.vendorID, printer.productId).then(() =>
-      setCurrentPrinter(printer),
-    );
-
-=======
   const activeBusiness = route.params.activeBusiness;
->>>>>>> development
   useFocusEffect(
     React.useCallback(() => {
       fetchOrderData();
@@ -215,11 +61,7 @@ const OrderSuccess = ({ props, route, navigation }) => {
       .then(response => {
         setLoader(false);
         setOrder({ isLoading: false, list: response.data });
-<<<<<<< HEAD
-
-=======
         console.log("Add order data", response.data);
->>>>>>> development
       })
       .catch(error => {
         setLoader(false);
@@ -289,27 +131,6 @@ const OrderSuccess = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-<<<<<<< HEAD
-      {viewloader === true ? (
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.blue} />
-        </View>
-      ) : null}      
-
-=======
->>>>>>> development
       <View style={styles.main}>
         <ScrollView
           style={{ flex: 1 }}

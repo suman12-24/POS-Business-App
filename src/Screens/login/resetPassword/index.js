@@ -212,11 +212,7 @@ const ResetPassword = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-<<<<<<< HEAD
-     
-=======
 
->>>>>>> development
       {viewloader === true ? <Loader /> : null}
 
       <Image style={styles.Bg} resizeMode="contain" source={Images.bg} />
@@ -354,11 +350,7 @@ const ResetPassword = ({ props, route, navigation }) => {
                   </Text>
                 </View>
 
-<<<<<<< HEAD
-               
-=======
 
->>>>>>> development
               </View>
             </View>
           ) : (

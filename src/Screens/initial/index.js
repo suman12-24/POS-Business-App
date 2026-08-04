@@ -73,43 +73,11 @@ const Initial = props => {
       if (enabled) {
         const token = await messaging().getToken();
 
-<<<<<<< HEAD
-  useEffect(() => {
-    /*removeData("userDetails");
-        removeData("userToken");
-        dispatch(clearUserData());*/
-
-    getData('device_token').then(devivetokenSuccess => {
-      if (devivetokenSuccess) {
-        dispatch(localstorage_DeviceTokenAdd(JSON.parse(devivetokenSuccess)));
-      }
-    });
-
-    getData('userToken').then(tokenSuccess => {
-      if (tokenSuccess) {
-        dispatch(localstorage_TokenAdd(JSON.parse(tokenSuccess)));
-      }
-    });
-
-    setTimeout(() => {
-      getData('userDetails').then(respSuccess => {
-        //console.log('user data check');
-        //console.log(respSuccess);
-        if (respSuccess) {
-          dispatch(localstorage_UserdetailsAdd(JSON.parse(respSuccess)));
-          const userData = JSON.parse(respSuccess);
-          props.navigation.navigate('Main');
-        } else {
-          dispatch(clearUserData());
-          //props.navigation.navigate('Login');
-          props.navigation.navigate('SplashScreen');
-=======
         if (token) {
           // Store consistently as a plain string
           await setData('device_token', JSON.stringify(token));
           dispatch(localstorage_DeviceTokenAdd(token));
           console.log('FCM Token:', token);
->>>>>>> development
         }
       }
     } catch (error) {
