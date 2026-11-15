@@ -839,7 +839,7 @@ const Styles = (theme = {}) => {
     serviceTypeRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start', //
     },
     serviceTypeCard: {
       width: '22%',
@@ -849,6 +849,7 @@ const Styles = (theme = {}) => {
       justifyContent: 'center',
       paddingVertical: responsiveHeight(1.5),
       paddingHorizontal: responsiveWidth(0.4),
+      marginHorizontal: responsiveWidth(1.5), // 
       marginBottom: responsiveHeight(1),
       position: 'relative',
       borderColor: BorderSoft,

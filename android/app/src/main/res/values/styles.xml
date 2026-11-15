@@ -5,9 +5,9 @@
 
     <style name="AppTheme"  parent="Theme.Material3.DayNight.NoActionBar">
 
-        <item name="colorPrimary">#3B1BB0</item>
-        <item name="android:colorAccent">#3B1BB0</item>
-        <item name="colorAccent">#3B1BB0</item>
+        <item name="colorPrimary">#B68022</item>
+        <item name="android:colorAccent">#B68022</item>
+        <item name="colorAccent">#B68022</item>
         <item name="android:windowDisablePreview">true</item>
         <item name="android:windowIsTranslucent">true</item>
         <!-- Customize your theme here. -->

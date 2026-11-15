@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1045916785862",
-    "project_id": "menuhuts-business-app",
-    "storage_bucket": "menuhuts-business-app.firebasestorage.app"
+    "project_number": "1098184387128",
+    "project_id": "managernexordr",
+    "storage_bucket": "managernexordr.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:c4b5922857444684860bc7",
+        "mobilesdk_app_id": "1:1098184387128:android:7f24cda9a227040a1794cd",
         "android_client_info": {
-          "package_name": "com.indus.business"
+          "package_name": "com.indus.pos"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
+          "current_key": "AIzaSyCuzKRxq6bhooZ6_BaJ9o-UKfMx0O-PQMg"
         }
       ],
       "services": {
@@ -26,129 +26,15 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:aa562ec3230d1041860bc7",
+        "mobilesdk_app_id": "1:1098184387128:android:7fc725b98872703b1794cd",
         "android_client_info": {
-          "package_name": "com.jumandi.business"
+          "package_name": "com.manager.nexordr"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:b47d0914273e5781860bc7",
-        "android_client_info": {
-          "package_name": "com.jumandi.driver"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:cb9009e625622f06860bc7",
-        "android_client_info": {
-          "package_name": "com.menuHuts.supplier"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:4d4cd01972cad4d3860bc7",
-        "android_client_info": {
-          "package_name": "com.menuhuts.business"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:06182b75129574a6860bc7",
-        "android_client_info": {
-          "package_name": "com.menuhuts.driver"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:826c0507cea56948860bc7",
-        "android_client_info": {
-          "package_name": "com.menuhuts.livebusiness"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1045916785862:android:5a5f2589a9faa0e0860bc7",
-        "android_client_info": {
-          "package_name": "com.pos.business"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDBplLXYfRMylCkkANsbcPdkp20_OrB900"
+          "current_key": "AIzaSyCuzKRxq6bhooZ6_BaJ9o-UKfMx0O-PQMg"
         }
       ],
       "services": {

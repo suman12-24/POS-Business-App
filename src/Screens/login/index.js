@@ -33,9 +33,12 @@ import {
 import SkeletonLogin from './SkeletonLogin';
 import { useAppTheme } from '../../Hooks/useAppTheme';
 import useTranslation from '../../Hooks/useTranslation';
+
 const Login = ({ props, route, navigation }) => {
   const dispatch = useDispatch();
-  const { baseUrl, siteUrl, deviceToken, langId, user_slug, loginImages } = useSelector(state => state.common,);
+  const { baseUrl, siteUrl, deviceToken, langId, user_slug, loginImages } = useSelector(
+    state => state.common,
+  );
   const theme = useAppTheme();
   const styles = useMemo(() => Styles(theme), [theme]);
   const { t } = useTranslation();
@@ -62,6 +65,8 @@ const Login = ({ props, route, navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
+      // Reset state when screen is focused (e.g. logging back out)
+      setLoader(false);
       dispatch(clearUserData());
     }, []),
   );
@@ -125,7 +130,6 @@ const Login = ({ props, route, navigation }) => {
         user_slug: user_slug,
       })
         .then(response => {
-          setLoader(false);
           if (response.status == true) {
             setEmail('');
             setPassword('');
@@ -133,14 +137,15 @@ const Login = ({ props, route, navigation }) => {
             setData('userDetails', JSON.stringify(response.data));
             setData('userToken', JSON.stringify(response.token));
 
-            setTimeout(() => {
-              navigation.navigate('Main');
-            }, 200);
+            // Keep skeleton active during navigation transition
+            navigation.navigate('Main');
           } else {
+            setLoader(false);
             showToastMsg(response.message);
           }
         })
         .catch(error => {
+          setLoader(false);
           console.log('Error status:', error.response?.status);
           console.log('Error data:', error.response?.data);
         });
@@ -149,12 +154,6 @@ const Login = ({ props, route, navigation }) => {
 
   return (
     <Container style={styles.container}>
-      {/* Background image - the lavender triangle artwork */}
-      {/* <Image
-        style={styles.Bg}
-        resizeMode="cover"
-        source={Images.bg}
-      /> */}
       <View style={styles.main}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -166,12 +165,15 @@ const Login = ({ props, route, navigation }) => {
               <SkeletonLogin />
             ) : (
               <>
-                {/* Logo image */}
                 <View style={styles.logoWrap}>
                   <Image
-                    source={Images.splash_logo}
+                    source={
+                      loginImages?.logo
+                        ? { uri: loginImages.logo }
+                        : Images.splash_logo
+                    }
                     style={styles.logoImage}
-                    resizeMode="cover"
+                    resizeMode="contain"
                   />
                 </View>
                 <Text style={styles.welcomeText}>{t('WELCOME_BACK')}</Text>

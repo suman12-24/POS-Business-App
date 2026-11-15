@@ -1,7 +1,7 @@
 // App used client icon
 // App used client images
 const Images = {
-  splash_logo: require('../assets/images/static_logo.png'),
+  splash_logo: require('../assets/images/indus_logo.png'),
   logo: require('../assets/images/logo.png'),
   login_logo: require('../assets/images/login_logo.png'),
   bg: require('../assets/images/bg.png'),

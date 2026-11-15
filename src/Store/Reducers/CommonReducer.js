@@ -14,11 +14,8 @@ const initialState = {
   //baseUrl: 'https://api.nexordr.com/api/',
   //siteUrl: 'https://api.nexordr.com/',
 
-  //baseUrl: 'https://staging-api.nexordr.cloud/api/web-business/',
-  baseUrl: 'https://indus-curry-express.nexordr.cloud/api/web-business/',
-  // siteSetting: 'https://staging-api.nexordr.cloud/api/',
-
-  siteSetting: 'https://indus-curry-express.nexordr.cloud/api/',
+  baseUrl: 'https://api.nexordr.cloud/api/web-business/',
+  siteSetting: 'https://api.nexordr.cloud/api/',
 
   user_slug: "BGYSTLAHONQD",
   loginImages: {},

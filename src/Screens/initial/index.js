@@ -15,18 +15,54 @@ import {
   localstorage_TokenAdd,
   localstorage_UserdetailsAdd,
   localstorage_DeviceTokenAdd,
+  setLoginImages
 } from '../../Store/Reducers/CommonReducer';
 import messaging from '@react-native-firebase/messaging';
+import { postWithOutToken } from '../../Service/service';
 
 // create a component
 const Initial = props => {
   const styles = Styles();
   const dispatch = useDispatch();
+  const { baseUrl, userData, userToken, user_slug, loginImages } = useSelector(state => state.common);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     initializeApp();
+    getLoginPageImages();
   }, []);
+
+  const getLoginPageImages = async () => {
+    try {
+      const response = await postWithOutToken(
+        baseUrl,
+        'get-login-page-images',
+        {
+          user_slug: user_slug,
+        }
+      );
+
+      console.log('Login Page Images Response:', response);
+
+      if (response?.status === true && response?.data) {
+        const formattedData = {
+          logo: response?.data?.logo?.url || '',
+
+          // handle current typo + future fix
+          background:
+            response?.data?.backgound_image?.url ||
+            response?.data?.background_image?.url ||
+            '',
+        };
+
+        dispatch(setLoginImages(formattedData));
+      } else {
+        console.log('API returned failure:', response?.message);
+      }
+    } catch (error) {
+      console.log('Error fetching login page images:', error);
+    }
+  };
 
   const initializeApp = async () => {
     try {
@@ -87,13 +123,25 @@ const Initial = props => {
 
   return (
     <View style={styles.container}>
-      <Image
+      {/* <Image
         style={[
           styles.splashLogo,
           { opacity: loading ? 0 : 1 },
         ]}
-        resizeMode="cover"
+        resizeMode="contain"
         source={Images.splash_logo}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+      /> */}
+
+      <Image
+        style={[styles.splashLogo, { opacity: loading ? 0 : 1 }]}
+        resizeMode="contain"
+        source={
+          loginImages?.logo
+            ? { uri: loginImages.logo }
+            : Images.splash_logo
+        }
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
       />

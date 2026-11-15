@@ -149,25 +149,32 @@ const ProductCardSkeleton: React.FC = () => {
  * Category pill skeleton — mirrors the icon + name category pill.
  * ---------------------------------------------------------------------- */
 
-export const CategoryPillSkeleton: React.FC = () => {
+export const CategoryPillSkeleton: React.FC<{
+  style?: any;
+  isLastInRow?: boolean;
+}> = ({ style, isLastInRow }) => {
   const shimmerAnim = useShimmer();
   return (
-    <View style={styles.pill}>
-      <ShimmerShape style={styles.pillIcon} shimmerAnim={shimmerAnim} />
+    <View style={[styles.pill, isLastInRow && styles.pillLastInRow, style]}>
+      <ShimmerShape style={styles.pillIcon} shimmerAnim={shimmerAnim} sweepWidth={120} />
       <View style={styles.pillTextGroup}>
-        <ShimmerShape style={styles.pillTextLine1} shimmerAnim={shimmerAnim} />
-        <ShimmerShape style={styles.pillTextLine2} shimmerAnim={shimmerAnim} />
+        <ShimmerShape style={styles.pillTextLine1} shimmerAnim={shimmerAnim} sweepWidth={120} />
+        <ShimmerShape style={styles.pillTextLine2} shimmerAnim={shimmerAnim} sweepWidth={120} />
       </View>
     </View>
   );
 };
 
 export const CategoryRowSkeleton: React.FC<{ count?: number }> = ({
-  count = 6,
+  count = 8,
 }) => (
-  <View style={styles.row}>
+  <View style={styles.categoryGridRow}>
     {Array.from({ length: count }).map((_, i) => (
-      <CategoryPillSkeleton key={"cat_skel_" + i} />
+      <CategoryPillSkeleton
+        key={"cat_skel_" + i}
+        style={styles.categoryGridPill}
+        isLastInRow={i % 4 === 3}
+      />
     ))}
   </View>
 );
@@ -293,32 +300,50 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  // WITH:
+  categoryGridRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    width: "100%",
+  },
+  categoryGridPill: {
+    width: "23%",       // 4 × 23% = 92%, leaves 8% total for 3 gaps (~2.67% each) — safely under 100%
+    marginRight: "2%",
+    marginBottom: responsiveHeight(1.2),
+  },
+  pillLastInRow: {
+    marginRight: 0,
+  },
   pill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F4F4F6",
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    marginRight: responsiveWidth(3),
+    backgroundColor: "#FFFFFF",
+    minHeight: responsiveHeight(8),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#EEEAFB",
+    paddingVertical: responsiveHeight(0.9),
+    paddingHorizontal: responsiveWidth(1.2),
   },
   pillIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    marginRight: 8,
+    width: responsiveWidth(3),
+    height: responsiveWidth(3),
+    borderRadius: responsiveWidth(1.5),
+    marginRight: responsiveWidth(0.8),
+    flexShrink: 0,
   },
   pillTextGroup: {
+    flex: 1,
     justifyContent: "center",
   },
   pillTextLine1: {
-    width: 50,
+    width: "70%",
     height: 10,
     borderRadius: 4,
     marginBottom: 5,
   },
   pillTextLine2: {
-    width: 34,
+    width: "45%",
     height: 10,
     borderRadius: 4,
   },

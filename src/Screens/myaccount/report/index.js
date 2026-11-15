@@ -36,8 +36,10 @@ const COLORS = {
 /* ---------------------------------------------------
    TABLE COLUMN WIDTHS
    (single source of truth so header + body can never drift apart)
+   Order Source now sits BEFORE Order ID.
 --------------------------------------------------- */
 const COLUMN_WIDTHS = {
+    orderSource: 160,
     orderId: 150,
     date: 250,
     name: 200,
@@ -63,21 +65,37 @@ const SEARCH_TYPE_BY_PERIOD = {
     OTHERS: 4,
 };
 
-/* Order source radio options.
-   value -> what gets sent to the API as `search_order_source`
-   key   -> translation key used for the on-screen label
-   text  -> plain-text fallback used in the exported CSV */
+/* Order source checkbox options (multi-select, all checked by default).
+   value    -> internal id used to track checkbox state (1-4)
+   apiValue -> the actual string code sent to the API inside `search_order_source`
+   key      -> translation key used for the on-screen label
+   text     -> plain-text fallback used for table/CSV display */
 const ORDER_SOURCE_OPTIONS = [
-    { value: 1, key: 'WEB_APP', text: 'Web App' },
-    { value: 2, key: 'WAITER', text: 'Waiter' },
-    { value: 3, key: 'POS', text: 'POS' },
-    { value: 4, key: 'APP', text: 'App' },
+    { value: 1, apiValue: 'web', key: 'WEB_APP', text: 'Web App' },
+    { value: 2, apiValue: 'waiter_app', key: 'WAITER', text: 'Waiter' },
+    { value: 3, apiValue: 'Pos App', key: 'POS', text: 'POS' },
+    { value: 4, apiValue: 'customer_app', key: 'APP', text: 'App' },
 ];
 
+const ALL_ORDER_SOURCE_VALUES = ORDER_SOURCE_OPTIONS.map((opt) => opt.value);
+
 const getOrderSourceText = (value) => {
-    const found = ORDER_SOURCE_OPTIONS.find((opt) => opt.value === value);
-    return found ? found.text : value;
+    const byValue = ORDER_SOURCE_OPTIONS.find((opt) => opt.value === Number(value));
+    if (byValue) return byValue.text;
+    // Row data from the API may come back as the string code itself (e.g. "web").
+    const byApiValue = ORDER_SOURCE_OPTIONS.find(
+        (opt) => opt.apiValue.toLowerCase() === String(value).toLowerCase()
+    );
+    if (byApiValue) return byApiValue.text;
+    return value ?? '';
 };
+
+// Converts the checkbox state (internal ids [1,3,4]) into the string codes
+// the API expects, e.g. ["web", "Pos App", "customer_app"].
+const toOrderSourceApiValues = (selectedValues) =>
+    selectedValues
+        .map((v) => ORDER_SOURCE_OPTIONS.find((opt) => opt.value === v)?.apiValue)
+        .filter(Boolean);
 
 const pad2 = (n) => (n < 10 ? `0${n}` : `${n}`);
 
@@ -99,29 +117,12 @@ const addDays = (d, days) => {
     return copy;
 };
 
-/* Subtract exactly one calendar month, clamping the day if the target
-   month is shorter (e.g. Mar 31 -> Feb 28/29) instead of rolling over. */
-const subtractOneMonth = (d) => {
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
-
-    const targetMonthRaw = month - 1;
-    const targetYear = targetMonthRaw < 0 ? year - 1 : year;
-    const targetMonth = (targetMonthRaw + 12) % 12;
-
-    // Day 0 of (targetMonth + 1) = last day of targetMonth
-    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-    const targetDay = Math.min(day, lastDayOfTargetMonth);
-
-    return new Date(targetYear, targetMonth, targetDay);
-};
-
 /**
  * Daily   -> today only
  * Weekly  -> last 7 days up to and including today (today - 6  ...  today)
- * Monthly -> exactly one calendar month back, up to and including today
- *            (e.g. Aug 3 -> Jul 3 ... Aug 3), clamped for short months
+ * Monthly -> month-to-date: 1st of the current calendar month through
+ *            today (e.g. selected on Aug 3 -> Aug 1 ... Aug 3), same
+ *            "up to today" pattern as Daily/Weekly.
  */
 const getRangeForPeriod = (period) => {
     const today = new Date();
@@ -130,8 +131,10 @@ const getRangeForPeriod = (period) => {
             return { from: formatDate(today), to: formatDate(today) };
         case 'WEEKLY':
             return { from: formatDate(addDays(today, -6)), to: formatDate(today) };
-        case 'MONTHLY':
-            return { from: formatDate(subtractOneMonth(today)), to: formatDate(today) };
+        case 'MONTHLY': {
+            const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            return { from: formatDate(firstOfMonth), to: formatDate(today) };
+        }
         default:
             return { from: formatDate(today), to: formatDate(today) };
     }
@@ -146,10 +149,27 @@ const pickField = (row, keys, fallback = '') => {
     return fallback;
 };
 
+/* Resolve a display-friendly "order source" value for a single row,
+   preferring a text field from the API if present, otherwise mapping
+   a numeric source id (1-4) back to its label via ORDER_SOURCE_OPTIONS. */
+const resolveOrderSourceDisplay = (row) => {
+    const textVal = pickField(row, ['order_source_text', 'source_text', 'order_source_name'], null);
+    if (textVal) return textVal;
+
+    const rawVal = pickField(row, ['order_source', 'search_order_source', 'source'], null);
+    if (rawVal === null || rawVal === undefined || rawVal === '') return '';
+
+    const numeric = Number(rawVal);
+    return Number.isNaN(numeric) ? rawVal : getOrderSourceText(numeric);
+};
+
 /* ---------------------------------------------------
    CSV EXPORT HELPERS
+   Report Type is written once as a header line above the table,
+   NOT repeated per row. Order Source is per-row (before Order ID),
+   matching the on-screen table.
 --------------------------------------------------- */
-const CSV_HEADERS = ['Order ID', 'Date', 'Name', 'Phone No', 'Email', 'Order Total', 'Report Type', 'Source of Order'];
+const CSV_HEADERS = ['Order Source', 'Order ID', 'Date', 'Name', 'Phone No', 'Email', 'Order Total'];
 
 const escapeCsvValue = (value) => {
     const str = String(value ?? '');
@@ -159,19 +179,24 @@ const escapeCsvValue = (value) => {
     return str;
 };
 
-const rowToCsvLine = (row, idx, period, orderSourceText) => {
+const rowToCsvLine = (row, idx) => {
     const id = pickField(row, ['order_id', 'id'], `#${idx + 1}`);
     const date = pickField(row, ['date', 'created_at', 'order_date']);
     const name = pickField(row, ['buyername', 'name', 'customer_name']);
     const phone = pickField(row, ['buyerphone', 'phone', 'cel', 'phone_no']);
     const email = pickField(row, ['buyeremail', 'email']);
     const total = pickField(row, ['total', 'order_total', 'amount']);
-    return [id, date, name, phone, email, total, period, orderSourceText].map(escapeCsvValue).join(',');
+    const source = resolveOrderSourceDisplay(row);
+    return [source, id, date, name, phone, email, total].map(escapeCsvValue).join(',');
 };
 
-const buildCsvContent = (rows, period, orderSourceText) => {
-    const lines = [CSV_HEADERS.join(',')];
-    rows.forEach((row, idx) => lines.push(rowToCsvLine(row, idx, period, orderSourceText)));
+const buildCsvContent = (rows, period) => {
+    const lines = [
+        `Report Type,${escapeCsvValue(period)}`, // header line, once — not per row
+        '',
+        CSV_HEADERS.join(','),
+    ];
+    rows.forEach((row, idx) => lines.push(rowToCsvLine(row, idx)));
     return lines.join('\n');
 };
 
@@ -179,12 +204,24 @@ const buildCsvFileName = (period, fromDate, toDate) =>
     `report_${period}_${fromDate}_to_${toDate}.csv`.replace(/\s+/g, '_');
 
 /* ---------------------------------------------------
-   REUSABLE RADIO BUTTON
+   REUSABLE RADIO BUTTON (single-select, used for period)
 --------------------------------------------------- */
 const RadioOption = ({ label, selected, onPress, styles }) => (
     <TouchableOpacity style={styles.radioRow} onPress={onPress} activeOpacity={0.7}>
         <View style={[styles.radioOuter, selected && styles.radioOuterActive]}>
             {selected && <View style={styles.radioInner} />}
+        </View>
+        <Text style={styles.radioLabel}>{label}</Text>
+    </TouchableOpacity>
+);
+
+/* ---------------------------------------------------
+   REUSABLE CHECKBOX (multi-select, used for order source)
+--------------------------------------------------- */
+const CheckboxOption = ({ label, checked, onPress, styles }) => (
+    <TouchableOpacity style={styles.radioRow} onPress={onPress} activeOpacity={0.7}>
+        <View style={[styles.checkboxOuter, checked && styles.checkboxOuterActive]}>
+            {checked && <Text style={styles.checkboxMark}>✓</Text>}
         </View>
         <Text style={styles.radioLabel}>{label}</Text>
     </TouchableOpacity>
@@ -217,7 +254,7 @@ function FilterCard({
     period,
     setPeriod,
     orderSource,
-    setOrderSource,
+    toggleOrderSource,
     fromDate,
     toDate,
     onPressFromDate,
@@ -238,11 +275,11 @@ function FilterCard({
                 <Text style={styles.sectionLabel}>{t('ORDER_SOURCE')}</Text>
                 <View style={[styles.radioGroupRow, { marginBottom: 16 }]}>
                     {ORDER_SOURCE_OPTIONS.map((opt) => (
-                        <RadioOption
+                        <CheckboxOption
                             key={opt.value}
                             label={t(opt.key)}
-                            selected={orderSource === opt.value}
-                            onPress={() => setOrderSource(opt.value)}
+                            checked={orderSource.includes(opt.value)}
+                            onPress={() => toggleOrderSource(opt.value)}
                             styles={styles}
                         />
                     ))}
@@ -260,38 +297,40 @@ function FilterCard({
                         />
                     ))}
                 </View>
-                <View style={styles.filterRow}>
-                    {period === 'OTHERS' && (
-                        <>
-                            <DateField
-                                label={t('FROM_DATE')}
-                                value={fromDate}
-                                editable={true}
-                                onPress={onPressFromDate}
-                                styles={styles}
-                            />
-                            <View style={{ width: 16 }} />
-                            <DateField
-                                label={t('TO_DATE')}
-                                value={toDate}
-                                editable={true}
-                                onPress={onPressToDate}
-                                styles={styles}
-                            />
-                            <View style={{ width: 16 }} />
-                        </>
-                    )}
-                    <TouchableOpacity
-                        style={styles.generateBtn}
-                        activeOpacity={0.85}
-                        onPress={onGenerate}
-                        disabled={generating}
-                    >
-                        <Text style={styles.generateBtnText}>
-                            {generating ? t('GENERATING') : t('GENERATE_REPORT')}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+
+                {/* Custom date range + Generate button ONLY show for the
+                    "OTHERS" (custom range) period. Daily/Weekly/Monthly
+                    auto-generate their report as soon as they're selected. */}
+                {period === 'OTHERS' && (
+                    <View style={styles.filterRow}>
+                        <DateField
+                            label={t('FROM_DATE')}
+                            value={fromDate}
+                            editable={true}
+                            onPress={onPressFromDate}
+                            styles={styles}
+                        />
+                        <View style={{ width: 16 }} />
+                        <DateField
+                            label={t('TO_DATE')}
+                            value={toDate}
+                            editable={true}
+                            onPress={onPressToDate}
+                            styles={styles}
+                        />
+                        <View style={{ width: 16 }} />
+                        <TouchableOpacity
+                            style={styles.generateBtn}
+                            activeOpacity={0.85}
+                            onPress={onGenerate}
+                            disabled={generating}
+                        >
+                            <Text style={styles.generateBtnText}>
+                                {generating ? t('GENERATING') : t('GENERATE_REPORT')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -422,10 +461,9 @@ function ReportTable({ rows, loading, period, orderSource, fromDate, toDate, onF
     const handleDownload = async () => {
         setDownloading(true);
         try {
-            // Re-fetch fresh data from the get-reports API (with current
-            // filters + pageNo: 1) rather than exporting whatever happens
-            // to be loaded on screen, so the CSV always matches the
-            // selected Report Type + Source of Order.
+            // Fetch fresh data from the dedicated export endpoint rather
+            // than exporting whatever happens to be loaded on screen, so
+            // the CSV always matches the current filters.
             const exportRows = await onFetchExportRows();
 
             if (!exportRows || !exportRows.length) {
@@ -433,7 +471,7 @@ function ReportTable({ rows, loading, period, orderSource, fromDate, toDate, onF
                 return;
             }
 
-            const csvContent = buildCsvContent(exportRows, period, getOrderSourceText(orderSource));
+            const csvContent = buildCsvContent(exportRows, period);
             const fileName = buildCsvFileName(period, fromDate, toDate);
 
             if (Platform.OS === 'android') {
@@ -477,24 +515,27 @@ function ReportTable({ rows, loading, period, orderSource, fromDate, toDate, onF
     };
     return (
         <View style={styles.tableCard}>
-            <View style={styles.downloadRow}>
-                <TouchableOpacity
-                    style={styles.downloadBtn}
-                    activeOpacity={0.85}
-                    disabled={loading || downloading}
-                    onPress={handleDownload}
-                >
-                    <Text style={styles.downloadBtnText}>
-                        {downloading ? t('PREPARING') + '...' : t('DOWNLOAD_REPORT')}
-                    </Text>
-                </TouchableOpacity>
-            </View>
+            {!loading && totalRows > 0 && (
+                <View style={styles.downloadRow}>
+                    <TouchableOpacity
+                        style={styles.downloadBtn}
+                        activeOpacity={0.85}
+                        disabled={downloading}
+                        onPress={handleDownload}
+                    >
+                        <Text style={styles.downloadBtnText}>
+                            {downloading ? t('PREPARING') + '...' : t('DOWNLOAD_REPORT')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ flexGrow: 1, minWidth: '100%' }}
             >
                 <View style={{ flex: 1 }}>
                     <View style={styles.tableHeaderRow}>
+                        <Text style={[styles.th, { width: COLUMN_WIDTHS.orderSource }]}>{t('ORDER_SOURCE')}</Text>
                         <Text style={[styles.th, { width: COLUMN_WIDTHS.orderId }]}>{t('ORDERID')}</Text>
                         <Text style={[styles.th, { width: COLUMN_WIDTHS.date }]}>{t('DATE')}</Text>
                         <Text style={[styles.th, { width: COLUMN_WIDTHS.name }]}>{t('NAME_TEXT')}</Text>
@@ -521,6 +562,9 @@ function ReportTable({ rows, loading, period, orderSource, fromDate, toDate, onF
                                             idx === paginatedRows.length - 1 && { borderBottomWidth: 0 },
                                         ]}
                                     >
+                                        <Text style={[styles.td, { width: COLUMN_WIDTHS.orderSource }]}>
+                                            {resolveOrderSourceDisplay(row)}
+                                        </Text>
                                         <Text style={[styles.td, { width: COLUMN_WIDTHS.orderId }]}>#{id}</Text>
                                         <Text style={[styles.td, { width: COLUMN_WIDTHS.date }]}>
                                             {pickField(row, ['date', 'created_at', 'order_date'])}
@@ -572,7 +616,8 @@ export default function ReportScreen({ navigation }) {
     const { baseUrl, userToken, userData, langId } = useSelector(state => state.common);
     const { t } = useTranslation();
     const [period, setPeriod] = useState('DAILY');
-    const [orderSource, setOrderSource] = useState(ORDER_SOURCE_OPTIONS[0].value); // 1 = Web App selected by default
+    // Multi-select order source, ALL checked by default.
+    const [orderSource, setOrderSource] = useState(ALL_ORDER_SOURCE_VALUES);
     const initialRange = getRangeForPeriod('DAILY');
     const [fromDate, setFromDate] = useState(initialRange.from);
     const [toDate, setToDate] = useState(initialRange.to);
@@ -582,6 +627,12 @@ export default function ReportScreen({ navigation }) {
 
     const [activePicker, setActivePicker] = useState(null);
 
+    const toggleOrderSource = (value) => {
+        setOrderSource((prev) =>
+            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+        );
+    };
+
     // Single source of truth for the get-reports request body, used both
     // for the on-screen "Generate Report" flow and the CSV export flow.
     const buildReportPayload = (activePeriod, activeFrom, activeTo, activeOrderSource, pageNo = 1) => ({
@@ -589,7 +640,9 @@ export default function ReportScreen({ navigation }) {
         search_type: SEARCH_TYPE_BY_PERIOD[activePeriod],
         from_date: activeFrom,
         to_date: activeTo,
-        search_order_source: activeOrderSource,
+        // activeOrderSource is the internal checkbox state e.g. [1,3,4];
+        // convert to the API's string codes, e.g. ["web", "Pos App", "customer_app"]
+        search_order_source: toOrderSourceApiValues(activeOrderSource),
         pageNo,
     });
 
@@ -735,8 +788,9 @@ export default function ReportScreen({ navigation }) {
             const today = formatDate(new Date());
             setFromDate(today);
             setToDate(today);
-            // Load today's data by default, same as Daily — user can then
-            // adjust the From/To fields and hit Generate for a custom range.
+            // Show today's data immediately when "Others" is selected —
+            // same as Daily/Weekly/Monthly. The user can then adjust the
+            // From/To fields and hit Generate for a custom range.
             generateReport({ periodOverride: 'OTHERS', fromOverride: today, toOverride: today });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -792,7 +846,7 @@ export default function ReportScreen({ navigation }) {
                             period={period}
                             setPeriod={setPeriod}
                             orderSource={orderSource}
-                            setOrderSource={setOrderSource}
+                            toggleOrderSource={toggleOrderSource}
                             fromDate={fromDate}
                             toDate={toDate}
                             onPressFromDate={() => setActivePicker('from')}
@@ -925,6 +979,28 @@ const getStyles = (theme) => StyleSheet.create({
     radioLabel: {
         fontSize: 13,
         color: theme.fontColorOnBackground,
+    },
+
+    /* Checkbox (multi-select order source) */
+    checkboxOuter: {
+        width: 18,
+        height: 18,
+        borderRadius: 4,
+        borderWidth: 1.5,
+        borderColor: '#C7C7D9',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 6,
+    },
+    checkboxOuterActive: {
+        borderColor: theme.primary,
+        backgroundColor: theme.primary,
+    },
+    checkboxMark: {
+        color: theme.fontColor,
+        fontSize: 12,
+        fontWeight: '700',
+        lineHeight: 14,
     },
 
     /* Date fields + Generate button, all in one row */

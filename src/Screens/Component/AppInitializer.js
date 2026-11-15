@@ -14,10 +14,11 @@ import {
     persistLanguageSelection,
     getPersistedLanguage,
 } from '../../Service/languageService';
+import { postWithOutToken } from '../../Service/service';
 
 export default function AppInitializer({ children }) {
     const dispatch = useDispatch();
-    const { siteSetting,baseUrl, user_slug, userToken } = useSelector((state) => state.common);
+    const { siteSetting, baseUrl, user_slug, userToken } = useSelector((state) => state.common);
 
     const initLanguage = async () => {
         console.log('AppInitializer: starting language fetch, siteSetting =', baseUrl);
@@ -50,14 +51,9 @@ export default function AppInitializer({ children }) {
 
     const initBusinessTheme = async () => {
         try {
-            const res = await fetch(`${siteSetting}get-business-app-settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_slug }),
-            });
-            const json = await res.json();
-            if (json.status && json.data) {
-                dispatch(setBusinessTheme(json.data));
+            const response = await postWithOutToken(siteSetting, 'get-business-app-settings', { user_slug });
+            if (response?.status && response?.data) {
+                dispatch(setBusinessTheme(response.data));
             }
         } catch (e) {
             console.log('theme fetch error', e);

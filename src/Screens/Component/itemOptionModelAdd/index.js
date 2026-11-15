@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback,useMemo } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   useWindowDimensions,
   Text,
@@ -49,6 +49,7 @@ import Modal from 'react-native-modal';
 import RenderHtml from 'react-native-render-html';
 import useTranslation from '../../../Hooks/useTranslation';
 import { useAppTheme } from '../../../Hooks/useAppTheme';
+import { emptyBogoFields, sameBogoGroup } from '../../../utility/bogoUtils'; // adjust path to match your project structure
 // create a component
 const OptionModelAdd = props => {
   const { width, height } = useWindowDimensions();
@@ -85,6 +86,9 @@ const OptionModelAdd = props => {
   const [headerHeight, setHeaderHeight] = useState(56);
   const pendingValidationRef = useRef(false);
   const [fullImageVisible, setFullImageVisible] = useState(false);
+  // BOGO main/companion dishes can only be added with quantity 1.
+  const isQtyLocked = !!(dish?.isDealDish || dish?.bogo_group_id);
+
   useEffect(() => {
     if (!pendingValidationRef.current || dish == null) return;
     pendingValidationRef.current = false;
@@ -182,6 +186,9 @@ const OptionModelAdd = props => {
         }
 
         setDish(dish_value);
+        if (dish_value.isDealDish || dish_value.bogo_group_id) {
+          setProductQty(1);
+        }
         setItemNote(dish_value.notes);
         setDishTotal(props.optionItem.dish.price);
         let CartDish = props.optionItem.CartDish;
@@ -199,7 +206,8 @@ const OptionModelAdd = props => {
             ].quantity,
             10,
           );
-          setProductQty(qty);
+          const locked = !!(dish_value.isDealDish || dish_value.bogo_group_id);
+          setProductQty(locked ? 1 : qty);
           let dishTotal = indexcart.dishTotal / qty;
           setDishTotal(dishTotal);
         }
@@ -262,6 +270,10 @@ const OptionModelAdd = props => {
     choiceIndex,
     choice_id,
   ) => {
+    if (isQtyLocked) {
+      showToastMsg('Quantity cannot be increased for this offer item');
+      return false;
+    }
     let dish_val = JSON.parse(JSON.stringify(dish));
     let trues = 0;
 
@@ -737,7 +749,7 @@ const OptionModelAdd = props => {
 
     let dish = {
       id: dish_val.id,
-      quantity: productQty,
+      quantity: isQtyLocked ? 1 : productQty,
       data: new Array(),
     };
 
@@ -754,7 +766,7 @@ const OptionModelAdd = props => {
       pickprice: dish_val.pickprice,
       notes: dish_note,
       totalprice: dishTotal,
-      total: parseFloat(dishTotal * productQty).toFixed(2),
+      total: parseFloat(dishTotal * (isQtyLocked ? 1 : productQty)).toFixed(2),
       is_img: dish_val.is_img,
       img: dish_val.img,
       spicy: dish_val.spicy,
@@ -765,12 +777,19 @@ const OptionModelAdd = props => {
       ingredientsarray: dish_val.ingredientsarray,
       activeIngredients: activeIngredients,
       activeIngredientsText: activeIngredients.join(', '),
-      quantity: productQty,
+      quantity: isQtyLocked ? 1 : productQty,
       sets: new Array(),
       relation: {
         options: new Array(),
         choices: new Array(),
       },
+      isDealDish: dish_val.isDealDish || false,
+      dealOfferMeta: dish_val.dealOfferMeta || null,
+      isFreeReward: dish_val.isFreeReward || false,
+      offerBadge: dish_val.offerBadge || null,
+      ...emptyBogoFields(),
+      bogo_group_id: dish_val.bogo_group_id || null,
+      is_bogo_main: dish_val.is_bogo_main || false,
     };
 
     let optionsarray = new Array();
@@ -996,6 +1015,13 @@ const OptionModelAdd = props => {
         options: new Array(),
         choices: new Array(),
       },
+      isDealDish: dish_val.isDealDish || false,
+      dealOfferMeta: dish_val.dealOfferMeta || null,
+      isFreeReward: dish_val.isFreeReward || false,
+      offerBadge: dish_val.offerBadge || null,
+      ...emptyBogoFields(),
+      bogo_group_id: dish_val.bogo_group_id || null,
+      is_bogo_main: dish_val.is_bogo_main || false,
     };
     let optionsarray = new Array();
     let choicesarray = new Array();
@@ -1172,7 +1198,12 @@ const OptionModelAdd = props => {
   const CheckData = (cartdata, data) => {
     if (data.sets.length === 0) {
       for (let i = 0; i < cartdata.length; i++) {
-        if (cartdata[i].sets.length === 0) return i;
+        // BOGO guard: only merge rows that share the same bogo_group_id
+        // (including both null, i.e. two ordinary lines) — see
+        // sameBogoGroup in bogoUtils.js.
+        if (cartdata[i].sets.length === 0 && sameBogoGroup(cartdata[i], data)) {
+          return i;
+        }
       }
       return -1;
     }
@@ -1180,7 +1211,7 @@ const OptionModelAdd = props => {
 
   const CheckDataSetExist = (cartdata, data) => {
     for (let i = 0; i < cartdata.length; i++) {
-      if (cartdata[i].relation) {
+      if (cartdata[i].relation && sameBogoGroup(cartdata[i], data)) {
         let arrayDiffoptions = arrayDiff(
           cartdata[i].relation.options,
           data.relation.options,
@@ -1204,6 +1235,7 @@ const OptionModelAdd = props => {
 
   const CheckDataIngreExist = (cartdata, data) => {
     for (let i = 0; i < cartdata.length; i++) {
+      if (!sameBogoGroup(cartdata[i], data)) continue;
       let arrayDiffIngre = arrayDiff(
         cartdata[i].activeIngredients,
         data.activeIngredients,
@@ -1220,6 +1252,7 @@ const OptionModelAdd = props => {
 
   const CheckDataIngreSetsExist = (cartdata, data) => {
     for (let i = 0; i < cartdata.length; i++) {
+      if (!sameBogoGroup(cartdata[i], data)) continue;
       if (cartdata[i].relation) {
         let arrayDiffoptions = arrayDiff(
           cartdata[i].relation.options,
@@ -1655,7 +1688,7 @@ const OptionModelAdd = props => {
 
                                         {/* PLUS */}
                                         <TouchableOpacity
-                                          disabled={maxReached}
+                                          disabled={maxReached || isQtyLocked}
                                           onPress={() => {
                                             choiceQtyIncrement(
                                               setindex,
@@ -1668,7 +1701,7 @@ const OptionModelAdd = props => {
                                             backgroundColor: theme.primary,
                                             paddingHorizontal: 3,
                                             borderRadius: 6,
-                                            opacity: maxReached ? 0.4 : 1,
+                                            opacity: maxReached || isQtyLocked ? 0.4 : 1,
                                           }}
                                         >
                                           <Text style={styles.qtyBtn}>+</Text>
@@ -1731,12 +1764,20 @@ const OptionModelAdd = props => {
                     <Text style={styles.qtyTextFooter}>{productQty}</Text>
                   </View>
 
-                  {/* PLUS BUTTON */}
                   <TouchableOpacity
-                    onPress={() => setProductQty(q => q + 1)}
-                    style={[styles.qtyBtnSide, styles.qtyBtnEnabled]}
+                    disabled={isQtyLocked}
+                    onPress={() => {
+                      if (isQtyLocked) return;
+                      setProductQty(q => q + 1);
+                    }}
+                    style={[
+                      styles.qtyBtnSide,
+                      isQtyLocked ? styles.qtyBtnDisabled : styles.qtyBtnEnabled,
+                    ]}
                   >
-                    <Text style={styles.qtySymbol}>+</Text>
+                    <Text style={[styles.qtySymbol, isQtyLocked && styles.qtySymbolDisabled]}>
+                      +
+                    </Text>
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity
@@ -1748,6 +1789,7 @@ const OptionModelAdd = props => {
                   <Text style={styles.addTextNew}>
                     {dataItem.type == 1 ? 'Update' : 'Add'}
                   </Text>
+
                 </TouchableOpacity>
               </View>
             </View>

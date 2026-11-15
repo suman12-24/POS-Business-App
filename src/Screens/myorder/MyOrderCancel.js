@@ -19,13 +19,15 @@ import Loader from '../Component/loader';
 import OrderCardSkeleton from '../Component/OrderCardSkeleton';
 import OrderCard, { OrderTableHeader } from '../Component/OrderCard';
 import { useAppTheme } from '../../Hooks/useAppTheme';
+import SelectUsbPrinter from '../Component/selectusbprinter';
+import { printOrderReceipt } from '../../utility/printReceipt';
 // create a component
 const MyOrderCancel = () => {
   const theme = useAppTheme();
   const styles = Styles(theme);
   Moment.locale('en');
   const navigation = useNavigation();
-  const { baseUrl, userToken, langId } = useSelector(state => state.common);
+  const { baseUrl, userToken, langId, UsbPrinter } = useSelector(state => state.common);
   const { t } = useTranslation();
   // ---- RESPONSIVE HELPERS -------------------------------------------------
   const { width: winWidth, height: winHeight } = useWindowDimensions();
@@ -50,7 +52,11 @@ const MyOrderCancel = () => {
   const [viewmoreloader, setMoreLoader] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [printer_model, setPrinterVisiblemodal] = useState(false);
 
+  const printer_model_close = () => {
+    setPrinterVisiblemodal(false);
+  };
   useFocusEffect(
     React.useCallback(() => {
       getOrderList();
@@ -131,13 +137,26 @@ const MyOrderCancel = () => {
       </View>
     ) : null;
   };
+
+  const handlePrint = item => {
+    if (UsbPrinter === null) {
+      setPrinterVisiblemodal(true);
+      return;
+    }
+    const printed = printOrderReceipt({ response: item, usbPrinter: UsbPrinter });
+    if (!printed) {
+      Alert.alert(t('ERROR'), t('PRINT_FAILED'));
+    }
+  };
   const openOrderDetail = item => {
     navigation.navigate('OrderCancelDetails', { order: item });
   };
   return (
     <View style={styles.container}>
       {viewloader === true ? <Loader /> : null}
-
+      {printer_model === true && (
+        <SelectUsbPrinter printer_model_close={printer_model_close} />
+      )}
       <View style={styles.main}>
         <View
           style={{
@@ -291,7 +310,9 @@ const MyOrderCancel = () => {
               <OrderCard
                 item={item}
                 tabType={'cancel'}
-                onPress={() => openOrderDetail(item)} />
+                onPress={() => openOrderDetail(item)}
+                onPrint={() => handlePrint(item)}
+              />
             )}
           />
         ) : orderlist.isLoading === false && orderlist.list.length == 0 ? (

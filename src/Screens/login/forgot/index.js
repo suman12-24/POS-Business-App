@@ -115,12 +115,12 @@ const Forgot = ({ props, route, navigation }) => {
             }}
           >
             <Image
-              // source={
-              //   loginImages?.logo
-              //     ? { uri: loginImages.logo }
-              //     : Images.login_logo
-              // }
-              source={Images.splash_logo}
+              source={
+                loginImages?.logo
+                  ? { uri: loginImages.logo }
+                  : Images.splash_logo
+              }
+              //source={Images.splash_logo}
               style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
             />
           </View>

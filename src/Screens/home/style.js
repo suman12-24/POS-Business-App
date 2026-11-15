@@ -1,13 +1,14 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../Constants/Colors';
 import { Inter } from '../../Constants/Fonts';
-import {responsiveHeight,responsiveWidth,responsiveFontSize} from 'react-native-responsive-dimensions';
+import { responsiveHeight, responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 
 const AccentSoft = '#EDE9FE';
 const BorderSoft = '#EEEAFB';
 
 const Styles = (theme, columns = 3) => {
-
+  const categoryGapPercent = 2;
+  const categoryPillWidthPercent = (100 - categoryGapPercent * 3) / 4;
   const gapPercent = 1.5;
   const cardWidthPercent = (100 - gapPercent * (columns - 1)) / columns;
   return StyleSheet.create({
@@ -67,26 +68,29 @@ const Styles = (theme, columns = 3) => {
     /* ---------- category pills (row 1: icon + name) ---------- */
     categoryRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      position: 'relative', // needed so the button can be absolutely positioned relative to this row
+      flexWrap: 'wrap',
     },
     categoryScroll: {
       width: '100%', // full width instead of flex:1 sharing space with the button
     },
     categoryPill: {
-      width: responsiveWidth(15),
-      minHeight: responsiveHeight(8),
-      paddingHorizontal: responsiveWidth(1.2),
-      paddingVertical: responsiveHeight(0.9),
+      width: `${categoryPillWidthPercent}%`,
+      minHeight: responsiveHeight(6.5),
+      paddingHorizontal: responsiveWidth(0.8),
+      paddingVertical: responsiveHeight(0.8),
       borderRadius: responsiveWidth(0.8),
       borderWidth: 1,
       borderColor: '#D9D6ED',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      marginRight: responsiveWidth(1),
+      marginRight: `${categoryGapPercent}%`,
+      marginBottom: responsiveHeight(1.2),
       flexDirection: 'row',
       backgroundColor: theme.background,
-      elevation: 2
+      elevation: 2,
+    },
+    categoryPillLastInRow: {
+      marginRight: 0,
     },
     categoryPillSelected: {
       backgroundColor: theme.primary,
@@ -110,31 +114,21 @@ const Styles = (theme, columns = 3) => {
     },
     categoryPillText: {
       fontFamily: Inter.medium,
-      fontSize: responsiveFontSize(1),
+      fontSize: responsiveFontSize(1.1),
       color: theme.fontColorOnBackground,
       flexShrink: 1,
     },
     categoryPillTextSelected: {
       color: theme.fontColor,
     },
-    // Floating "scroll for more" chevron — pinned to the right, doesn't move.
-    categoryNextBtn: {
-      position: 'absolute',
-      right: 0,
-      top: '50%',
-      transform: [{ translateY: -responsiveHeight(2.25) }], // half of button height, to vertically center
-      width: responsiveHeight(4.5),
-      height: responsiveHeight(4.5),
-      borderRadius: responsiveHeight(1),
-      backgroundColor: theme.background,
-      alignItems: 'center',
+    categoryPillNoImage: {
       justifyContent: 'center',
-      borderColor: '#E3E3EA',
-      elevation: 4,
-      shadowColor: '#000', // optional, helps it visually "float" above content on iOS
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+    },
+    categoryPillTextWrapCentered: {
+      alignItems: 'center',
+    },
+    categoryPillTextCentered: {
+      textAlign: 'center',
     },
 
     /* ---------- subcategory pills (row 2: text-only filter chips) ---------- */
@@ -161,13 +155,12 @@ const Styles = (theme, columns = 3) => {
     },
     subCategoryPillText: {
       fontFamily: Inter.medium,
-      fontSize: responsiveFontSize(1.3),
+      fontSize: responsiveFontSize(1),
       color: theme.fontColorOnBackground,
     },
     subCategoryPillTextSelected: {
       color: '#FFFFFF',
     },
-
     /* ---------- product grid ---------- */
     productScrollRow: {
       flex: 1,
@@ -228,7 +221,7 @@ const Styles = (theme, columns = 3) => {
     },
     productName: {
       fontFamily: Inter.medium,
-      fontSize: responsiveFontSize(0.95),
+      fontSize: responsiveFontSize(0.8),
       color: theme.fontColorOnBackground,
     },
     productFooterRow: {
@@ -293,7 +286,8 @@ const Styles = (theme, columns = 3) => {
     },
     noRecordText: {
       marginTop: responsiveHeight(10),
-      alignSelf: 'center',
+      width: '100%',
+      textAlign: 'center',
       fontFamily: Inter.regular,
       fontSize: responsiveFontSize(2),
       color: Colors.red,
@@ -488,7 +482,7 @@ const Styles = (theme, columns = 3) => {
     featuredBadgeText: {
       fontFamily: Inter.regular,
       fontSize: responsiveFontSize(0.6),
-      color:theme.fontColor,
+      color: theme.fontColor,
     },
   });
 

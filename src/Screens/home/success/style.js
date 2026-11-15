@@ -282,7 +282,6 @@ const Styles = (theme) => {
       backgroundColor: PAGE_BG,
     },
     outlineButton: {
-
       height: responsiveHeight(6),
       paddingHorizontal: responsiveWidth(3),
       borderRadius: 8,
@@ -297,7 +296,6 @@ const Styles = (theme) => {
       fontSize: responsiveFontSize(0.95),
     },
     button: {
-
       height: responsiveHeight(6),
       paddingHorizontal: responsiveWidth(3),
       backgroundColor: theme.secondary,

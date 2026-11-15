@@ -1,0 +1,280 @@
+diff --git a/node_modules/react-native-ebprinter/android/src/main/java/com/goodcom/react/EbPrinter/EbPrinterModule.java b/node_modules/react-native-ebprinter/android/src/main/java/com/goodcom/react/EbPrinter/EbPrinterModule.java
+index c66e4d7..c508476 100644
+--- a/node_modules/react-native-ebprinter/android/src/main/java/com/goodcom/react/EbPrinter/EbPrinterModule.java
++++ b/node_modules/react-native-ebprinter/android/src/main/java/com/goodcom/react/EbPrinter/EbPrinterModule.java
+@@ -18,10 +18,23 @@ import com.facebook.react.bridge.WritableNativeArray;
+ import com.goodcom.gcprinter.GcPrinterHelper;
+ 
+ import java.util.List;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import java.util.concurrent.Future;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ public class EbPrinterModule extends ReactContextBaseJavaModule {
+     private static ReactApplicationContext reactContext;
+ 
++    // Dedicated single-thread executor so a hung/unreachable network printer
++    // connect can NEVER block the shared NativeModulesThread (which every
++    // other native module call, including JS fetch/XHR bridge calls, also
++    // travels through). Without this, an unreachable printer IP could stall
++    // Socket.connect() for the OS's default TCP timeout (60-120s), and every
++    // other native call queued behind it would appear to hang too.
++    private final ExecutorService networkPrinterExecutor = Executors.newSingleThreadExecutor();
++
+     public EbPrinterModule(ReactApplicationContext context) {
+         super(context);
+         reactContext = context;
+@@ -35,55 +48,99 @@ public class EbPrinterModule extends ReactContextBaseJavaModule {
+ 
+     @ReactMethod
+     public void printText(int deviceIndex,boolean isAutoFeed) {
+-        GcPrinterHelper.getInstance(deviceIndex).printText(reactContext, isAutoFeed);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).printText(reactContext, isAutoFeed);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawText(int deviceIndex,String strLeft, int fontLeft, String strMid, int fontMid, String strRight, int fontRight) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawText(strLeft, fontLeft, strMid, fontMid, strRight, fontRight);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawText(strLeft, fontLeft, strMid, fontMid, strRight, fontRight);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawLeftRight(int deviceIndex,String strLeft, int fontLeft, String strRight, int fontRight) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawLeftRight(strLeft, fontLeft, strRight, fontRight);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawLeftRight(strLeft, fontLeft, strRight, fontRight);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawCustom(int deviceIndex,String string, int fontSize, int align) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawCustom(string, fontSize, align);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawCustom(string, fontSize, align);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawNewLine(int deviceIndex) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawNewLine();
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawNewLine();
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawOneLine(int deviceIndex,int fontSize) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawOneLine(fontSize);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawOneLine(fontSize);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawOneLineDefault(int deviceIndex) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawOneLine();
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawOneLine();
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawBarcode(int deviceIndex,String string, int align, int type) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, type);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, type);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void drawBarcodeWithHeight(int deviceIndex,String string, int align, int type, int height) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, type, height);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, type, height);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void drawQrCode(int deviceIndex,String string, int align) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, GcPrinterHelper.getInstance(deviceIndex).barcodeQrCode);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, GcPrinterHelper.getInstance(deviceIndex).barcodeQrCode);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void drawQrCodeWithHeight(int deviceIndex,String string, int align, int height) {
+-        GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, GcPrinterHelper.getInstance(deviceIndex).barcodeQrCode, height);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).drawBarcode(string, align, GcPrinterHelper.getInstance(deviceIndex).barcodeQrCode, height);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void isDeviceSupport(int deviceIndex,Promise promise) {
+@@ -95,14 +152,22 @@ public class EbPrinterModule extends ReactContextBaseJavaModule {
+     }
+     @ReactMethod
+     public void printBitmap(int deviceIndex,Bitmap bitmap, int align, Boolean isAutoFeed) {
+-        GcPrinterHelper.getInstance(deviceIndex).printBitmap(reactContext, bitmap, align, isAutoFeed);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).printBitmap(reactContext, bitmap, align, isAutoFeed);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void printImageByBase64(int deviceIndex,String base64, int align, Boolean isAutoFeed){
+         byte[] decodedBytes = Base64.decode(base64.split(",")[1], Base64.DEFAULT);
+         Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+-        GcPrinterHelper.getInstance(deviceIndex).printBitmap(reactContext, bitmap, align, isAutoFeed);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).printBitmap(reactContext, bitmap, align, isAutoFeed);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+@@ -112,22 +177,38 @@ public class EbPrinterModule extends ReactContextBaseJavaModule {
+             bytes[i] = (byte) byteArray.getInt(i);
+         }
+         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+-        GcPrinterHelper.getInstance(deviceIndex).printBitmap(reactContext, bitmap, align, isAutoFeed);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).printBitmap(reactContext, bitmap, align, isAutoFeed);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+ 
+     @ReactMethod
+     public void printJson(int deviceIndex,String json) {
+-        GcPrinterHelper.getInstance(deviceIndex).printJson(reactContext, json);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).printJson(reactContext, json);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void openCashBox(int deviceIndex){
+-        GcPrinterHelper.getInstance(deviceIndex).openCashBox(reactContext);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).openCashBox(reactContext);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void showLcdBitmapByBase64(int deviceIndex,String base64){
+         byte[] decodedBytes = Base64.decode(base64.split(",")[1], Base64.DEFAULT);
+         Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+-        GcPrinterHelper.getInstance(deviceIndex).showLcdBitmap(reactContext,bitmap);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).showLcdBitmap(reactContext,bitmap);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void showLcdBitmapByArray(int deviceIndex,ReadableArray byteArray){
+@@ -136,27 +217,55 @@ public class EbPrinterModule extends ReactContextBaseJavaModule {
+             bytes[i] = (byte) byteArray.getInt(i);
+         }
+         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+-        GcPrinterHelper.getInstance(deviceIndex).showLcdBitmap(reactContext,bitmap);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).showLcdBitmap(reactContext,bitmap);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void selectBluetoothPrinter(int deviceIndex,String macAddress){
+-        GcPrinterHelper.getInstance(deviceIndex).selectBluetoothPrinter(macAddress);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).selectBluetoothPrinter(macAddress);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void selectUsbPrinter(int deviceIndex,String deviceInfo){
+-        GcPrinterHelper.getInstance(deviceIndex).selectUsbPrinter(deviceInfo);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).selectUsbPrinter(deviceInfo);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
+     @ReactMethod
+     public void selectUsbPrinterById(int deviceIndex,int vid,int pid){
+-        GcPrinterHelper.getInstance(deviceIndex).selectUsbPrinter(vid,pid);
++        try {
++            GcPrinterHelper.getInstance(deviceIndex).selectUsbPrinter(vid,pid);
++        } catch (Throwable t) {
++            android.util.Log.e("EbPrinter", "native call failed", t);
++        }
+     }
++
++    // ---- CHANGED: network connect now runs on its own background thread
++    // with a hard 4s timeout, so a dead/unreachable printer can never stall
++    // the bridge thread (and therefore never stalls other app network calls).
+     @ReactMethod
+     public void selectNetworkPrinter(int deviceIndex,String ipAddress,int port,Promise promise){
+-        try {
+-            boolean success = GcPrinterHelper.getInstance(deviceIndex).selectNetworkPrinter(ipAddress, port);
++        Future<Boolean> future = networkPrinterExecutor.submit(() ->
++                GcPrinterHelper.getInstance(deviceIndex).selectNetworkPrinter(ipAddress, port)
++        );
+ 
++        try {
++            boolean success = future.get(4, TimeUnit.SECONDS);
+             promise.resolve(success);
+-
++        } catch (TimeoutException e) {
++            future.cancel(true);
++            promise.reject(
++                    "ERR_NET_PRINTER_TIMEOUT",
++                    "Timed out connecting to printer at " + ipAddress
++            );
+         } catch (Exception e) {
+             promise.reject(
+                     "ERR_SELECT_NET_PRINTER",
+@@ -164,8 +273,8 @@ public class EbPrinterModule extends ReactContextBaseJavaModule {
+                     e
+             );
+         }
+-
+     }
++
+     @ReactMethod
+     public void getBluetoothDeviceList(int deviceIndex,Promise promise) {
+         try {

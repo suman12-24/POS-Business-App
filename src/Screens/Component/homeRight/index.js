@@ -1,17 +1,46 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Text, View, BackHandler, Dimensions, TextInput, ScrollView, Image, TouchableOpacity, Alert, Platform, Modal, FlatList, useColorScheme, Keyboard, } from 'react-native';
+import {
+  Text,
+  View,
+  BackHandler,
+  Dimensions,
+  TextInput,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  Modal,
+  FlatList,
+  useColorScheme,
+  Keyboard,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Styles from './Styles';
 import { Colors } from '../../../Constants/Colors';
-import { Images } from '../../Constants/ImageIconContant';
-import { responsiveHeight, responsiveWidth, responsiveFontSize, } from 'react-native-responsive-dimensions';
+import {
+  responsiveHeight,
+  responsiveWidth,
+  responsiveFontSize,
+} from 'react-native-responsive-dimensions';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCartDetails, setCartQuantity, } from '../../../Store/Reducers/CommonReducer';
+import {
+  setCartDetails,
+  setCartQuantity,
+  setUsbPrinterValue,
+} from '../../../Store/Reducers/CommonReducer';
 import { showToastMsg, getData, setData } from '../../../Service/localStorage';
 import { postWithOutToken, postWithToken } from '../../../Service/service';
 import { useFocusEffect } from '@react-navigation/native';
-import { Container, Icon, AppTextInput, AppButton, RadioButton, CheckBox, } from 'react-native-basic-elements';
+import {
+  Container,
+  Icon,
+  AppTextInput,
+  AppButton,
+  RadioButton,
+  CheckBox,
+} from 'react-native-basic-elements';
 import { useNavigation } from '@react-navigation/native';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -21,10 +50,17 @@ import { Menu } from 'react-native-paper';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import useTranslation from '../../../Hooks/useTranslation';
 import SkeletonItem from './SkeletonItem';
-import { EmptyCartSkeleton, } from '../../Component/ProductCardSkeleton';
+import { EmptyCartSkeleton } from '../../Component/ProductCardSkeleton';
 import useOrderTypes from '../../../Hooks/useOrderTypes';
 import { useAppTheme } from '../../../Hooks/useAppTheme';
 import EbPrinter from 'react-native-ebprinter';
+import ServiceTypeSelector from '../../../utility/ServiceTypeSelector';
+import {
+  isBogoGroupItem,
+  canRemoveBogoItem,
+  resyncBogoGroup,
+} from '../../../utility/bogoUtils';
+import { Inter } from '../../../Constants/Fonts';
 
 const SERVICE_TYPE_META = {
   delivery: { sub: 'We deliver to you', icon: 'bicycle-outline' },
@@ -37,7 +73,15 @@ const GOOGLE_PLACES_API_KEY = 'AIzaSyBNp8VGcaCxcHqGrlwbLfsgeyPFkUgU67Y';
 
 const NOTES_MAX_LENGTH = 250;
 const DISCOUNT_MIN_SUBTOTAL = 100;
-const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const WEEKDAY_NAMES = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
 
 const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   const toRad = deg => (deg * Math.PI) / 180;
@@ -74,28 +118,55 @@ const isPointInZone = (lat, lng, zonePoints) => {
 const CheckoutSkeleton = ({ styles }) => {
   return (
     <View style={styles.skeletonOverlay}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: responsiveWidth(3) }}>
-        {/* Name Fields Row / Inputs */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: responsiveWidth(3) }}
+      >
         {[1, 2].map(i => (
-          <View key={'sk_name_' + i} style={{ marginBottom: responsiveHeight(1.8) }}>
-            <SkeletonItem width={responsiveWidth(22)} height={responsiveHeight(1.6)} borderRadius={4} style={{ marginBottom: 6 }} />
-            <SkeletonItem width="100%" height={responsiveHeight(5)} borderRadius={8} />
+          <View
+            key={'sk_name_' + i}
+            style={{ marginBottom: responsiveHeight(1.8) }}
+          >
+            <SkeletonItem
+              width={responsiveWidth(22)}
+              height={responsiveHeight(1.6)}
+              borderRadius={4}
+              style={{ marginBottom: 6 }}
+            />
+            <SkeletonItem
+              width="100%"
+              height={responsiveHeight(5)}
+              borderRadius={8}
+            />
           </View>
         ))}
-        {/* Contact Fields */}
         {[1, 2].map(i => (
-          <View key={'sk_contact_' + i} style={{ marginBottom: responsiveHeight(1.8) }}>
-            <SkeletonItem width={responsiveWidth(22)} height={responsiveHeight(1.6)} borderRadius={4} style={{ marginBottom: 6 }} />
-            <SkeletonItem width="100%" height={responsiveHeight(5)} borderRadius={8} />
+          <View
+            key={'sk_contact_' + i}
+            style={{ marginBottom: responsiveHeight(1.8) }}
+          >
+            <SkeletonItem
+              width={responsiveWidth(22)}
+              height={responsiveHeight(1.6)}
+              borderRadius={4}
+              style={{ marginBottom: 6 }}
+            />
+            <SkeletonItem
+              width="100%"
+              height={responsiveHeight(5)}
+              borderRadius={8}
+            />
           </View>
         ))}
 
-        {/* Address Input */}
         <View style={{ marginBottom: responsiveHeight(2) }}>
-          <SkeletonItem width="100%" height={responsiveHeight(5)} borderRadius={8} />
+          <SkeletonItem
+            width="100%"
+            height={responsiveHeight(5)}
+            borderRadius={8}
+          />
         </View>
 
-        {/* Cart Items Cards */}
         {[1, 2].map(i => (
           <View
             key={'sk_cart_' + i}
@@ -108,16 +179,33 @@ const CheckoutSkeleton = ({ styles }) => {
               marginBottom: responsiveHeight(1.5),
             }}
           >
-            <SkeletonItem width={responsiveWidth(12)} height={responsiveWidth(12)} borderRadius={8} />
+            <SkeletonItem
+              width={responsiveWidth(12)}
+              height={responsiveWidth(12)}
+              borderRadius={8}
+            />
             <View style={{ marginLeft: responsiveWidth(3), flex: 1 }}>
-              <SkeletonItem width="70%" height={responsiveHeight(1.8)} borderRadius={4} style={{ marginBottom: 6 }} />
-              <SkeletonItem width="40%" height={responsiveHeight(1.4)} borderRadius={4} />
+              <SkeletonItem
+                width="70%"
+                height={responsiveHeight(1.8)}
+                borderRadius={4}
+                style={{ marginBottom: 6 }}
+              />
+              <SkeletonItem
+                width="40%"
+                height={responsiveHeight(1.4)}
+                borderRadius={4}
+              />
             </View>
           </View>
         ))}
 
-        {/* Fee Breakdown Area */}
-        <View style={{ marginTop: responsiveHeight(1), paddingHorizontal: responsiveWidth(1) }}>
+        <View
+          style={{
+            marginTop: responsiveHeight(1),
+            paddingHorizontal: responsiveWidth(1),
+          }}
+        >
           {[1, 2, 3].map(i => (
             <View
               key={'sk_fee_' + i}
@@ -127,13 +215,20 @@ const CheckoutSkeleton = ({ styles }) => {
                 marginBottom: responsiveHeight(1.2),
               }}
             >
-              <SkeletonItem width={responsiveWidth(28)} height={responsiveHeight(1.6)} borderRadius={4} />
-              <SkeletonItem width={responsiveWidth(16)} height={responsiveHeight(1.6)} borderRadius={4} />
+              <SkeletonItem
+                width={responsiveWidth(28)}
+                height={responsiveHeight(1.6)}
+                borderRadius={4}
+              />
+              <SkeletonItem
+                width={responsiveWidth(16)}
+                height={responsiveHeight(1.6)}
+                borderRadius={4}
+              />
             </View>
           ))}
         </View>
 
-        {/* Pay Now Button */}
         <SkeletonItem
           width="100%"
           height={responsiveHeight(6)}
@@ -144,8 +239,13 @@ const CheckoutSkeleton = ({ styles }) => {
     </View>
   );
 };
-
-// Move this OUTSIDE HomeRight, e.g. right above it or in its own file.
+const ESTIMATE_TIME_LABEL_KEYS = {
+  delivery: 'ESTIMATE_DELIVERY_TIME',
+  pickup: 'ESTIMATE_PICKUP_TIME',
+  'dine-in': 'ESTIMATE_DINEIN_TIME',
+  catering: 'ESTIMATE_CATERING_TIME',
+  'catering-delivery': 'ESTIMATE_CATERING_DELIVERY_TIME',
+};
 const EstimateTimeDropdown = ({
   selectedTime,
   setSelectedTime,
@@ -153,9 +253,10 @@ const EstimateTimeDropdown = ({
   errors,
   timeOptions,
   styles,
-  theme
+  theme,
+  selectedServiceType,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const [value, setValue] = useState(selectedTime ? selectedTime : null);
 
   useEffect(() => {
@@ -175,10 +276,20 @@ const EstimateTimeDropdown = ({
         </Text>
         <View style={styles.iconContainer}>
           {isTableBooked && (
-            <AntDesignIcon style={styles.icon} color={theme.primary} name="clockcircleo" size={20} />
+            <AntDesignIcon
+              style={styles.icon}
+              color={theme.primary}
+              name="clockcircleo"
+              size={20}
+            />
           )}
           {isSelected && (
-            <AntDesignIcon style={styles.icon} color={theme.primary} name="clockcircleo" size={20} />
+            <AntDesignIcon
+              style={styles.icon}
+              color={theme.primary}
+              name="clockcircleo"
+              size={20}
+            />
           )}
         </View>
       </View>
@@ -186,7 +297,12 @@ const EstimateTimeDropdown = ({
   };
   return (
     <Dropdown
-      style={[styles.dropdown, errors.selectedTime ? { borderColor: Colors.red, borderWidth: 1 } : null]}
+      style={[
+        styles.dropdown,
+        errors.selectedTime
+          ? { borderColor: Colors.red, borderWidth: 1 }
+          : null,
+      ]}
       placeholderStyle={styles.placeholderStyle}
       selectedTextStyle={styles.selectedTextStyle}
       inputSearchStyle={styles.inputSearchStyle}
@@ -196,7 +312,9 @@ const EstimateTimeDropdown = ({
       maxHeight={300}
       labelField="label"
       valueField="value"
-      placeholder={t('ESTIMATE_DELIVERY_TIME')}
+      placeholder={t(
+        ESTIMATE_TIME_LABEL_KEYS[selectedServiceType] || 'ESTIMATE_PICKUP_TIME',
+      )}
       searchPlaceholder={t('SEARCH')}
       value={value}
       onChange={item => {
@@ -204,21 +322,35 @@ const EstimateTimeDropdown = ({
         clearFieldError('selectedTime');
       }}
       renderLeftIcon={() => (
-        <AntDesignIcon style={styles.icon} color={theme.primary} name="clockcircleo" size={responsiveFontSize(1.5)} />
+        <AntDesignIcon
+          style={styles.icon}
+          color={theme.primary}
+          name="clockcircleo"
+          size={responsiveFontSize(1.5)}
+        />
       )}
       renderItem={renderItem}
     />
   );
 };
-// create a component
+
 const HomeRight = props => {
   const theme = useAppTheme();
   const styles = Styles(theme);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const colorScheme = useColorScheme();
-  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails, siteSetting, user_slug, UsbPrinter } =
-    useSelector(state => state.common);
+  const {
+    baseUrl,
+    siteUrl,
+    userToken,
+    userData,
+    langId,
+    cartDetails,
+    siteSetting,
+    user_slug,
+    UsbPrinter,
+  } = useSelector(state => state.common);
   const { t } = useTranslation();
   const [viewloader, setLoader] = useState(false);
   const [categoryDetails, setCategoryDetails] = useState([]);
@@ -235,9 +367,10 @@ const HomeRight = props => {
   const [PendingFreeDeliveryValue, setPendingFreeDeliveryValue] = useState('');
   const [preorderDetails, setPreorderDetails] = useState(null);
   const [discount_code, setDiscountCode] = useState('');
-  const [couponMessage, setCouponMessage] = useState({ text: '', isError: false });
-  const [printers, setPrinters] = useState(null);
-  const [currentPrinter, setCurrentPrinter] = useState(null);
+  const [couponMessage, setCouponMessage] = useState({
+    text: '',
+    isError: false,
+  });
   const noActiveMenuSignalRef = useRef();
   const [buyerDetails, setBuyerDetails] = useState({
     id: 0,
@@ -248,8 +381,8 @@ const HomeRight = props => {
     cel: '',
     specialaddress: '',
     delievryaddress: '',
-    lat: null,     // add
-    lng: null,     // add
+    lat: null,
+    lng: null,
     notes: '',
   });
   const [discountInfo, setDiscountInfo] = useState({
@@ -260,7 +393,6 @@ const HomeRight = props => {
   const [discount, setDiscount] = useState(0.0);
   const [tips, setTips] = useState(0.0);
   const [cartFee, setCartFee] = useState([]);
-  const [ipAddressPrinter, setipaddresprinter] = useState();
   const [paymentMethod, setPaymentMethod] = useState({
     isLoading: true,
     list: [],
@@ -269,10 +401,9 @@ const HomeRight = props => {
   const [paymentIndex, setPaymentIndex] = useState('');
 
   const [paircode, setPaircode] = useState('');
-  const [displaypaircode, setDisplayPairCode] = useState(false);
   const [editingNoteKey, setEditingNoteKey] = useState(null);
   const [noteDraft, setNoteDraft] = useState('');
-  // ---- Inline validation state ----
+
   const [errors, setErrors] = useState({
     name: '',
     last_name: '',
@@ -304,20 +435,31 @@ const HomeRight = props => {
 
   const [update_action_status, setUpdateActionStatus] = useState(false);
   const scrollViewRef = React.useRef(null);
-  const fieldPositions = useRef({}); // NEW
+  const fieldPositions = useRef({});
   const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
   const [selectedServiceType, setSelectedServiceType] = useState('pickup');
   const [orderTiming, setOrderTiming] = useState('now');
   const hasAutoOpenedOrderType = React.useRef(false);
   const ORDER_TYPE_MODAL_SHOWN_KEY = 'hasShownOrderTypeModal';
+
   const mapDefaultOrderTypeToKey = val => {
     const found = orderTypes.list.find(t => Number(t.id) === Number(val));
     return found ? found.slug : 'pickup';
   };
+
   const registerFieldPosition = key => e => {
     fieldPositions.current[key] = e.nativeEvent.layout.y;
   };
-  const FIELD_ORDER = ['name', 'last_name', 'cel', 'delievryaddress', 'selectedTime', 'paymentId', 'paircode'];
+
+  const FIELD_ORDER = [
+    'name',
+    //  'last_name',
+    'cel',
+    'delievryaddress',
+    'selectedTime',
+    'paymentId',
+    'paircode',
+  ];
 
   const scrollToFirstError = newErrors => {
     const firstErrorField = FIELD_ORDER.find(key => newErrors[key]);
@@ -325,14 +467,18 @@ const HomeRight = props => {
 
     const y = fieldPositions.current[firstErrorField];
     if (typeof y === 'number') {
-      scrollViewRef.current.scrollTo({ y: Math.max(y - responsiveHeight(2), 0), animated: true });
+      scrollViewRef.current.scrollTo({
+        y: Math.max(y - responsiveHeight(2), 0),
+        animated: true,
+      });
     }
   };
 
   const mapServiceTypeKeyToOrderType = key => {
     const found = serviceTypeOptions.find(opt => opt.key === key);
-    return found ? found.id : 2; // fall back to Pickup
+    return found ? found.id : 2;
   };
+
   const serviceTypeOptions = React.useMemo(
     () =>
       getAvailableOrderTypes(activeBusiness).map(type => ({
@@ -352,6 +498,7 @@ const HomeRight = props => {
     const found = serviceTypeOptions.find(opt => opt.key === selectedServiceType);
     return found ? found.label : 'Pickup';
   }, [serviceTypeOptions, selectedServiceType]);
+
   useEffect(() => {
     if (
       serviceTypeOptions.length > 0 &&
@@ -370,10 +517,13 @@ const HomeRight = props => {
       noActiveMenuSignalRef.current = props.noActiveMenuSignal;
       setShowOrderTypeModal(true);
     }
-  }, [props.noActiveMenu, props.noActiveMenuSignal, activeBusiness, serviceTypeOptions.length]);
-  // ---- Preorder / Pickup toggle + date & time picker modals ----
-  // 'preorder' opens a date picker then a time picker (scheduled order);
-  // 'pickup' means order now, no scheduling needed.
+  }, [
+    props.noActiveMenu,
+    props.noActiveMenuSignal,
+    activeBusiness,
+    serviceTypeOptions.length,
+  ]);
+
   const [orderMode, setOrderMode] = useState(
     props.preorderDetails && props.preorderDetails.preorder
       ? 'preorder'
@@ -388,15 +538,14 @@ const HomeRight = props => {
     (props.preorderDetails && props.preorderDetails.preorderTime) || '',
   );
 
-  // preorderinterval (minutes between time slots) comes off the business object.
   const preorderIntervalMinutes = React.useMemo(() => {
-    const interval = parseInt(activeBusiness && activeBusiness.preorderinterval, 10);
+    const interval = parseInt(
+      activeBusiness && activeBusiness.preorderinterval,
+      10,
+    );
     return interval > 0 ? interval : 30;
   }, [activeBusiness]);
 
-  // Next 15 days starting today, each carrying that weekday's open/closed
-  // status + time windows straight from the business schedule, e.g.
-  // { label: '05/07/2026', weekday: 'Sunday', isToday, isSunday, isOpen, times }
   const orderDateOptions = React.useMemo(() => {
     const schedule = (activeBusiness && activeBusiness.schedule) || [];
     const days = [];
@@ -423,9 +572,6 @@ const HomeRight = props => {
     return days;
   }, [activeBusiness]);
 
-  // Builds preorderIntervalMinutes-spaced slots for every open/close window
-  // on a given date entry (from orderDateOptions). Drops slots already in
-  // the past when the date is today.
   const buildTimeSlotsForDate = dateItem => {
     if (!dateItem || !dateItem.isOpen || !Array.isArray(dateItem.times)) {
       return [];
@@ -464,13 +610,9 @@ const HomeRight = props => {
     return slots;
   };
 
-  // Time slots for whichever date was just picked in the date modal.
   const [selectedDateTimeSlots, setSelectedDateTimeSlots] = useState([]);
 
   const pushPreorderDetailsUp = details => {
-    // Home.js owns the source-of-truth preorderDetails state (used when
-    // fetching the business menu). If it passed down a setter, keep it in
-    // sync; if not, this screen still tracks the selection locally.
     if (typeof props.updatePreorderDetails === 'function') {
       props.updatePreorderDetails(details);
     }
@@ -482,9 +624,7 @@ const HomeRight = props => {
   };
 
   const handleSelectPreorderDate = dateItem => {
-    if (!dateItem.isOpen) {
-      return; // business is closed that day — nothing to select
-    }
+    if (!dateItem.isOpen) return;
     setSelectedPreorderDate(dateItem.label);
     setSelectedDateTimeSlots(buildTimeSlotsForDate(dateItem));
     setShowDateModal(false);
@@ -505,7 +645,6 @@ const HomeRight = props => {
     });
   };
 
-
   const handleSelectPickup = () => {
     setOrderMode('pickup');
     setSelectedPreorderDate('');
@@ -519,29 +658,13 @@ const HomeRight = props => {
     });
     checkPickupDistance();
   };
-  // const confirmOrderTypeSelection = () => {
-  //   setShowOrderTypeModal(false);
 
-  //   if (selectedServiceType === 'pickup') {
-  //     if (orderTiming === 'later') {
-  //       setShowDateModal(true); // reuses your existing date -> time flow
-  //     } else {
-  //       handleSelectPickup(); // order now
-  //     }
-  //   } else if (selectedServiceType === 'delivery') {
-  //     if (orderTiming === 'later') {
-  //       openPreorderFlow(); // reuses your existing date -> time flow
-  //     } else {
-  //       handleSelectPickup(); // order now
-  //     }
-  //   }
-  // };
   const confirmOrderTypeSelection = () => {
     setShowOrderTypeModal(false);
     const typeId = mapServiceTypeKeyToOrderType(selectedServiceType);
 
     if (orderTiming === 'later') {
-      setShowDateModal(true); // date -> time flow, unchanged
+      setShowDateModal(true);
       return;
     }
 
@@ -552,6 +675,7 @@ const HomeRight = props => {
       handleSelectPickup();
     }
   };
+
   const clearPreorderSelection = () => {
     handleSelectPickup();
   };
@@ -563,6 +687,7 @@ const HomeRight = props => {
       setShowOrderTypeModal(true);
     }
   }, [props.noActiveMenu, activeBusiness, serviceTypeOptions.length]);
+
   useEffect(() => {
     if (activeBusiness) {
       postWithToken(
@@ -574,7 +699,6 @@ const HomeRight = props => {
         .then(response => {
           if (response.status === true) {
             setSiteSettings(response.data);
-            console.log('siteSettings', response.data);
           }
         })
         .catch(error => {
@@ -583,12 +707,8 @@ const HomeRight = props => {
     }
   }, [activeBusiness]);
 
-  // ---- Delivery zones: my-business-info gives us delivery_prices, each
-  // with a polygon ("zone") + a flat price + a minimum purchase for that
-  // zone. Fetched once per business, then reused for the point-in-polygon
-  // check whenever the customer's address / service type changes. ----
   const [businessDeliveryInfo, setBusinessDeliveryInfo] = useState(null);
-  const [deliveryZoneMatch, setDeliveryZoneMatch] = useState(null); // { id, price, minimumpur }
+  const [deliveryZoneMatch, setDeliveryZoneMatch] = useState(null);
   const [deliveryZoneError, setDeliveryZoneError] = useState('');
 
   useEffect(() => {
@@ -618,31 +738,47 @@ const HomeRight = props => {
     const storeLng = parseFloat(activeBusiness?.longitud);
     if (isNaN(storeLat) || isNaN(storeLng) || !siteSettings?.NEAR_ME_DISTANCE) return;
 
-    const customerLat = parseFloat(overrideLat ?? buyerDetails?.lat ?? props?.userLocation?.lat);
-    const customerLng = parseFloat(overrideLng ?? buyerDetails?.lng ?? props?.userLocation?.lng);
+    const customerLat = parseFloat(
+      overrideLat ?? buyerDetails?.lat ?? props?.userLocation?.lat,
+    );
+    const customerLng = parseFloat(
+      overrideLng ?? buyerDetails?.lng ?? props?.userLocation?.lng,
+    );
     if (isNaN(customerLat) || isNaN(customerLng)) return;
 
     const maxDistance = parseFloat(siteSettings.NEAR_ME_DISTANCE);
-    const distanceKm = getDistanceFromLatLonInKm(customerLat, customerLng, storeLat, storeLng);
-    const distance = siteSettings.NEAR_ME_UNIT === 'M' ? kmToMiles(distanceKm) : distanceKm;
+    const distanceKm = getDistanceFromLatLonInKm(
+      customerLat,
+      customerLng,
+      storeLat,
+      storeLng,
+    );
+    const distance =
+      siteSettings.NEAR_ME_UNIT === 'M' ? kmToMiles(distanceKm) : distanceKm;
 
     if (distance > maxDistance) {
-      setAddressDistanceError('Sorry, this location is outside the pickup range.');
+      setAddressDistanceError(
+        'Sorry, this location is outside the pickup range.',
+      );
     }
   };
 
-  // Finds which delivery_prices zone (polygon) the customer's lat/lng falls
-  // inside, using the business info fetched above. Sets deliveryZoneMatch
-  // (price + minimum purchase for that zone) or deliveryZoneError when the
-  // address isn't covered by any zone.
   const checkDeliveryZone = (overrideLat, overrideLng) => {
     setDeliveryZoneError('');
     setDeliveryZoneMatch(null);
     if (selectedServiceType !== 'delivery') return;
-    if (!businessDeliveryInfo || !Array.isArray(businessDeliveryInfo.delivery_prices)) return;
+    if (
+      !businessDeliveryInfo ||
+      !Array.isArray(businessDeliveryInfo.delivery_prices)
+    )
+      return;
 
-    const customerLat = parseFloat(overrideLat ?? buyerDetails?.lat ?? props?.userLocation?.lat);
-    const customerLng = parseFloat(overrideLng ?? buyerDetails?.lng ?? props?.userLocation?.lng);
+    const customerLat = parseFloat(
+      overrideLat ?? buyerDetails?.lat ?? props?.userLocation?.lat,
+    );
+    const customerLng = parseFloat(
+      overrideLng ?? buyerDetails?.lng ?? props?.userLocation?.lng,
+    );
     if (isNaN(customerLat) || isNaN(customerLng)) return;
 
     let matchedZone = null;
@@ -689,18 +825,20 @@ const HomeRight = props => {
       lng,
     }));
     clearFieldError('delievryaddress');
-    // run immediately, don't wait for state
+
     if (selectedServiceType === 'delivery') {
       checkDeliveryZone(lat, lng);
     } else {
       checkPickupDistance(lat, lng);
     }
   };
+
   useEffect(() => {
     if (siteSettings && activeBusiness && selectedServiceType === 'pickup') {
       checkPickupDistance();
     }
   }, [siteSettings, activeBusiness, selectedServiceType]);
+
   useEffect(() => {
     if (selectedServiceType === 'delivery' && businessDeliveryInfo) {
       checkDeliveryZone();
@@ -708,69 +846,44 @@ const HomeRight = props => {
       setDeliveryZoneError('');
       setDeliveryZoneMatch(null);
     }
-  }, [businessDeliveryInfo, selectedServiceType, buyerDetails.lat, buyerDetails.lng]);
+  }, [
+    businessDeliveryInfo,
+    selectedServiceType,
+    buyerDetails.lat,
+    buyerDetails.lng,
+  ]);
+
   useEffect(() => {
     if (activeBusiness) {
-      FetchPaymentMothod(activeBusiness.id, mapServiceTypeKeyToOrderType(selectedServiceType));
+      FetchPaymentMothod(
+        activeBusiness.id,
+        mapServiceTypeKeyToOrderType(selectedServiceType),
+      );
     }
   }, [selectedServiceType, activeBusiness]);
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     if (props.cartDish != undefined) {
-  //       setCategoryDetails(props.categoryDetails);
-  //       setActiveBusiness(props.activeBusiness);
-  //       setOrderType(props.orderType);
-  //       setCartDish({ isLoading: false, list: props.cartDish.list });
-  //       setPreorderDetails(props.preorderDetails);
-  //       FetchPaymentMothod(props.activeBusiness.id, props.orderType);
-  //       if (!hasAutoOpenedOrderType.current && props.activeBusiness) {
-  //         hasAutoOpenedOrderType.current = true; // prevents duplicate checks within this session
-
-  //         getData(ORDER_TYPE_MODAL_SHOWN_KEY)
-  //           .then(alreadyShown => {
-  //             if (!alreadyShown) {
-  //               const defaultKey = mapDefaultOrderTypeToKey(
-  //                 props.activeBusiness.default_order_type,
-  //               );
-  //               setSelectedServiceType(defaultKey);
-  //               setOrderTiming('now');
-  //               setShowOrderTypeModal(true);
-  //               setData(ORDER_TYPE_MODAL_SHOWN_KEY, 'true');
-  //             }
-  //           })
-  //           .catch(e => {
-  //             console.log('Error checking order type modal flag:', e);
-  //           });
-  //       }
-  //       let cartQty = 0;
-  //       for (const cartDish of props.cartDish.list) {
-  //         for (const dish of cartDish.dish) {
-  //           cartQty += dish.quantity;
-  //         }
-  //       }
-  //       setcartQuantity(cartQty);
-  //       dispatch(setCartQuantity(cartQty));
-  //       calCartTotal(props.cartDish.list, props.activeBusiness);
-  //     }
-  //   }, [props.cartDish]),
-  // );
 
   useFocusEffect(
     React.useCallback(() => {
       if (props.cartDish != undefined) {
         setCategoryDetails(props.categoryDetails);
         setActiveBusiness(prev =>
-          prev && prev.id === props.activeBusiness.id ? prev : props.activeBusiness
+          prev && prev.id === props.activeBusiness.id
+            ? prev
+            : props.activeBusiness,
         );
         setOrderType(props.orderType);
         setCartDish({ isLoading: false, list: props.cartDish.list });
         setPreorderDetails(props.preorderDetails);
         FetchPaymentMothod(props.activeBusiness.id, props.orderType);
         if (!hasAutoOpenedOrderType.current && props.activeBusiness) {
-          hasAutoOpenedOrderType.current = true; // prevents duplicate checks within this session
+          hasAutoOpenedOrderType.current = true;
 
-          const activeTypesCount = ['is_delivery', 'is_pickup', 'is_dinein', 'is_catering']
-            .filter(flag => Number(props.activeBusiness[flag]) === 1).length;
+          const activeTypesCount = [
+            'is_delivery',
+            'is_pickup',
+            'is_dinein',
+            'is_catering',
+          ].filter(flag => Number(props.activeBusiness[flag]) === 1).length;
 
           getData(ORDER_TYPE_MODAL_SHOWN_KEY)
             .then(alreadyShown => {
@@ -808,9 +921,9 @@ const HomeRight = props => {
     let userval = userlist[userIndex];
     setBuyerDetails({
       ...buyerDetails,
-      name: userval.name,
-      last_name: userval.last_name,
-      cel: userval.cel,
+      name: userval.name || '',
+      last_name: userval.last_name || '',
+      cel: userval.cel || '',
     });
     clearFieldError('name');
     clearFieldError('last_name');
@@ -820,7 +933,6 @@ const HomeRight = props => {
   };
 
   const FetchUserByPhone = mobilenumber => {
-    //console.log(mobilenumber.length);
     if (mobilenumber.length > 0) {
       if (mobilenumber.length >= 3) {
         postWithToken(
@@ -833,8 +945,6 @@ const HomeRight = props => {
           userToken,
         )
           .then(response => {
-            console.log(response);
-
             if (response.status === true) {
               setMenuVisible(true);
               setUserList(response.data);
@@ -855,6 +965,7 @@ const HomeRight = props => {
       setMenuVisible(false);
     }
   };
+
   const FetchPaymentMothod = (bid, orderType_val) => {
     postWithToken(
       baseUrl,
@@ -898,29 +1009,6 @@ const HomeRight = props => {
       });
   };
 
-  const dishCheck = id => {
-    for (let k = 0; k < categoryDetails.list.length; k++) {
-      for (let l = 0; l < categoryDetails.list[k].dish.length; l++) {
-        if (categoryDetails.list[k].dish[l].id === id) {
-          return l;
-        }
-      }
-    }
-    return -1;
-  };
-  const catCheck = id => {
-    for (let k = 0; k < categoryDetails.list.length; k++) {
-      for (let l = 0; l < categoryDetails.list[k].dish.length; l++) {
-        if (categoryDetails.list[k].dish[l].id === id) {
-          return k;
-        }
-      }
-    }
-    return -1;
-  };
-
-
-
   const updateDishNote = (cartindex, dishindex, dataindex, text) => {
     let cart = JSON.parse(JSON.stringify(CartDish.list));
     cart[cartindex].dish[dishindex].data[dataindex].notes = text;
@@ -937,6 +1025,7 @@ const HomeRight = props => {
     setEditingNoteKey(null);
     setNoteDraft('');
   };
+
   const addTocartIncrement = (index, dishindex, dishdataindex) => {
     let cart = JSON.parse(JSON.stringify(CartDish.list));
     cart[index].dish[dishindex].quantity =
@@ -952,6 +1041,7 @@ const HomeRight = props => {
     props.updateCartDetails(cart);
     calCartTotal(cart, props.activeBusiness);
   };
+
   const addTocartDecrement = (index, dishindex, dishdataindex) => {
     let cart = JSON.parse(JSON.stringify(CartDish.list));
 
@@ -990,7 +1080,11 @@ const HomeRight = props => {
       setCartFee([]);
       setDiscountCode('');
       setCouponMessage({ text: '', isError: false });
-      setDiscountInfo({ discounttext: null, discounttype: null, discountid: null });
+      setDiscountInfo({
+        discounttext: null,
+        discounttype: null,
+        discountid: null,
+      });
       setDiscount(0.0);
     }
 
@@ -1000,13 +1094,21 @@ const HomeRight = props => {
 
   const deleteCartItem = (index, dishindex, dishdataindex) => {
     let cart = JSON.parse(JSON.stringify(CartDish.list));
+    const target = cart[index]?.dish?.[dishindex]?.data?.[dishdataindex];
+
+    // BOGO ordered-removal guard, enforced here too (not just in the UI)
+    // in case this is ever called from elsewhere.
+    if (target && isBogoGroupItem(target) && !canRemoveBogoItem(cart, target)) {
+      showToastMsg('Remove the offer item first');
+      return;
+    }
+    const groupId = target?.bogo_group_id || null;
+
     cart[index].dish[dishindex].data.splice(dishdataindex, 1);
 
     if (cart[index].dish[dishindex].data.length === 0) {
       cart[index].dish.splice(dishindex, 1);
     } else {
-      // Recalculate the parent quantity from the remaining variants,
-      // since getCartQtyForDish (Home.js) reads this cached total.
       let newQty = 0;
       for (const d of cart[index].dish[dishindex].data) {
         newQty += parseInt(d.quantity, 10);
@@ -1017,9 +1119,16 @@ const HomeRight = props => {
     if (cart[index].dish.length === 0) {
       cart.splice(index, 1);
     }
+
+    // Re-decide the BOGO winner for whatever's left in the group — if the
+    // group is now down to 1 (or 0) members, the survivor goes back to
+    // full price instead of staying stuck at its old discounted price.
+    cart = resyncBogoGroup(cart, groupId);
+
     props.updateCartDetails(cart);
     calCartTotal(cart, props.activeBusiness);
-  }
+  };
+
   const calCartTotal = (cart, activeBusiness_val) => {
     let CartSubTotal_val = 0.0;
     for (let i = 0; i < cart.length; i++) {
@@ -1044,23 +1153,9 @@ const HomeRight = props => {
     if (cart.length > 0) {
       if (cart[0].id === activeBusiness_val.id) {
         if (PendingMinimumFee_val > 0) {
-          if (cart.length === 0) {
-            PendingMinimumFee_val =
-              parseFloat(PendingMinimumFee_val) - parseFloat(CartSubTotal_val);
-            PendingMinimumFee_val = parseFloat(PendingMinimumFee_val).toFixed(
-              2,
-            );
-          } else {
-            if (cart[0].id === activeBusiness_val.id) {
-              PendingMinimumFee_val =
-                parseFloat(PendingMinimumFee_val) -
-                parseFloat(CartSubTotal_val);
-              PendingMinimumFee_val = parseFloat(PendingMinimumFee_val).toFixed(
-                2,
-              );
-            }
-          }
-
+          PendingMinimumFee_val =
+            parseFloat(PendingMinimumFee_val) - parseFloat(CartSubTotal_val);
+          PendingMinimumFee_val = parseFloat(PendingMinimumFee_val).toFixed(2);
           setPendingMinimumFee(PendingMinimumFee_val);
         }
         if (activeBusiness_val.freedeliverystatus === '1') {
@@ -1096,13 +1191,17 @@ const HomeRight = props => {
       )
         .then(response => {
           let offerResponse = response;
-          if (offerResponse.status === true && offerResponse.data && offerResponse.data.length > 0) {
+          if (
+            offerResponse.status === true &&
+            offerResponse.data &&
+            offerResponse.data.length > 0
+          ) {
             const offerData = offerResponse.data[0];
 
-            // FIX: Immutable state update with populated text & id
             setDiscountInfo({
               discounttype: 'offer',
-              discounttext: offerData.distext || offerData.name || 'Automatic Offer',
+              discounttext:
+                offerData.distext || offerData.name || 'Automatic Offer',
               discountid: offerData.id || offerData.offer_id || null,
             });
 
@@ -1118,7 +1217,6 @@ const HomeRight = props => {
               CalDiscountAuto(cart, discount, CartSubTotal_val, offerResponse);
             }
           } else {
-            // RESET on failure/no offer
             setDiscountInfo({
               discounttext: null,
               discounttype: null,
@@ -1141,8 +1239,6 @@ const HomeRight = props => {
   ) => {
     let cartFee = new Array();
     let SubTotal = 0.0;
-    // Only apply a delivery fee when Delivery is the selected service type
-    // and the customer's address matched one of the business's zones.
     const deliveryCostValue =
       selectedServiceType === 'delivery' && deliveryZoneMatch
         ? parseFloat(deliveryZoneMatch.price) || 0
@@ -1184,8 +1280,7 @@ const HomeRight = props => {
         parseFloat(servicefeeprice) +
         parseFloat(tips);
       total = parseFloat(total).toFixed(2);
-      let fee;
-      fee = {
+      let fee = {
         id: cart_val[i].id,
         name: cart_val[i].details.name,
         subtotal: Number(SubTotal),
@@ -1212,13 +1307,14 @@ const HomeRight = props => {
   const CalDiscountCode = (cart_val, discount_val, CartSubTotal_val) => {
     let cartFee = new Array();
     let SubTotal = 0.0;
-    const safeDiscount = Number.isFinite(parseFloat(discount_val)) ? parseFloat(discount_val) : 0;
-    // Only apply a delivery fee when Delivery is the selected service type
-    // and the customer's address matched one of the business's zones.
+    const safeDiscount = Number.isFinite(parseFloat(discount_val))
+      ? parseFloat(discount_val)
+      : 0;
     const deliveryCostValue =
       selectedServiceType === 'delivery' && deliveryZoneMatch
         ? parseFloat(deliveryZoneMatch.price) || 0
         : 0;
+
     for (let i = 0; i < cart_val.length; i++) {
       for (let j = 0; j < cart_val[i].dish.length; j++) {
         for (let k = 0; k < cart_val[i].dish[j].data.length; k++) {
@@ -1257,8 +1353,7 @@ const HomeRight = props => {
         parseFloat(tips);
       total = parseFloat(total).toFixed(2);
 
-      let fee;
-      fee = {
+      let fee = {
         id: cart_val[i].id,
         name: cart_val[i].details.name,
         subtotal: Number(SubTotal),
@@ -1274,7 +1369,6 @@ const HomeRight = props => {
         tips: Number(tips),
         total: Number(total),
         autodiscount: 0,
-
       };
 
       cartFee.push(fee);
@@ -1287,22 +1381,18 @@ const HomeRight = props => {
     let cart = JSON.parse(JSON.stringify(CartDish.list));
     setCouponMessage({ text: '', isError: false });
     if (discount_code.search(/\S/) == -1) {
-      //showToastMsg('Please enter discount code');
-      setCouponMessage({ text: t('PLEASE_ENTER_DISCOUNT_CODE'), isError: true });
+      setCouponMessage({
+        text: t('PLEASE_ENTER_DISCOUNT_CODE'),
+        isError: true,
+      });
       return false;
-    }
-    else if (parseFloat(CartSubTotal) < DISCOUNT_MIN_SUBTOTAL) {
-      // showToastMsg(
-      //   `Discount is applicable only on orders above ${activeBusiness.currency_symbol}${DISCOUNT_MIN_SUBTOTAL}`,
-      // );
+    } else if (parseFloat(CartSubTotal) < DISCOUNT_MIN_SUBTOTAL) {
       setCouponMessage({
         text: `${t('DISCOUNT_IS_APPLICABLE_ONLY_ON_ORDER_ABOVE')} ${activeBusiness.currency_symbol}${DISCOUNT_MIN_SUBTOTAL}`,
         isError: true,
       });
       return false;
-    }
-    else {
-      // setLoader(true);
+    } else {
       setUpdateActionStatus(true);
       postWithToken(
         baseUrl,
@@ -1318,7 +1408,6 @@ const HomeRight = props => {
         .then(response => {
           setUpdateActionStatus(false);
           let offerResponse = response;
-          //setLoader(false);
           if (offerResponse.status === true) {
             discountInfo.discounttype = 'code';
             setDiscountInfo(discountInfo);
@@ -1333,19 +1422,26 @@ const HomeRight = props => {
               setDiscount(discount);
               CalDiscountCode(cart, discount, CartSubTotal);
             }
-            //showToastMsg('Discount Applied');
-            setCouponMessage({ text: t('DISCOUNT_APPLIED_SUCESSFULLY'), isError: false });
+            setCouponMessage({
+              text: t('DISCOUNT_APPLIED_SUCESSFULLY'),
+              isError: false,
+            });
           } else {
             discountInfo.discounttype = '';
             setDiscountInfo(discountInfo);
-            //showToastMsg('Discount Code Not Valid');
-            setCouponMessage({ text: t('INVALID_OR_EXPIRED_DISCOUNT_CODE'), isError: true });
+            setCouponMessage({
+              text: t('INVALID_OR_EXPIRED_DISCOUNT_CODE'),
+              isError: true,
+            });
           }
         })
         .catch(error => {
           console.log('Error : ', error);
           setUpdateActionStatus(false);
-          setCouponMessage({ text: t('FAILED_TO_APPLY_DISOUNT_CODE'), isError: true });
+          setCouponMessage({
+            text: t('FAILED_TO_APPLY_DISOUNT_CODE'),
+            isError: true,
+          });
         });
     }
   };
@@ -1355,63 +1451,90 @@ const HomeRight = props => {
     clearFieldError('paymentId');
 
     let payment_arr = JSON.parse(JSON.stringify(paymentMethod.list));
-
     for (let i = 0; i < payment_arr.length; i++) {
-      if (payment_arr[i].id == val.id) {
-        payment_arr[i].active = true;
-      } else {
-        payment_arr[i].active = false;
-      }
-    }
-
-    if (val.id == 2) {
-      setDisplayPairCode(true);
-    } else {
-      setDisplayPairCode(false);
+      payment_arr[i].active = payment_arr[i].id == val.id;
     }
 
     setPaymentMethod({ isLoading: false, list: payment_arr });
   };
 
-  const [CodeRun, setCodeRun] = useState('');
   const [visiblemodal, setvisiblemodal] = useState(false);
   const [printerlist, setPrinterList] = useState([]);
   const [SelectedUsb, setSelectedUsb] = useState(null);
 
+  const showPrinterAlert = (title, message) => {
+    Alert.alert(
+      title || t('PRINTER_ERROR') || 'Printer Error',
+      message ||
+      t('SOMETHING_WENT_WRONG_WITH_THE_PRINTER') ||
+      'Something went wrong with the printer.',
+    );
+  };
 
   const OpenCashDrawer = async () => {
-    Alert.alert('Open Cash Drawer');
-    console.log('openCashBox');
-    EbPrinter.openCashBox(0);
-    setCodeRun('Code Is Run');
-  };
-  const GetUsbDeviceList = async () => {
-    const usbdevicelist = await EbPrinter.getUsbDeviceList();
-
-    if (usbdevicelist) {
-      setPrinterList(usbdevicelist);
-      //setPrinterList(['Devin', 'Dan']);
-      setvisiblemodal(true);
+    if (UsbPrinter == null) return;
+    try {
+      if (!EbPrinter || typeof EbPrinter.openCashBox !== 'function') {
+        throw new Error('Printer module unavailable.');
+      }
+      EbPrinter.selectUsbPrinter(0, UsbPrinter);
+      await new Promise(r => setTimeout(r, 800));
+      EbPrinter.openCashBox(0);
+    } catch (e) {
+      console.log('Error opening cash drawer: ', e);
+      showPrinterAlert(
+        t('CASH_DRAWER_ERROR') || 'Cash Drawer Error',
+        (e && e.message) || 'Unable to open the cash drawer.',
+      );
     }
-    Alert.alert(usbdevicelist);
-
-    //setPrinterList(['Devin', 'Dan']);
-    //setvisiblemodal(true);
   };
 
-  // const selectDevice = item => {
-  //   setSelectedUsb(item);
-  //   setvisiblemodal(false);
-  //   placeOrder();
-  // };
+  const GetUsbDeviceList = async () => {
+    try {
+      if (!EbPrinter || typeof EbPrinter.getUsbDeviceList !== 'function') {
+        throw new Error('Printer module unavailable.');
+      }
+      const usbdevicelist = await EbPrinter.getUsbDeviceList(0);
 
-  const selectDevice = item => {
-    setSelectedUsb(item);
-    EbPrinter.selectUsbPrinter(item);
-    dispatch(setUsbPrinterValue(item));
-    setData('UsbPrinterValue', JSON.stringify(item));
-    setvisiblemodal(false);
-    placeOrder();
+      if (usbdevicelist && usbdevicelist.length > 0) {
+        setPrinterList(usbdevicelist);
+        setvisiblemodal(true);
+      } else {
+        showPrinterAlert(
+          t('NO_PRINTER_FOUND') || 'No Printer Found',
+          t('NO_USB_PRINTER_DETECTED') ||
+          'No USB printer devices were detected.',
+        );
+      }
+    } catch (e) {
+      console.log('Error fetching USB device list: ', e);
+      showPrinterAlert(
+        t('PRINTER_LIST_ERROR') || 'Printer List Error',
+        (e && e.message) || 'Unable to fetch the list of USB printers.',
+      );
+    }
+  };
+
+  const selectDevice = async item => {
+    try {
+      setSelectedUsb(item);
+      if (!EbPrinter || typeof EbPrinter.selectUsbPrinter !== 'function') {
+        throw new Error('Printer module unavailable.');
+      }
+      await EbPrinter.selectUsbPrinter(0, item);
+      await new Promise(resolve => setTimeout(resolve, 350));
+      dispatch(setUsbPrinterValue(item));
+      setData('UsbPrinterValue', JSON.stringify(item));
+      setvisiblemodal(false);
+      placeOrder();
+    } catch (e) {
+      console.log('Error selecting USB printer: ', e);
+      setvisiblemodal(false);
+      showPrinterAlert(
+        t('PRINTER_SELECT_ERROR') || 'Printer Selection Error',
+        (e && e.message) || 'Unable to select the USB printer.',
+      );
+    }
   };
 
   const validateAll = () => {
@@ -1430,18 +1553,20 @@ const HomeRight = props => {
       isValid = false;
     }
 
-    if (buyerDetails.last_name.search(/\S/) === -1) {
-      newErrors.last_name = t('PLEASE_ENTER_LAST_NAME');
-      isValid = false;
-    }
+    // if (buyerDetails.last_name.search(/\S/) === -1) {
+    //   newErrors.last_name = t('PLEASE_ENTER_LAST_NAME');
+    //   isValid = false;
+    // }
     if (buyerDetails.cel.search(/\S/) === -1) {
       newErrors.cel = t('ENTER_YOUR_MOBILE_MIN_DIGIT');
       isValid = false;
     }
 
     if (
-      (selectedServiceType === 'delivery' || selectedServiceType === 'catering-delivery') &&
-      (!buyerDetails.delievryaddress || buyerDetails.delievryaddress.search(/\S/) === -1)
+      (selectedServiceType === 'delivery' ||
+        selectedServiceType === 'catering-delivery') &&
+      (!buyerDetails.delievryaddress ||
+        buyerDetails.delievryaddress.search(/\S/) === -1)
     ) {
       newErrors.delievryaddress = t('PLEASE_ENTER_A_DELIVERY_ADDRESS');
       isValid = false;
@@ -1455,9 +1580,6 @@ const HomeRight = props => {
     if (paymentId === '') {
       newErrors.paymentId = 'Please select a payment method';
       isValid = false;
-    } else if (paymentId == 2 && paircode.search(/\S/) === -1) {
-      newErrors.paircode = 'Please enter terminal pair code';
-      isValid = false;
     }
 
     setErrors(newErrors);
@@ -1469,163 +1591,222 @@ const HomeRight = props => {
   };
 
   const CheckallDetails = () => {
-    if (!validateAll()) {
-      return false;
-    }
-    if (selectedServiceType === 'pickup' && addressDistanceError) {
-      showToastMsg(addressDistanceError);
-      return false;
-    }
-    if (selectedServiceType === 'delivery') {
-      if (deliveryZoneError) {
-        showToastMsg(deliveryZoneError);
+    try {
+      if (!validateAll()) return false;
+      if (selectedServiceType === 'pickup' && addressDistanceError) {
+        showToastMsg(addressDistanceError);
         return false;
       }
-      if (
-        deliveryZoneMatch &&
-        parseFloat(CartSubTotal) < parseFloat(deliveryZoneMatch.minimumpur)
-      ) {
-        showToastMsg(
-          // `Minimum order for delivery to this address is ${activeBusiness.currency_symbol}${deliveryZoneMatch.minimumpur}`,
-          `${t('MINIMUM_ORDER_FOR_DELIVERY_TO_THIS_ADDRESS_IS')} ${activeBusiness.currency_symbol}${deliveryZoneMatch.minimumpur}`,
-        );
-        return false;
+      if (selectedServiceType === 'delivery') {
+        if (deliveryZoneError) {
+          showToastMsg(deliveryZoneError);
+          return false;
+        }
+        if (
+          deliveryZoneMatch &&
+          parseFloat(CartSubTotal) < parseFloat(deliveryZoneMatch.minimumpur)
+        ) {
+          showToastMsg(
+            `${t('MINIMUM_ORDER_FOR_DELIVERY_TO_THIS_ADDRESS_IS')} ${activeBusiness.currency_symbol}${deliveryZoneMatch.minimumpur}`,
+          );
+          return false;
+        }
       }
-    }
-    if (paymentId == 2) {
-      linkly_pinpad_request();
-    } else {
+      // Cash and Card both place the order directly (no terminal pair code needed).
+      // this is for live
       if (UsbPrinter == null) {
         GetUsbDeviceList();
       } else {
         placeOrder();
       }
 
-      // placeOrder();
+      // this is for development and demo
+      //placeOrder();
+    } catch (e) {
+      console.log('Error in CheckallDetails: ', e);
+      setLoader(false);
+      setUpdateActionStatus(false);
+      showPrinterAlert(
+        t('CHECKOUT_ERROR') || 'Checkout Error',
+        (e && e.message) || 'Something went wrong while checking your order.',
+      );
     }
   };
 
   const linkly_pinpad_request = () => {
-    let postData = {
-      f: 'linkly_pinpad_request',
-      username: '562408408001',
-      password: 'DHUAL68WG9AYB74I',
-      paircode: paircode,
-    };
+    try {
+      let postData = {
+        f: 'linkly_pinpad_request',
+        username: '562408408001',
+        password: 'DHUAL68WG9AYB74I',
+        paircode: paircode,
+      };
 
-    setLoader(true);
+      setLoader(true);
 
-    postWithOutToken(baseUrl, 'module/payment/rest-payment', postData)
-      .then(response => {
-        setLoader(false);
-      })
-      .catch(error => {
-        console.log('Error : ', error);
-      });
+      postWithOutToken(baseUrl, 'module/payment/rest-payment', postData)
+        .then(response => {
+          setLoader(false);
+        })
+        .catch(error => {
+          console.log('Error : ', error);
+          setLoader(false);
+          showPrinterAlert(
+            t('PAYMENT_TERMINAL_ERROR') || 'Payment Terminal Error',
+            'Unable to reach the payment terminal.',
+          );
+        });
+    } catch (e) {
+      console.log('Error in linkly_pinpad_request: ', e);
+      setLoader(false);
+      showPrinterAlert(
+        t('PAYMENT_TERMINAL_ERROR') || 'Payment Terminal Error',
+        (e && e.message) || 'Something went wrong contacting the payment terminal.',
+      );
+    }
   };
 
   const placeOrder = () => {
-    const orderTypeValue = mapServiceTypeKeyToOrderType(selectedServiceType);
+    try {
+      const orderTypeValue = mapServiceTypeKeyToOrderType(selectedServiceType);
 
-    let Search = {
-      lat: activeBusiness.latitud,
-      lng: activeBusiness.longitud,
-      search_address: activeBusiness.address,
-      order_type: orderTypeValue,
-    };
+      let Search = {
+        lat: activeBusiness.latitud,
+        lng: activeBusiness.longitud,
+        search_address: activeBusiness.address,
+        order_type: orderTypeValue,
+      };
 
-    let tax = 0;
-    let taxtype = 0;
-    let tax_price = 0;
-    let total = 0;
-    let firstoffer = 0;
+      let tax = 0;
+      let taxtype = 0;
+      let tax_price = 0;
+      let total = 0;
+      let firstoffer = 0;
 
-    for (let f = 0; f < cartFee.length; f++) {
-      tax = cartFee[f].tax;
-      taxtype = cartFee[f].taxtype;
-      tax_price = cartFee[f].taxprice;
-      total = cartFee[f].total;
-      firstoffer = cartFee[f].firstoffer;
-    }
-    let postData = {
-      langId: 1,
-      bid: activeBusiness.id,
-      city: activeBusiness.city,
-      userId: buyerDetails.id,
-      cartdish: CartDish.list,
-      cartfee: cartFee[0],
-      buyerdata: buyerDetails,
-      deliverydetails: [
-        selectedServiceType === 'delivery' && deliveryZoneMatch
-          ? {
-            id: deliveryZoneMatch.id,
-            name: '',
-            delivery: deliveryZoneMatch.price,
-            minimum: deliveryZoneMatch.minimumpur,
+      for (let f = 0; f < cartFee.length; f++) {
+        tax = cartFee[f].tax;
+        taxtype = cartFee[f].taxtype;
+        tax_price = cartFee[f].taxprice;
+        total = cartFee[f].total;
+        firstoffer = cartFee[f].firstoffer;
+      }
+      let postData = {
+        langId: 1,
+        bid: activeBusiness.id,
+        city: activeBusiness.city,
+        userId: buyerDetails.id,
+        cartdish: CartDish.list,
+        cartfee: cartFee[0],
+        buyerdata: buyerDetails,
+        deliverydetails: [
+          selectedServiceType === 'delivery' && deliveryZoneMatch
+            ? {
+              id: deliveryZoneMatch.id,
+              name: '',
+              delivery: deliveryZoneMatch.price,
+              minimum: deliveryZoneMatch.minimumpur,
+            }
+            : {
+              id: '0',
+              name: '',
+              delivery: '0',
+              minimum: activeBusiness.minimumfee,
+            },
+        ],
+        search: Search,
+        paymentmethod: [paymentMethod.list[paymentIndex]],
+        rewardWallet: {},
+        sourcetype: 'Pos App',
+        sourcetypename: {},
+        discount_info: discountInfo,
+        firstoffer: firstoffer,
+        txnId: '',
+        extraJson: {},
+        estimate_time: selectedTime,
+        buyername: `${buyerDetails.name} ${buyerDetails.last_name}`.trim(),
+        buyeremail: buyerDetails.email,
+        buyerphone: buyerDetails.cel,
+        buyercomments: '',
+        subtotal: CartSubTotal,
+        order_type: orderTypeValue,
+        payment_id: paymentId,
+        tax: tax,
+        taxtype: taxtype,
+        tax_price: tax_price,
+        dishdata: CartDish.list[0].dish,
+        total: total,
+      };
+      setLoader(true);
+      setUpdateActionStatus(true);
+      postWithToken(baseUrl, 'order-placed', postData, userToken)
+        .then(async response => {
+          if (paymentId == 1) {
+            await OpenCashDrawer();
           }
-          : { id: '0', name: '', delivery: '0', minimum: activeBusiness.minimumfee },
-      ],
-      search: Search,
-      paymentmethod: [paymentMethod.list[paymentIndex]],
-      rewardWallet: {},
-      sourcetype: 'Pos App',
-      sourcetypename: {},
-      discount_info: discountInfo,
-      firstoffer: firstoffer,
-      txnId: '',
-      extraJson: {},
-      estimate_time: selectedTime,
-      buyername: buyerDetails.name + ' ' + buyerDetails.last_name,
-      buyeremail: buyerDetails.email,
-      buyerphone: buyerDetails.cel,
-      buyercomments: '',
-      subtotal: CartSubTotal,
-      order_type: orderTypeValue,
-      payment_id: paymentId,
-      tax: tax,
-      taxtype: taxtype,
-      tax_price: tax_price,
-      dishdata: CartDish.list[0].dish,
-      total: total,
-    };
-    setLoader(true);
-    setUpdateActionStatus(true);
-    postWithToken(baseUrl, 'order-placed', postData, userToken)
-      .then(response => {
-        if (paymentId == 1) {
-          OpenCashDrawer();
-        }
-        setLoader(false);
-        setUpdateActionStatus(false);
-        setSelectedTime('');
-        setBuyerDetails({
-          id: 0, preorder: false, name: '', last_name: '', email: '',
-          cel: '', specialaddress: '', delievryaddress: '', notes: '',
+          setLoader(false);
+          setUpdateActionStatus(false);
+          setSelectedTime('');
+          setBuyerDetails({
+            id: 0,
+            preorder: false,
+            name: '',
+            last_name: '',
+            email: '',
+            cel: '',
+            specialaddress: '',
+            delievryaddress: '',
+            notes: '',
+          });
+          setDiscountInfo({
+            discounttext: null,
+            discounttype: null,
+            discountid: null,
+          });
+          setDiscount(0.0);
+          setTips(0.0);
+          setCartFee([]);
+          setPaymentMethod({ isLoading: true, list: [] });
+          setPaymentId('');
+          setPaymentIndex('');
+          setDiscountCode('');
+          setCouponMessage({ text: '', isError: false });
+          setCartDish({ isLoading: true, list: [] });
+          setData('cartDetails', JSON.stringify([]));
+          setErrors({
+            name: '',
+            last_name: '',
+            cel: '',
+            selectedTime: '',
+            paymentId: '',
+            paircode: '',
+          });
+          try {
+            navigation.navigate('OrderSuccess', {
+              orderId: response.data.id,
+              activeBusiness: activeBusiness,
+              autoPrint: true,
+            });
+          } catch (navErr) {
+            console.log('Navigation error after order placed: ', navErr);
+          }
+        })
+        .catch(error => {
+          setLoader(false);
+          setUpdateActionStatus(false);
+          console.log('Error : ', error);
+          showToastMsg(t('SOMETHING_WENT_WRONG_PLACING_YOUR_ORDER'));
         });
-        // Inside response of order-placed:
-        setDiscountInfo({ discounttext: null, discounttype: null, discountid: null });
-        setDiscount(0.0);
-        setTips(0.0);
-        setCartFee([]);
-        setPaymentMethod({ isLoading: true, list: [] });
-        setPaymentId('');
-        setPaymentIndex('');
-        setDiscountCode('');
-        setCouponMessage({ text: '', isError: false });
-        setCartDish({ isLoading: true, list: [] });
-        setData('cartDetails', JSON.stringify([]));
-        setErrors({
-          name: '', last_name: '', cel: '', selectedTime: '', paymentId: '', paircode: '',
-        });
-        navigation.navigate('OrderSuccess', { orderId: response.data.id, activeBusiness: activeBusiness });
-      })
-      .catch(error => {
-        setLoader(false);
-        setUpdateActionStatus(false);
-        console.log('Error : ', error);
-        showToastMsg(t('SOMETHING_WENT_WRONG_PLACING_YOUR_ORDER'));
-      });
+    } catch (e) {
+      console.log('Error in placeOrder: ', e);
+      setLoader(false);
+      setUpdateActionStatus(false);
+      showPrinterAlert(
+        t('ORDER_ERROR') || 'Order Error',
+        (e && e.message) || 'Something went wrong while placing your order.',
+      );
+    }
   };
+
   const setBuyerInfo = (val, type) => {
     if (type === 'name') {
       setBuyerDetails(prev => ({ ...prev, name: val }));
@@ -1635,7 +1816,6 @@ const HomeRight = props => {
       if (val.search(/\S/) !== -1) clearFieldError('last_name');
     } else if (type === 'email') {
       setBuyerDetails(prev => ({ ...prev, email: val }));
-      // FIX: Clear the email error when text is entered
       if (val.search(/\S/) !== -1) clearFieldError('email');
     } else if (type === 'cel') {
       setBuyerDetails(prev => ({ ...prev, cel: val }));
@@ -1665,9 +1845,7 @@ const HomeRight = props => {
           }}
         >
           <TouchableOpacity
-            onPress={() => {
-              setvisiblemodal(false);
-            }}
+            onPress={() => setvisiblemodal(false)}
             style={{
               position: 'absolute',
               right: responsiveWidth(1),
@@ -1698,32 +1876,30 @@ const HomeRight = props => {
                   position: 'relative',
                 }}
               >
-                <View style={{}}>
-                  <FlatList
-                    data={printerlist}
-                    keyExtractor={(item, index) => item + index}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
+                <FlatList
+                  data={printerlist}
+                  keyExtractor={(item, index) => item + index}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={{
+                        paddingVertical: 10,
+                        borderBottomWidth: 1,
+                        borderColor: '#ddd',
+                        paddingHorizontal: 10,
+                      }}
+                      onPress={() => selectDevice(item)}
+                    >
+                      <Text
                         style={{
-                          paddingVertical: 10,
-                          borderBottomWidth: 1,
-                          borderColor: '#ddd',
-                          paddingHorizontal: 10,
+                          fontSize: responsiveFontSize(1.8),
+                          color: theme.primary,
                         }}
-                        onPress={() => selectDevice(item)}
                       >
-                        <Text
-                          style={{
-                            fontSize: responsiveFontSize(1.8),
-                            color: theme.primary,
-                          }}
-                        >
-                          {item}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                </View>
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
               </View>
             </ScrollView>
           </View>
@@ -1787,7 +1963,9 @@ const HomeRight = props => {
                     </Text>
                     {dateItem.isToday ? (
                       <View style={styles.pickerTodayBadge}>
-                        <Text style={styles.pickerTodayBadgeText}>{t('TODAY')}</Text>
+                        <Text style={styles.pickerTodayBadgeText}>
+                          {t('TODAY')}
+                        </Text>
                       </View>
                     ) : null}
                   </View>
@@ -1838,7 +2016,9 @@ const HomeRight = props => {
               <Text style={styles.pickerModalTitleAccentDark}>
                 {t('SELECT_YOUR_ORDER')}{' '}
               </Text>
-              <Text style={styles.pickerModalTitleAccentOrange}>{t('TIME')}</Text>
+              <Text style={styles.pickerModalTitleAccentOrange}>
+                {t('TIME')}
+              </Text>
             </Text>
             <Text style={styles.pickerModalSubtitle}>
               {t('CHOOSE_THE_TIME_THAT_WORKS_BEST_FOR_YOU')}
@@ -1922,52 +2102,39 @@ const HomeRight = props => {
               style={styles.orderTypeModalCloseBtn}
               onPress={() => setShowOrderTypeModal(false)}
             >
-              <Ionicons name="close" size={responsiveFontSize(1.6)} color={theme.fontColorOnBackground} />
+              <Ionicons
+                name="close"
+                size={responsiveFontSize(1.6)}
+                color={theme.fontColorOnBackground}
+              />
             </TouchableOpacity>
-
             <Text style={styles.pickerModalTitle}>
-              <Text style={styles.pickerModalTitleAccentDark}>{t('How Would You Like to')} </Text>
-              <Text style={styles.pickerModalTitleAccentOrange}>{t('HOW_TO_ORDER_HIGHLIGHTS')}</Text>
+              <Text style={styles.pickerModalTitleAccentDark}>
+                {t('How Would You Like to')}{' '}
+              </Text>
+              <Text style={styles.pickerModalTitleAccentOrange}>
+                {t('HOW_TO_ORDER_HIGHLIGHTS')}
+              </Text>
             </Text>
             <Text style={styles.pickerModalSubtitle}>
               {t('CHOOSE_A_SERVICE')}
             </Text>
             <View style={styles.pickerModalUnderline} />
-            <View style={styles.serviceTypeRow}>
-              {serviceTypeOptions.map(opt => {
-                const isSelected = selectedServiceType === opt.key;
-                return (
-                  <TouchableOpacity
-                    key={opt.key}
-                    style={[
-                      styles.serviceTypeCard,
-                      isSelected && styles.serviceTypeCardSelected,
-                    ]}
-                    onPress={() => setSelectedServiceType(opt.key)}
-                  >
-                    {isSelected ? (
-                      <View style={styles.serviceTypeCheckBadge}>
-                        <Ionicons name="checkmark" size={responsiveFontSize(0.95)} color={theme.fontColor} />
-                      </View>
-                    ) : null}
-                    <Ionicons
-                      name={opt.icon}
-                      size={responsiveFontSize(1.8)}
-                      color={isSelected ? theme.primary : theme.fontColorOnBackground}
-                      style={{ marginBottom: responsiveHeight(0.6) }}
-                    />
-                    <Text style={styles.serviceTypeLabel}>{opt.label}</Text>
-                    <Text style={styles.serviceTypeSub} numberOfLines={2}>
-                      {opt.sub}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            <ServiceTypeSelector
+              options={serviceTypeOptions}
+              selectedKey={selectedServiceType}
+              onSelect={setSelectedServiceType}
+              styles={styles}
+              theme={theme}
+            />
             <View style={styles.orderTypeModalDivider} />
             <Text style={styles.pickerModalTitle}>
-              <Text style={styles.pickerModalTitleAccentOrange}>{t('WHEN_WOULD_YOU_LIKE')} </Text>
-              <Text style={styles.pickerModalTitleAccentDark}>{t('YOUR_ORDER')}?</Text>
+              <Text style={styles.pickerModalTitleAccentOrange}>
+                {t('WHEN_WOULD_YOU_LIKE')}{' '}
+              </Text>
+              <Text style={styles.pickerModalTitleAccentDark}>
+                {t('YOUR_ORDER')}?
+              </Text>
             </Text>
             <View style={styles.pickerModalUnderline} />
 
@@ -1980,11 +2147,17 @@ const HomeRight = props => {
                 onPress={() => setOrderTiming('now')}
               >
                 <View style={styles.timingIconWrapNow}>
-                  <Ionicons name="time-outline" size={responsiveFontSize(1.5)} color={theme.fontColor} />
+                  <Ionicons
+                    name="time-outline"
+                    size={responsiveFontSize(1.5)}
+                    color={theme.fontColor}
+                  />
                 </View>
                 <View style={{ flexShrink: 1 }}>
                   <Text style={styles.timingLabel}>{t('NOW')}</Text>
-                  <Text style={styles.timingSub}>{t('GOT_IT_AS_SOON_AS_POSSIBLE')}</Text>
+                  <Text style={styles.timingSub}>
+                    {t('GOT_IT_AS_SOON_AS_POSSIBLE')}
+                  </Text>
                 </View>
               </TouchableOpacity>
 
@@ -1996,34 +2169,54 @@ const HomeRight = props => {
                 onPress={() => setOrderTiming('later')}
               >
                 <View style={styles.timingIconWrapLater}>
-                  <Ionicons name="calendar-outline" size={responsiveFontSize(1.5)} color={theme.fontColor} />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={responsiveFontSize(1.5)}
+                    color={theme.fontColor}
+                  />
                 </View>
                 <View style={{ flexShrink: 1 }}>
-                  <Text style={styles.timingLabel}>{t('PREORDER_FROM_TYPE')}</Text>
-                  <Text style={styles.timingSub}>{t('PREORDER_FROM_TYPE_DESCRIPTION')}</Text>
+                  <Text style={styles.timingLabel}>
+                    {t('PREORDER_FROM_TYPE')}
+                  </Text>
+                  <Text style={styles.timingSub}>
+                    {t('PREORDER_FROM_TYPE_DESCRIPTION')}
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={confirmOrderTypeSelection} activeOpacity={0.85}>
+            <TouchableOpacity
+              onPress={confirmOrderTypeSelection}
+              activeOpacity={0.85}
+            >
               <LinearGradient
                 colors={[theme.primary, theme.secondary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.orderTypeConfirmBtn}
               >
-                <Ionicons name="calendar-outline" size={responsiveFontSize(1.3)} color={theme.fontColor} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={responsiveFontSize(1.3)}
+                  color={theme.fontColor}
+                />
                 <Text style={styles.orderTypeConfirmBtnText}>
-                  {orderTiming === 'later' ? t('SELECT_DATE_TIME') : t('CONFIRM')}
+                  {orderTiming === 'later'
+                    ? t('SELECT_DATE_TIME')
+                    : t('CONFIRM')}
                 </Text>
-                <Ionicons name="arrow-forward" size={responsiveFontSize(1.3)} color={theme.fontColor} />
+                <Ionicons
+                  name="arrow-forward"
+                  size={responsiveFontSize(1.3)}
+                  color={theme.fontColor}
+                />
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* {viewloader === true ? <Loader /> : null} */}
       {viewloader === true ? <CheckoutSkeleton styles={styles} /> : null}
 
       {CartDish.isLoading === false && CartDish.list.length > 0 ? (
@@ -2035,8 +2228,8 @@ const HomeRight = props => {
             contentContainerStyle={styles.scrollContent}
           >
             {/* ---------- First Name ---------- */}
-            {/* <Text style={styles.headerText}>{t('NAME')}</Text> */}
-            <View style={styles.inputBlock}
+            <View
+              style={styles.inputBlock}
               onLayout={registerFieldPosition('name')}
             >
               <View
@@ -2061,9 +2254,10 @@ const HomeRight = props => {
                 <Text style={styles.errorText}>{errors.name}</Text>
               ) : null}
             </View>
+
             {/* ---------- Last Name ---------- */}
-            {/* <Text style={styles.headerText}>{t('LAST_NAME')}</Text> */}
-            <View style={styles.inputBlock}
+            <View
+              style={styles.inputBlock}
               onLayout={registerFieldPosition('last_name')}
             >
               <View
@@ -2081,7 +2275,8 @@ const HomeRight = props => {
                 </View>
                 <TextInput
                   style={styles.inputField}
-                  placeholder={t('LAST_NAME')}
+                  //   placeholder={t('LAST_NAME')}
+                  placeholder={`${t('LAST_NAME')} (Optional)`}
                   placeholderTextColor={theme.fontColorOnBackground}
                   value={buyerDetails.last_name}
                   onChangeText={text => setBuyerInfo(text, 'last_name')}
@@ -2091,13 +2286,17 @@ const HomeRight = props => {
                 <Text style={styles.errorText}>{errors.last_name}</Text>
               ) : null}
             </View>
+
             {/* ---------- Phone No ---------- */}
-            {/* <Text style={styles.headerText}>{t('PHONENO')}</Text> */}
-            <View style={[styles.inputBlock, {
-              position: 'relative',
-              zIndex: 20,
-              elevation: Platform.OS === 'android' ? 5 : 0,
-            },]}
+            <View
+              style={[
+                styles.inputBlock,
+                {
+                  position: 'relative',
+                  zIndex: 20,
+                  elevation: Platform.OS === 'android' ? 5 : 0,
+                },
+              ]}
               onLayout={registerFieldPosition('cel')}
             >
               <View
@@ -2150,8 +2349,8 @@ const HomeRight = props => {
                 </View>
               )}
             </View>
+
             {/* ---------- Email ---------- */}
-            {/* <Text style={styles.headerText}>{t('EMAIL')}</Text> */}
             <View style={styles.inputBlock}>
               <View style={styles.inputRow}>
                 <View style={styles.inputIconWrap}>
@@ -2163,7 +2362,8 @@ const HomeRight = props => {
                 </View>
                 <TextInput
                   style={styles.inputField}
-                  placeholder={t('EMAIL')}
+                  //  placeholder={t('EMAIL')}
+                  placeholder={`${t('EMAIL')} (Optional)`}
                   placeholderTextColor={theme.fontColorOnBackground}
                   value={buyerDetails.email}
                   onChangeText={text => setBuyerInfo(text, 'email')}
@@ -2172,14 +2372,21 @@ const HomeRight = props => {
                 />
               </View>
             </View>
+
             {/* ---------- Address ---------- */}
-            {(selectedServiceType === 'delivery' || selectedServiceType === 'catering-delivery') ? (
-              <View style={[styles.inputBlock, styles.addressOverlayWrap]}
+            {selectedServiceType === 'delivery' ||
+              selectedServiceType === 'catering-delivery' ? (
+              <View
+                style={[styles.inputBlock, styles.addressOverlayWrap]}
                 onLayout={registerFieldPosition('delievryaddress')}
               >
                 <View style={[styles.inputRow, styles.addressInputRow]}>
                   <View style={styles.inputIconWrap}>
-                    <Feather name="map-pin" size={responsiveFontSize(1.5)} color={theme.primary} />
+                    <Feather
+                      name="map-pin"
+                      size={responsiveFontSize(1.5)}
+                      color={theme.primary}
+                    />
                   </View>
 
                   <GooglePlacesAutocomplete
@@ -2201,13 +2408,19 @@ const HomeRight = props => {
                         setAddressDistanceError('');
                         setDeliveryZoneError('');
                         setDeliveryZoneMatch(null);
-                        if (text.search(/\S/) != -1) clearFieldError('delievryaddress');
+                        if (text.search(/\S/) != -1)
+                          clearFieldError('delievryaddress');
                       },
                     }}
-
                     styles={{
                       container: { flex: 1 },
-                      textInput: [styles.inputField, { height: responsiveHeight(5), paddingVertical: 0 }],
+                      textInput: [
+                        styles.inputField,
+                        {
+                          height: responsiveHeight(5),
+                          paddingVertical: 0,
+                        },
+                      ],
                       listView: styles.addressSuggestionList,
                     }}
                     enablePoweredByContainer={false}
@@ -2224,7 +2437,10 @@ const HomeRight = props => {
                 ) : null}
                 {selectedServiceType === 'delivery' && deliveryZoneMatch ? (
                   <Text style={styles.successText}>
-                    {t('DELIEVRY_FEE')}: {activeBusiness != null ? activeBusiness.currency_symbol : null}
+                    {t('DELIEVRY_FEE')}:{' '}
+                    {activeBusiness != null
+                      ? activeBusiness.currency_symbol
+                      : null}
                     {deliveryZoneMatch.price.toFixed(2)}
                     {deliveryZoneMatch.minimumpur > 0
                       ? ` (min order ${activeBusiness != null ? activeBusiness.currency_symbol : ''}${deliveryZoneMatch.minimumpur})`
@@ -2233,6 +2449,7 @@ const HomeRight = props => {
                 ) : null}
               </View>
             ) : null}
+
             {/* ---------- Discount coupon ---------- */}
             {discountInfo.discounttype !== 'offer' ? (
               <View style={{ marginBottom: responsiveHeight(0.5) }}>
@@ -2251,7 +2468,6 @@ const HomeRight = props => {
                         placeholder="Discount Coupon"
                         placeholderTextColor={theme.fontColorOnBackground}
                         value={discount_code}
-                        // 1. Re-enable the Apply button as soon as user taps into the field
                         onFocus={() => {
                           if (discountInfo.discounttype === 'code') {
                             setDiscountInfo({
@@ -2260,22 +2476,20 @@ const HomeRight = props => {
                               discountid: null,
                             });
                             setDiscount(0.0);
-                            // Recalculate totals without the applied discount
-                            let cart = JSON.parse(JSON.stringify(CartDish.list));
+                            let cart = JSON.parse(
+                              JSON.stringify(CartDish.list),
+                            );
                             CalDiscountCode(cart, 0, CartSubTotal);
                           }
                           if (couponMessage.text) {
                             setCouponMessage({ text: '', isError: false });
                           }
                         }}
-                        // 2. Clear applied discount if text changes
                         onChangeText={text => {
                           setDiscountCode(text);
-
                           if (couponMessage.text) {
                             setCouponMessage({ text: '', isError: false });
                           }
-
                           if (discountInfo.discounttype === 'code') {
                             setDiscountInfo({
                               discounttext: null,
@@ -2283,8 +2497,9 @@ const HomeRight = props => {
                               discountid: null,
                             });
                             setDiscount(0.0);
-
-                            let cart = JSON.parse(JSON.stringify(CartDish.list));
+                            let cart = JSON.parse(
+                              JSON.stringify(CartDish.list),
+                            );
                             CalDiscountCode(cart, 0, CartSubTotal);
                           }
                         }}
@@ -2292,12 +2507,15 @@ const HomeRight = props => {
                     </View>
                   </View>
 
-                  {/* Button State Logic */}
-                  {update_action_status === true || discountInfo.discounttype === 'code' ? (
+                  {update_action_status === true ||
+                    discountInfo.discounttype === 'code' ? (
                     <View style={styles.applyBtnDisabled}>
-                      <Text style={styles.applyBtnTextDisabled}>{t('APPLY')}</Text>
+                      <Text style={styles.applyBtnTextDisabled}>
+                        {t('APPLY')}
+                      </Text>
                     </View>
-                  ) : CartDish.list.length > 0 && discount_code.trim().length > 0 ? (
+                  ) : CartDish.list.length > 0 &&
+                    discount_code.trim().length > 0 ? (
                     <TouchableOpacity
                       style={styles.applyBtn}
                       onPress={() => {
@@ -2309,13 +2527,20 @@ const HomeRight = props => {
                     </TouchableOpacity>
                   ) : (
                     <View style={styles.applyBtnDisabled}>
-                      <Text style={styles.applyBtnTextDisabled}>{t('APPLY')}</Text>
+                      <Text style={styles.applyBtnTextDisabled}>
+                        {t('APPLY')}
+                      </Text>
                     </View>
                   )}
                 </View>
-                {/* Display inline validation text below the field */}
                 {couponMessage.text ? (
-                  <Text style={couponMessage.isError ? styles.errorText : styles.successText}>
+                  <Text
+                    style={
+                      couponMessage.isError
+                        ? styles.errorText
+                        : styles.successText
+                    }
+                  >
                     {couponMessage.text}
                   </Text>
                 ) : null}
@@ -2323,7 +2548,8 @@ const HomeRight = props => {
             ) : null}
 
             {/* ---------- Estimate time ---------- */}
-            <View style={[styles.dropdownBlock]}
+            <View
+              style={[styles.dropdownBlock]}
               onLayout={registerFieldPosition('selectedTime')}
             >
               <EstimateTimeDropdown
@@ -2334,6 +2560,7 @@ const HomeRight = props => {
                 timeOptions={timeOptions}
                 styles={styles}
                 theme={theme}
+                selectedServiceType={selectedServiceType}
               />
               {errors.selectedTime ? (
                 <Text style={styles.errorText}>{errors.selectedTime}</Text>
@@ -2375,20 +2602,22 @@ const HomeRight = props => {
                 </View>
               </View>
             ) : null}
+
             {/* ---------- Preorder / Pickup toggle ---------- */}
             <View style={styles.orderModeBlock}>
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.orderModeBtn}
                 onPress={openPreorderFlow}
               >
-                <Text style={styles.orderModeBtnText}>
-                  {t('PREORDER')}
-                </Text>
-              </TouchableOpacity>
+                <Text style={styles.orderModeBtnText}>{t('PREORDER')}</Text>
+              </TouchableOpacity> */}
               <TouchableOpacity
-                style={[styles.orderModeBtn, {
-                }]}
-                onPress={hasSingleOrderType ? undefined : () => setShowOrderTypeModal(true)}
+                style={styles.orderModeBtn}
+                onPress={
+                  hasSingleOrderType
+                    ? undefined
+                    : () => setShowOrderTypeModal(true)
+                }
               >
                 <View style={styles.orderModePickupLabelRow}>
                   <Text style={styles.orderModeBtnText}>
@@ -2398,7 +2627,8 @@ const HomeRight = props => {
                     <TouchableOpacity
                       onPress={() => setShowOrderTypeModal(true)}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      style={styles.orderModePickupEditIcon}>
+                      style={styles.orderModePickupEditIcon}
+                    >
                       <Feather
                         name="edit-2"
                         size={responsiveFontSize(1.15)}
@@ -2409,12 +2639,20 @@ const HomeRight = props => {
                 </View>
               </TouchableOpacity>
             </View>
-            {/* ---------- Cart items ---------- */}
+
+            {/* ---------- Cart items (WITH BUY 1 GET 1 BADGE) ---------- */}
             {CartDish.list.map((cartdish, cartindex) => {
               return cartdish.dish.map((cdish, dishindex) => {
                 return cdish.data.map((dish, dataindex) => {
+                  const isBogoLine = isBogoGroupItem(dish);
+                  const bogoRemovable =
+                    !isBogoLine || canRemoveBogoItem(CartDish.list, dish);
+
                   return (
-                    <View style={styles.cartItemCard} key={'cdish_' + dataindex}>
+                    <View
+                      style={styles.cartItemCard}
+                      key={'cdish_' + dataindex}
+                    >
                       <View style={styles.cartItemTopSection}>
                         {dish.is_img ? (
                           <View style={styles.cartItemImageWrap}>
@@ -2424,70 +2662,124 @@ const HomeRight = props => {
                               resizeMode="cover"
                             />
                           </View>
-
                         ) : null}
                         <View style={styles.cartItemBody}>
                           <View style={styles.cartItemTopRow}>
                             <View style={styles.cartItemNameRow}>
                               <View style={styles.cartItemQtyBadge}>
-                                <Text style={styles.cartItemQtyBadgeText}>{dish.quantity}</Text>
+                                <Text style={styles.cartItemQtyBadgeText}>
+                                  {dish.quantity}
+                                </Text>
                               </View>
-                              <Text style={styles.cartItemName} numberOfLines={1} ellipsizeMode="tail">
+                              <Text
+                                style={styles.cartItemName}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                              >
                                 {dish.name}
                               </Text>
                             </View>
                             <Text style={styles.cartItemPrice}>
-                              {activeBusiness != null ? activeBusiness.currency_symbol : null}
+                              {activeBusiness != null
+                                ? activeBusiness.currency_symbol
+                                : null}
                               {dish.total}
                             </Text>
                           </View>
+
+                          {/* Buy 1 Get 1 / Deal Badge Display — only the
+                              line syncBogoPricingInCart actually picked
+                              as the discounted winner shows the badge. */}
+                          {dish.is_bogo_free ? (
+                            <View
+                              style={{
+                                alignSelf: 'flex-start',
+                                backgroundColor: '#4CAF50',
+                                paddingHorizontal: 6,
+                                paddingVertical: 2,
+                                borderRadius: 4,
+                                marginTop: 3,
+                                marginBottom: 3,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  color: '#fff',
+                                  fontSize: responsiveFontSize(0.9),
+                                  fontFamily: Inter.semibold
+                                }}
+                              >
+                                🎁 {dish.offer_name || 'Buy 1 Get 1'} Applied
+                              </Text>
+                            </View>
+                          ) : (dish.isDealDish || dish.isFreeReward || dish.offerBadge) ? (
+                            <View
+                              style={{
+                                alignSelf: 'flex-start',
+                                backgroundColor: dish.isFreeReward
+                                  ? '#4CAF50'
+                                  : theme.primary,
+                                paddingHorizontal: 6,
+                                paddingVertical: 2,
+                                borderRadius: 4,
+                                marginTop: 3,
+                                marginBottom: 3,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  color: '#fff',
+                                  fontSize: responsiveFontSize(0.9),
+                                  fontFamily: Inter.semibold,
+                                }}
+                              >
+                                {dish.offerBadge ||
+                                  (dish.isFreeReward
+                                    ? 'GET 1 FREE / DISCOUNTED'
+                                    : 'BUY 1 DEAL')}
+                              </Text>
+                            </View>
+                          ) : null}
 
                           {dish.sets.length > 0
                             ? dish.sets.map((set, set_index) => {
                               return set.choice.length > 0
                                 ? set.choice.map((choice, choice_index) => (
                                   <Text
-                                    key={'choice_' + set_index + '_' + choice_index}
+                                    key={
+                                      'choice_' +
+                                      set_index +
+                                      '_' +
+                                      choice_index
+                                    }
                                     style={styles.cartItemCategory}
                                     numberOfLines={1}
                                   >
                                     {choice.qty} X {choice.name} -{' '}
-                                    {activeBusiness != null ? activeBusiness.currency_symbol : null}
+                                    {activeBusiness != null
+                                      ? activeBusiness.currency_symbol
+                                      : null}
                                     {choice.price}
                                   </Text>
                                 ))
                                 : null;
                             })
                             : null}
-                          {dish.activeIngredients.length > 0 ? (
-                            <Text style={styles.cartItemCategory} numberOfLines={2} ellipsizeMode="tail">
+
+                          {dish.activeIngredients &&
+                            dish.activeIngredients.length > 0 ? (
+                            <Text
+                              style={styles.cartItemCategory}
+                              numberOfLines={2}
+                              ellipsizeMode="tail"
+                            >
                               {dish.activeIngredients.join(', ')}
                             </Text>
                           ) : null}
-                          {dish.sets.length > 0
-                            ? dish.sets.map((set, set_index) => {
-                              return set.choice.length > 0
-                                ? set.choice.map((choice, choice_index) => (
-                                  <Text
-                                    key={'choice_' + set_index + '_' + choice_index}
-                                    style={styles.cartItemCategory}
-                                    numberOfLines={1}
-                                  >
-                                    {'- '}
-                                    {choice.name}
-                                    {' x '}
-                                    {choice.qty}
-                                    {' - '}
-                                    {activeBusiness != null ? activeBusiness.currency_symbol : null}
-                                    {choice.price}
-                                  </Text>
-                                ))
-                                : null;
-                            })
-                            : null}
                         </View>
                       </View>
-                      {/* ---------- Note (full width, sits above the qty stepper) ---------- */}
+
+                      {/* ---------- Note ---------- */}
                       {(() => {
                         const noteKey = `${cartindex}-${dishindex}-${dataindex}`;
                         const isEditingThisNote = editingNoteKey === noteKey;
@@ -2500,16 +2792,26 @@ const HomeRight = props => {
                                 value={noteDraft}
                                 onChangeText={setNoteDraft}
                                 placeholder={t('ADD_A_NOTE')}
-                                placeholderTextColor={theme.fontColorOnBackground}
+                                placeholderTextColor={
+                                  theme.fontColorOnBackground
+                                }
                                 multiline
                                 autoFocus
-                                onBlur={() => saveNote(cartindex, dishindex, dataindex)}
+                                onBlur={() =>
+                                  saveNote(cartindex, dishindex, dataindex)
+                                }
                               />
                               <TouchableOpacity
                                 style={styles.cartItemNoteSaveBtn}
-                                onPress={() => saveNote(cartindex, dishindex, dataindex)}
+                                onPress={() =>
+                                  saveNote(cartindex, dishindex, dataindex)
+                                }
                               >
-                                <Ionicons name="checkmark-sharp" size={responsiveFontSize(1.3)} color={theme.primary} />
+                                <Ionicons
+                                  name="checkmark-sharp"
+                                  size={responsiveFontSize(1.3)}
+                                  color={theme.primary}
+                                />
                               </TouchableOpacity>
                             </View>
                           );
@@ -2517,46 +2819,118 @@ const HomeRight = props => {
                         return (
                           <TouchableOpacity
                             style={styles.cartItemNoteRow}
-                            onPress={() => startEditingNote(noteKey, dish.notes)}
+                            onPress={() =>
+                              startEditingNote(noteKey, dish.notes)
+                            }
                           >
                             <View style={styles.cartItemNoteIcon}>
-                              <Feather name="edit-2" size={responsiveFontSize(1.05)} color={theme.primary} />
+                              <Feather
+                                name="edit-2"
+                                size={responsiveFontSize(1.05)}
+                                color={theme.primary}
+                              />
                             </View>
                             {dish.notes ? (
-                              <Text style={styles.cartItemNoteText} numberOfLines={2}>
+                              <Text
+                                style={styles.cartItemNoteText}
+                                numberOfLines={2}
+                              >
                                 {dish.notes}
                               </Text>
                             ) : (
-                              <Text style={styles.cartItemNotePlaceholder}>{t('ADD_A_NOTE')}...</Text>
+                              <Text style={styles.cartItemNotePlaceholder}>
+                                {t('ADD_A_NOTE')}...
+                              </Text>
                             )}
                           </TouchableOpacity>
                         );
                       })()}
 
-                      {/* Qty stepper + edit/delete now span the full card width, left-aligned
-                     under the image, matching the mock */}
                       <View style={styles.cartItemBottomRow}>
-                        <View style={styles.qtyStepper}>
-                          <TouchableOpacity
-                            style={styles.qtyStepperBtn}
-                            onPress={() => addTocartDecrement(cartindex, dishindex, dataindex)}
+                        {/* BOGO lines: fixed qty + ordered "remove item"
+                            action instead of the normal +/- stepper —
+                            same rule as the customer app: the discounted
+                            line must be removed before its full-price
+                            sibling in the same group. */}
+                        {isBogoLine ? (
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 10,
+                            }}
                           >
-                            <Ionicons name="remove" size={responsiveFontSize(1.5)} color={theme.fontColorOnBackground} />
-                          </TouchableOpacity>
-                          <Text style={styles.qtyStepperValue}>{dish.quantity}</Text>
-                          <TouchableOpacity
-                            style={styles.qtyStepperBtn}
-                            onPress={() => addTocartIncrement(cartindex, dishindex, dataindex)}
-                          >
-                            <Ionicons name="add" size={responsiveFontSize(1.5)} color={theme.fontColorOnBackground} />
-                          </TouchableOpacity>
-                        </View>
+                            <Text
+                              style={{
+                                fontSize: responsiveFontSize(1.1),
+                                color: theme.fontColorOnBackground,
+                              }}
+                            >
+                              Qty: {dish.quantity}
+                            </Text>
+                          </View>
+                        ) : (
+                          <View style={styles.qtyStepper}>
+                            <TouchableOpacity
+                              style={styles.qtyStepperBtn}
+                              onPress={() =>
+                                addTocartDecrement(
+                                  cartindex,
+                                  dishindex,
+                                  dataindex,
+                                )
+                              }
+                            >
+                              <Ionicons
+                                name="remove"
+                                size={responsiveFontSize(1.5)}
+                                color={theme.fontColorOnBackground}
+                              />
+                            </TouchableOpacity>
+                            <Text style={styles.qtyStepperValue}>
+                              {dish.quantity}
+                            </Text>
+                            <TouchableOpacity
+                              style={styles.qtyStepperBtn}
+                              onPress={() =>
+                                addTocartIncrement(
+                                  cartindex,
+                                  dishindex,
+                                  dataindex,
+                                )
+                              }
+                            >
+                              <Ionicons
+                                name="add"
+                                size={responsiveFontSize(1.5)}
+                                color={theme.fontColorOnBackground}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        )}
 
                         <TouchableOpacity
-                          style={styles.deleteBtn}
-                          onPress={() => deleteCartItem(cartindex, dishindex, dataindex)}
+                          style={[
+                            styles.deleteBtn,
+                            isBogoLine &&
+                            !bogoRemovable && { opacity: 0.4 },
+                          ]}
+                          disabled={isBogoLine && !bogoRemovable}
+                          onPress={() => {
+                            if (isBogoLine && !bogoRemovable) {
+                              showToastMsg(
+                                'Remove the offer item first',
+                              );
+                              return;
+                            }
+                            deleteCartItem(cartindex, dishindex, dataindex);
+                          }}
                         >
-                          <Feather name="trash-2" size={responsiveFontSize(1.3)} color={theme.cancelButton} />
+                          <Feather
+                            name="trash-2"
+                            size={responsiveFontSize(1.3)}
+                            color={theme.cancelButton}
+                          />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -2564,6 +2938,7 @@ const HomeRight = props => {
                 });
               });
             })}
+
             {/* ---------- Fee breakdown ---------- */}
             {PendingMinimumFee > 0.0 ? null : (
               <>
@@ -2580,7 +2955,9 @@ const HomeRight = props => {
                       <View key={'carefee_' + index}>
                         {cartfee.deliverycost > 0 ? (
                           <View style={styles.feeRow}>
-                            <Text style={styles.feeLabel}>{t('DELIEVRY_FEE')}</Text>
+                            <Text style={styles.feeLabel}>
+                              {t('DELIEVRY_FEE')}
+                            </Text>
                             <Text style={styles.feeValue}>
                               {activeBusiness.currency_symbol}
                               {parseFloat(cartfee.deliverycost).toFixed(2)}
@@ -2589,11 +2966,9 @@ const HomeRight = props => {
                         ) : null}
                         {cartfee.taxprice > 0 ? (
                           <View style={styles.feeRow}>
-                            <View>
-                              <Text style={styles.feeLabel}>
-                                {t('ORDER_TEMPLATE_TAX')} ({cartfee.tax}%)
-                              </Text>
-                            </View>
+                            <Text style={styles.feeLabel}>
+                              {t('ORDER_TEMPLATE_TAX')} ({cartfee.tax}%)
+                            </Text>
                             <Text style={styles.feeValue}>
                               {activeBusiness.currency_symbol}
                               {parseFloat(cartfee.taxprice).toFixed(2)}
@@ -2624,7 +2999,9 @@ const HomeRight = props => {
 
                         {cartfee.discount > 0 ? (
                           <View style={styles.feeRow}>
-                            <Text style={styles.feeLabel}>{t('DISCOUNT')}</Text>
+                            <Text style={styles.feeLabel}>
+                              {t('DISCOUNT')}
+                            </Text>
                             <Text style={styles.feeValueDiscount}>
                               {'-'}
                               {activeBusiness.currency_symbol}
@@ -2636,8 +3013,10 @@ const HomeRight = props => {
                         {cartfee?.autodiscount > 0 ? (
                           <View style={styles.feeRow}>
                             <Text style={styles.feeLabel}>
-                              {cartfee?.firstoffer?.message}(
-                              {cartfee?.firstoffer?.data[0]?.distext})
+                              {cartfee?.firstoffer?.message || 'Discount'} (
+                              {cartfee?.firstoffer?.data[0]?.distext ||
+                                discountInfo.discounttext}
+                              )
                             </Text>
                             <Text style={styles.feeValueDiscount}>
                               {'-'}
@@ -2659,12 +3038,12 @@ const HomeRight = props => {
                   })}
                 </View>
                 <View style={styles.totalDivider} />
+
                 {/* ---------- Notes ---------- */}
                 <View style={styles.notesBlock}>
-
                   <TextInput
                     style={styles.notesInput}
-                    placeholder={t('NOTE') + "..."}
+                    placeholder={t('NOTE') + '...'}
                     placeholderTextColor={theme.fontColorOnBackground}
                     value={buyerDetails.notes}
                     onChangeText={text => setBuyerInfo(text, 'notes')}
@@ -2676,44 +3055,9 @@ const HomeRight = props => {
                   </Text>
                 </View>
 
-                {displaypaircode === true ? (
-                  <View style={styles.inputBlock}
-                    onLayout={registerFieldPosition('paircode')}
-                  >
-                    <View
-                      style={[
-                        styles.inputRow,
-                        errors.paircode && styles.inputRowError,
-                      ]}
-                    >
-                      <View style={styles.inputIconWrap}>
-                        <Ionicons
-                          name="keypad-outline"
-                          size={responsiveFontSize(1.5)}
-                          color={theme.fontColorOnBackground}
-                        />
-                      </View>
-                      <TextInput
-                        style={styles.inputField}
-                        placeholder="Terminal PairCode"
-                        placeholderTextColor={theme.fontColorOnBackground}
-                        value={paircode}
-                        onChangeText={text => {
-                          setPaircode(text);
-                          if (text.search(/\S/) != -1)
-                            clearFieldError('paircode');
-                        }}
-                        keyboardType="numeric"
-                        maxLength={10}
-                      />
-                    </View>
-                    {errors.paircode ? (
-                      <Text style={styles.errorText}>{errors.paircode}</Text>
-                    ) : null}
-                  </View>
-                ) : null}
                 {/* ---------- Payment method cards ---------- */}
-                <View style={{ marginBottom: responsiveHeight(1) }}
+                <View
+                  style={{ marginBottom: responsiveHeight(1) }}
                   onLayout={registerFieldPosition('paymentId')}
                 >
                   <View style={styles.paymentRow}>
@@ -2766,15 +3110,16 @@ const HomeRight = props => {
                     <Text style={styles.errorText}>{errors.paymentId}</Text>
                   ) : null}
                 </View>
-                {/* ---------- Pay now ---------- */}
-
               </>
             )}
           </ScrollView>
+
+          {/* ---------- Sticky Pay Now bar ---------- */}
           <View style={styles.stickyPayNowBar}>
             {PendingMinimumFee > 0.0 ? (
               <Text style={styles.minimumFeeText}>
-                {t('MINIMUM_PRICE_NEED_TO_ADD')} {activeBusiness.currency_symbol}
+                {t('MINIMUM_PRICE_NEED_TO_ADD')}{' '}
+                {activeBusiness.currency_symbol}
                 {PendingMinimumFee}
               </Text>
             ) : update_action_status === true ? (
@@ -2784,33 +3129,36 @@ const HomeRight = props => {
             ) : (
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => {
-                  CheckallDetails();
-                }}
+                onPress={() => CheckallDetails()}
               >
                 <Text style={styles.buttonText}>{t('PAY_NOW')}</Text>
               </TouchableOpacity>
             )}
           </View>
         </>
-      ) :
-        CartDish.isLoading === true ? (
-          <View style={styles.emptyWrap}>
-            <EmptyCartSkeleton />
+      ) : CartDish.isLoading === true ? (
+        <View style={styles.emptyWrap}>
+          <EmptyCartSkeleton />
+        </View>
+      ) : (
+        <View style={styles.emptyWrap}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons
+              name="cart-outline"
+              size={responsiveFontSize(5)}
+              color={theme.primary}
+            />
           </View>
-        ) : (
-          <View style={styles.emptyWrap}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="cart-outline" size={responsiveFontSize(5)} color={theme.primary} />
-            </View>
-            <Text style={styles.emptyTitle}>{t('NO_PRODUCTS_IN_YOUR_CART')}</Text>
-            <Text style={styles.emptySubtitle}>{t('ADD_ITEMS_FROM_THE_MENU_TO_GET_STARTTED')} </Text>
-          </View>
-        )
-      }
+          <Text style={styles.emptyTitle}>
+            {t('NO_PRODUCTS_IN_YOUR_CART')}
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            {t('ADD_ITEMS_FROM_THE_MENU_TO_GET_STARTTED')}{' '}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
 
 export default HomeRight;
-

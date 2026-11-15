@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
+  useWindowDimensions,
   Text,
   View,
   BackHandler,
-  Dimensions,
   TextInput,
   ScrollView,
   Image,
-  Pressable,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Alert,
-  Platform,
   ActivityIndicator,
   FlatList,
 } from 'react-native';
@@ -20,6 +17,7 @@ import { Colors } from '../../Constants/Colors';
 import { Inter } from '../../Constants/Fonts';
 import { Images } from '../../Constants/ImageIconContant';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import {
   responsiveHeight,
   responsiveWidth,
@@ -34,6 +32,7 @@ import {
   setNewOrderData,
   setNewOrder,
   saveOrderId,
+  setUsbPrinterValue,
 } from '../../Store/Reducers/CommonReducer';
 import { showToastMsg, getData, setData } from '../../Service/localStorage';
 import { postWithToken, postWithOutToken } from '../../Service/service';
@@ -47,18 +46,76 @@ import {
   CheckBox,
 } from 'react-native-basic-elements';
 import Modal from 'react-native-modal';
-import { HomeRight, OptionModelAdd } from '../../Component';
-//import EbPrinter from 'react-native-ebprinter';
+import { HomeRight, OptionModelAdd } from '../Component/index';
+import EbPrinter from 'react-native-ebprinter';
 import messaging from '@react-native-firebase/messaging';
 import SoundPlayer from 'react-native-sound-player';
-import ProductCardSkeleton from '../../Component/ProductCardSkeleton';
+import useTranslation from '../../Hooks/useTranslation';
+import ProductCardSkeleton, {
+  CategoryRowSkeleton,
+  EmptyCartSkeleton,
+  SubCategoryRowSkeleton,
+} from '../Component/ProductCardSkeleton';
+import useOrderTypes from '../../Hooks/useOrderTypes';
+import { useAppTheme } from '../../Hooks/useAppTheme';
+import SelectUsbPrinter from '../Component/selectusbprinter';
+import OfferDealSection from './OfferDealSection';
+import {
+  syncBogoPricingInCart,
+  tagLastDataEntryForDish,
+  emptyBogoFields,
+  sameBogoGroup,
+} from '../../utility/bogoUtils'; // adjust path to match your project structure
 
-// create a component
+const WEEKDAY_NAMES = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+const mergeMenuSchedules = menus => {
+  const merged = {};
+  WEEKDAY_NAMES.forEach(name => {
+    merged[name] = { name, status: false, times: [] };
+  });
+
+  (menus || []).forEach(menu => {
+    (menu.schedule || []).forEach(day => {
+      if (!merged[day.name]) return;
+      if (day.status) {
+        merged[day.name].status = true;
+        merged[day.name].times = merged[day.name].times.concat(day.times || []);
+      }
+    });
+  });
+  return Object.values(merged);
+};
+
+const OFFER_CATEGORY_ID = '__deal_offer_category__';
+
 const Home = ({ props, route, navigation }) => {
-  const styles = Styles();
+  const { width: windowWidth } = useWindowDimensions();
+  const innerLeftWidth = windowWidth * 0.66;
+  const TARGET_CARD_WIDTH = 251;
+  const CARD_GAP = 14;
+  const columns = Math.min(
+    5,
+    Math.max(
+      3,
+      Math.round((innerLeftWidth + CARD_GAP) / (TARGET_CARD_WIDTH + CARD_GAP)),
+    ),
+  );
+  const theme = useAppTheme();
+  const styles = useMemo(() => Styles(theme, columns), [theme, columns]);
+  const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails } =
+  const { baseUrl, siteUrl, userToken, userData, langId, cartDetails, UsbPrinter } =
     useSelector(state => state.common);
+
   const [viewloader, setLoader] = useState(false);
   const [selected_category, setSelectedCategory] = useState(null);
   const [activeBusiness, setActiveBusiness] = useState(null);
@@ -73,6 +130,7 @@ const Home = ({ props, route, navigation }) => {
     isLoading: true,
     list: [],
   });
+
   const [categoryDetails_temp, setcategoryDetailsTemp] = useState([]);
   const [category_menu, setCategoryMenu] = useState({
     isLoading: true,
@@ -87,6 +145,8 @@ const Home = ({ props, route, navigation }) => {
     list: [],
   });
 
+  const [selected_subcategory, setSelectedSubCategory] = useState(null);
+
   const [cartQuantity, setcartQuantity] = useState(0);
   const [orderType, setOrderType] = useState(1);
   const [CartDish, setCartDish] = useState({ isLoading: true, list: [] });
@@ -96,13 +156,190 @@ const Home = ({ props, route, navigation }) => {
   const [notification_data, setNotificationData] = useState(null);
   const [order_data, setOrderData] = useState(null);
 
+  const { getAvailableOrderTypes } = useOrderTypes();
+  const [noActiveMenu, setNoActiveMenu] = useState(false);
+  const [noActiveMenuSignal, setNoActiveMenuSignal] = useState(0);
+
+  const offerSectionRef = useRef(null);
+  const [pendingOfferDish, setPendingOfferDish] = useState(null);
+  const [dealOffer, setDealOffer] = useState({ dishes: [], offerMeta: null });
+  const [redeemedDealIds, setRedeemedDealIds] = useState([]);
+  const userSelectedCategoryRef = useRef(false);
+
+  // NEW — holds the BOGO group id/discount/offer name for a companion
+  // dish that's mid-configuration in OptionModelAdd. Consumed the moment
+  // that dish's cart update comes back through updateCartDetailsFromChild.
+  const pendingBogoCompanionRef = useRef(null);
+
+  const firstPositivePrice = (...values) => {
+    for (const v of values) {
+      const n = Number(v);
+      if (!isNaN(n) && n > 0) return n;
+    }
+    return 0;
+  };
+
+  // Maps the raw get-deal-dish-list / get-buy-one-get-one-dish-list option
+  // shape (option_name, choices, choice_name, min_sel, max_sel) onto the
+  // shape OptionModelAdd.js expects (name, choice, min, max, type, show,
+  // coditions). One option group's `type` is derived from its first
+  // choice's type since all choices in a group share the same type in
+  // this data.
+  const mapDealOptionsToOptionModel = rawOptions => {
+    if (!Array.isArray(rawOptions)) return [];
+    return rawOptions
+      .filter(o => o && Array.isArray(o.choices))
+      .map(o => {
+        const choiceTypeSample = o.choices[0]?.type;
+        return {
+          id: o.id,
+          name: o.option_name,
+          required: Number(o.required) || 0,
+          status: o.status,
+          min: Number(o.min_sel) || 0,
+          max: Number(o.max_sel) || 0,
+          type: choiceTypeSample != null ? choiceTypeSample : '1',
+          show: true,
+          coditions: [],
+          choice: o.choices.map(c => ({
+            id: c.id,
+            name: c.choice_name,
+            price: Number(c.price) || 0,
+            type: c.type,
+            checked: false,
+            qty: 1,
+          })),
+        };
+      });
+  };
+
+  const normalizeDealDish = dish => {
+    let sets = dish.sets;
+    if (!sets || sets.length === 0) {
+      const mappedOptions = mapDealOptionsToOptionModel(dish.options);
+      sets = mappedOptions.length > 0
+        ? [{ id: 'deal_options', name: '', options: mappedOptions }]
+        : [];
+    }
+    return {
+      ...dish,
+      sets,
+      price: firstPositivePrice(
+        dish.price,
+        dish.offerprice,
+        dish.pofferprice,
+        dish.delprice,
+      ),
+      is_img: dish.is_img || dish.url || null,
+      ingredientsarray: dish.ingredientsarray || [],
+    };
+  };
+
+  const tagOfferDish = (dish, offerMeta) => {
+    if (!dish || !dish.is_offer) return dish;
+    return {
+      ...dish,
+      isDealDish: true,
+      dealOfferMeta: offerMeta || dish.dealOfferMeta || null,
+    };
+  };
+
+  const handleDealDishesLoaded = (dishes, offerMeta) => {
+    const normalized = (dishes || []).map(dish => ({
+      ...normalizeDealDish(dish),
+      isDealDish: true,
+      dealOfferMeta: offerMeta,
+    }));
+    setDealOffer({ dishes: normalized, offerMeta: offerMeta || null });
+  };
+
+  const handleRedeemedIdsChange = ids => {
+    setRedeemedDealIds(ids || []);
+  };
+
+  const offerCategory = useMemo(() => {
+    if (!dealOffer.dishes || dealOffer.dishes.length === 0) return null;
+    return {
+      id: OFFER_CATEGORY_ID,
+      name: dealOffer.offerMeta?.offer_name || null,
+      icon: null,
+      isOfferCategory: true,
+      dish: dealOffer.dishes,
+      subCat: [],
+    };
+  }, [dealOffer]);
+
+  const displayedCategoryList = useMemo(() => {
+    const base = categoryDetails.list || [];
+    return offerCategory ? [offerCategory, ...base] : base;
+  }, [categoryDetails.list, offerCategory]);
+
+  useEffect(() => {
+    if (userSelectedCategoryRef.current) return;
+    if (categoryDetails.isLoading) return;
+    if (!displayedCategoryList || displayedCategoryList.length === 0) return;
+
+    const firstItem = displayedCategoryList[0];
+    setSelectedCategory(prev => (prev === firstItem.id ? prev : firstItem.id));
+    setCategoryMenu(prev =>
+      prev.list === firstItem ? prev : { isLoading: false, list: firstItem },
+    );
+    setSelectedSubCategory(null);
+  }, [displayedCategoryList, categoryDetails.isLoading]);
+
+  const [expandedQtyDishId, setExpandedQtyDishId] = useState({});
+  const qtyCollapseTimers = useRef({});
+  const startQtyCollapseTimer = dishId => {
+    if (qtyCollapseTimers.current[dishId]) {
+      clearTimeout(qtyCollapseTimers.current[dishId]);
+    }
+    qtyCollapseTimers.current[dishId] = setTimeout(() => {
+      setExpandedQtyDishId(prev => ({ ...prev, [dishId]: false }));
+      delete qtyCollapseTimers.current[dishId];
+    }, 5000);
+  };
+
+  useEffect(() => {
+    if (userData != null && userToken && baseUrl) {
+      ActiveBusiness();
+    }
+  }, [userData, userToken, baseUrl]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(qtyCollapseTimers.current).forEach(clearTimeout);
+    };
+  }, []);
+
+  useEffect(() => {
+    const restoreCart = async () => {
+      try {
+        const savedCartRaw = await getData('cartDetails');
+        if (savedCartRaw) {
+          const savedCart = JSON.parse(savedCartRaw);
+          if (Array.isArray(savedCart) && savedCart.length > 0) {
+            dispatch(setCartDetails(savedCart));
+            setCartDish({ isLoading: false, list: savedCart });
+
+            let cartQty = 0;
+            for (const cartDish of savedCart) {
+              for (const dish of cartDish.dish) {
+                cartQty += dish.quantity;
+              }
+            }
+            setcartQuantity(cartQty);
+            dispatch(setCartQuantity(cartQty));
+          }
+        }
+      } catch (e) {
+        console.log('Error restoring cart:', e);
+      }
+    };
+    restoreCart();
+  }, []);
+
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      //Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-      /* Alert.alert(
-        remoteMessage.notification.title,
-        remoteMessage.notification.body,
-      );*/
       dispatch(setNewOrder(1));
       dispatch(setNewOrderNotification(remoteMessage.notification));
       dispatch(setNewOrderData(remoteMessage.data));
@@ -113,36 +350,23 @@ const Home = ({ props, route, navigation }) => {
   }, []);
 
   useEffect(() => {
-    // Handle notifications when the app is opened from the background
     messaging().onNotificationOpenedApp(remoteMessage => {
-      //console.log('[FCMService] OnNotificationOpenedApp', remoteMessage);
-
-      //Alert.alert('OnNotificationOpenedApp', JSON.stringify(remoteMessage));
       if (remoteMessage) {
         navigation.navigate('MyOrder_Tab', {
-          screen: 'MyOrder',
-          params: {
-            id: remoteMessage.data.order_id,
-          },
+          screen: 'OrderDetailFromNotification',
+          params: { orderId: remoteMessage.data.order_id },
         });
       }
     });
 
-    // Handle notifications when the app is launched from a quit state
     messaging()
       .getInitialNotification()
       .then(remoteMessage => {
-        //console.log('[FCMService] getInitialNotification', remoteMessage);
-        //Alert.alert('getInitialNotification', JSON.stringify(remoteMessage));
         if (remoteMessage) {
           navigation.navigate('MyOrder_Tab', {
-            screen: 'MyOrder',
-            params: {
-              id: remoteMessage.data.order_id,
-            },
+            screen: 'OrderDetailFromNotification',
+            params: { orderId: remoteMessage.data.order_id },
           });
-
-          //dispatch(saveOrderId(remoteMessage.data.order_id));
         }
       });
   }, []);
@@ -154,19 +378,6 @@ const Home = ({ props, route, navigation }) => {
       };
 
       const ExitAlert = () => {
-        /*Alert.alert('Jatayu Supplier', 'do you want to close app?', [
-              {
-                text: 'No',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel',
-              },
-              {
-                text: 'Yes',
-                onPress: () => {
-                  backAction();
-                },
-              },
-            ]);*/
         backAction();
         return true;
       };
@@ -181,29 +392,20 @@ const Home = ({ props, route, navigation }) => {
   );
 
   const SoundPlay = () => {
-    console.log('call sound');
     try {
-      // or play file from folder
-      SoundPlayer.playAsset(require('../../assets/sound/newbook.wav'));
+      requestAnimationFrame(() => {
+        SoundPlayer.playAsset(require('../../assets/sound/orders_up.mp3'));
+      });
     } catch (e) {
-      console.log(`cannot play the sound file`, e);
+      console.log('Cannot play sound file', e);
     }
   };
 
   const OpenNewOrderModel = (notification, data) => {
-    console.log('data notification');
-    console.log(notification);
-
     SoundPlay();
-
-    console.log(data);
     setNotificationData(notification);
     setOrderData(data);
-
-    setTimeout(() => {
-      console.log('model open');
-      setNewOrderModel(true);
-    }, 1000);
+    setNewOrderModel(true);
   };
 
   useFocusEffect(
@@ -213,166 +415,121 @@ const Home = ({ props, route, navigation }) => {
     }, [cartDetails, cartQuantity]),
   );
 
-  useEffect(() => {
-    if (userData != null) {
-      ActiveBusiness();
-    }
-  }, [userData]);
-
-  /*const ActiveBusiness = () => {
-    postWithOutToken(baseUrl, 'module/business/rest-business-pos', {
-      f: 'react_getbusinessid',
-      langId: langId,
-      uid: userData.id,
-    })
-      .then(response => {
-        //console.log(response);
-        setActiveBusiness(response);
-        dineIn(response);
-      })
-      .catch(error => {
-        console.log('Error : ', error);
-      });
-  };*/
-
   const ActiveBusiness = () => {
+    fetchBusinessMenu(2);
+  };
+
+  const filterByMenuStatus = (categories, offerMeta) => {
+    return (categories || [])
+      .map(cat => {
+        const filteredDish = (cat.dish || [])
+          .filter(d => Number(d.menu_status) === 1)
+          .map(d => tagOfferDish(d, offerMeta));
+        const filteredSubCat = (cat.subCat || [])
+          .map(sc => ({
+            ...sc,
+            dish: (sc.dish || [])
+              .filter(d => Number(d.menu_status) === 1)
+              .map(d => tagOfferDish(d, offerMeta)),
+          }))
+          .filter(sc => sc.dish.length > 0);
+
+        return {
+          ...cat,
+          dish: filteredDish,
+          subCat: filteredSubCat,
+        };
+      })
+      .filter(cat => cat.dish.length > 0 || cat.subCat.length > 0);
+  };
+
+  const fetchBusinessMenu = typeToFetch => {
+    userSelectedCategoryRef.current = false;
     postWithToken(
       baseUrl,
       'get-business-info',
-      { lang_id: langId, type: 1 },
+      {
+        business_id: userData?.business_id,
+        lang_id: langId,
+        type: typeToFetch,
+      },
       userToken,
     )
       .then(response => {
-        //console.log(response.business);
-        // console.log(response.category[0]);
-        //setActiveBusiness(response);
-        //dineIn(response);
+        const hasMenu =
+          response.status === true &&
+          response?.menu &&
+          Object.keys(response.menu).length > 0;
 
-        if (response.status === true) {
-          setActiveBusiness(response.business);
-          if (Object.keys(response.menu).length === 0) {
-            Alert.alert('Sorry!', 'Not Have Active Menu Now', [
-              {
-                text: 'Ok',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel',
-              },
-            ]);
-            setCategoryDetails({ isLoading: false, list: [] });
-            setCategoryMenu({ isLoading: false, list: null });
-            setcategoryDetailsTemp([]);
-            setCategoryMenuTemp([]);
-            return false;
-          } else {
-            //console.log(response.category[0]);
-            setCategoryDetails({ isLoading: false, list: response.category });
-            setcategoryDetailsTemp(response.category);
+        const businessWithSchedule = {
+          ...response.business,
+          schedule: mergeMenuSchedules(response.menu),
+          offer: response.offer || null,
+        };
+        setActiveBusiness(businessWithSchedule);
+        setOrderType(typeToFetch);
 
-            let menu_temp = null;
-
-            response.category.map((item, index) => {
-              if (menu_temp == null) {
-                menu_temp = item.dish;
-              } else {
-                menu_temp = [...menu_temp, ...item.dish];
-              }
-
-              if (item.subCat.length > 0) {
-                //menu_temp.concat(item.subCat.dish);
-
-                item.subCat.map((sutitem, subindex) => {
-                  if (menu_temp == null) {
-                    menu_temp = sutitem.dish;
-                  } else {
-                    menu_temp = [...menu_temp, ...sutitem.dish];
-                  }
-                });
-              }
-              //console.log(item);
-            });
-
-            //console.log('Menu Temp');
-            //console.log(menu_temp);
-
-            setCategoryMenuTemp(menu_temp);
-          }
-        }
-      })
-      .catch(error => {
-        console.log('Error : ', error);
-      });
-  };
-
-  const dineIn = res => {
-    postWithOutToken(baseUrl, 'module/product/rest-product-pos', {
-      f: 'getproductbybusiness',
-      Id: res.id,
-      langId: langId,
-      type: orderType,
-      preorder: preorderDetails,
-    })
-      .then(response => {
-        if (Object.keys(response.menu).length === 0) {
-          Alert.alert('Sorry!', 'Not Have Active Menu Now', [
-            {
-              text: 'Ok',
-              onPress: () => console.log('Cancel Pressed'),
-              style: 'cancel',
-            },
-          ]);
+        if (!hasMenu) {
+          setNoActiveMenu(true);
+          setNoActiveMenuSignal(prev => prev + 1);
           setCategoryDetails({ isLoading: false, list: [] });
           setCategoryMenu({ isLoading: false, list: null });
           setcategoryDetailsTemp([]);
           setCategoryMenuTemp([]);
-          return false;
-        } else {
-          //console.log(response.category[0]);
-          setCategoryDetails({ isLoading: false, list: response.category });
-          setcategoryDetailsTemp(response.category);
-
-          let menu_temp = null;
-
-          response.category.map((item, index) => {
-            if (menu_temp == null) {
-              menu_temp = item.dish;
-            } else {
-              menu_temp = [...menu_temp, ...item.dish];
-            }
-
-            if (item.subCat.length > 0) {
-              //menu_temp.concat(item.subCat.dish);
-
-              if (menu_temp == null) {
-                menu_temp = item.dish;
-              } else {
-                menu_temp = [...menu_temp, ...item.subCat.dish];
-              }
-            }
-          });
-
-          setCategoryMenuTemp(menu_temp);
+          return;
         }
+        const activeCategories = filterByMenuStatus(
+          response.category,
+          response.offer,
+        );
+        if (activeCategories.length === 0) {
+          setNoActiveMenu(true);
+          setNoActiveMenuSignal(prev => prev + 1);
+          setCategoryDetails({ isLoading: false, list: [] });
+          setCategoryMenu({ isLoading: false, list: null });
+          setcategoryDetailsTemp([]);
+          setCategoryMenuTemp([]);
+          return;
+        }
+        setNoActiveMenu(false);
+        setCategoryDetails({ isLoading: false, list: activeCategories });
+        setcategoryDetailsTemp(activeCategories);
+
+        let menu_temp = null;
+        activeCategories.forEach(item => {
+          menu_temp =
+            menu_temp == null
+              ? item.dish
+              : [...menu_temp, ...(item.dish || [])];
+          if (item.subCat && item.subCat.length > 0) {
+            item.subCat.forEach(subitem => {
+              menu_temp =
+                menu_temp == null
+                  ? subitem.dish
+                  : [...menu_temp, ...(subitem.dish || [])];
+            });
+          }
+        });
+        setCategoryMenuTemp(menu_temp);
       })
       .catch(error => {
         console.log('Error : ', error);
+        setNoActiveMenu(true);
       });
   };
 
   const openProduct = (cat_id, cat, cat_index) => {
-    console.log('on click category');
-    console.log(cat_id);
-    console.log(cat);
-
+    userSelectedCategoryRef.current = true;
     setSelectedCategory(cat_id);
     setCategoryMenu({ isLoading: false, list: cat });
+    setSelectedSubCategory(null);
+    if (cat && Array.isArray(cat.subCat) && cat.subCat.length > 0) {
+      scrollToProducts();
+    }
   };
 
   const productDetails = item => {
-    /*if (item.sets.length > 0 || item.ingredientsarray.length > 0) {*/
-    /*for (const ingre of item.ingredientsarray) {
-        ingre.status = true;
-      }*/
-    if (item.sets.length > 0) {
+    if (item.sets && item.sets.length > 0) {
       productDetailsItem(item);
     } else {
       let cartDish = cartDetails;
@@ -384,17 +541,13 @@ const Home = ({ props, route, navigation }) => {
   };
 
   const productDetailsEdit = (item, indexcart) => {
-    let itemDish;
-    itemDish = JSON.stringify(item);
-
-    let dataItem;
-    dataItem = {
+    let itemDish = JSON.stringify(item);
+    let dataItem = {
       dish: JSON.parse(itemDish),
       CartDish: cartDetails,
       indexCart: indexcart,
       type: 1,
     };
-
     setOptionItem(dataItem);
     setoptionModelAdd(true);
   };
@@ -402,25 +555,29 @@ const Home = ({ props, route, navigation }) => {
   const [optionItem, setOptionItem] = useState(null);
 
   const productDetailsItem = async item => {
-    let itemDish;
-    itemDish = JSON.stringify(item);
-    if (item.sets !== undefined) {
+    if (item.isDealDish) {
+      setPendingOfferDish(item);
+    }
+
+    if (item.sets !== undefined && Array.isArray(item.sets)) {
       if (item.sets.length > 0) {
         for (let i = 0; i < item.sets.length; i++) {
-          for (let j = 0; j < item.sets[i].options.length; j++) {
-            for (let k = 0; k < item.sets[i].options[j].choice.length; k++) {
-              item.sets[i].options[j].choice[k].qty = 1;
-              item.sets[i].options[j].choice[k].checked = false;
+          const options = item.sets[i]?.options;
+          if (!Array.isArray(options)) continue;
+          for (let j = 0; j < options.length; j++) {
+            const choices = options[j]?.choice;
+            if (!Array.isArray(choices)) continue;
+            for (let k = 0; k < choices.length; k++) {
+              choices[k].qty = 1;
+              choices[k].checked = false;
             }
           }
         }
       }
     }
 
-    itemDish = JSON.stringify(item);
-
-    let dataItem;
-    dataItem = {
+    let itemDish = JSON.stringify(item);
+    let dataItem = {
       dish: JSON.parse(itemDish),
       CartDish: cartDetails,
       type: 0,
@@ -429,118 +586,65 @@ const Home = ({ props, route, navigation }) => {
     setOptionItem(dataItem);
     setoptionModelAdd(true);
   };
-  const addToCart = dishItem => {
-    if (dishItem.sets !== undefined) {
-      if (dishItem.sets.length > 0) {
-        for (let i = 0; i < dishItem.sets.length; i++) {
-          for (let j = 0; j < dishItem.sets[i].options.length; j++) {
-            if (dishItem.sets[i].options[j].show === true) {
-              if (dishItem.sets[i].options[j].type === 1) {
-                let min = 0;
 
-                for (
-                  let k = 0;
-                  k < dishItem.sets[i].options[j].choice.length;
-                  k++
-                ) {
-                  if (dishItem.sets[i].options[j].choice[k].checked === true) {
-                    min++;
-                  }
+  const addDishToCartArray = (cart, dishItem) => {
+    if (dishItem.sets !== undefined && dishItem.sets.length > 0) {
+      for (let i = 0; i < dishItem.sets.length; i++) {
+        const options = dishItem.sets[i]?.options;
+        if (!Array.isArray(options)) continue;
+        for (let j = 0; j < options.length; j++) {
+          const choices = options[j]?.choice;
+          if (options[j].show === true) {
+            if (options[j].type === 1) {
+              let min = 0;
+              if (Array.isArray(choices)) {
+                for (let k = 0; k < choices.length; k++) {
+                  if (choices[k].checked === true) min++;
                 }
-                if (
-                  dishItem.sets[i].options[j].required === true &&
-                  min === 0
-                ) {
-                  Alert.alert(
-                    'Warning!',
-                    dishItem.sets[i].options[j].name + ' is required',
-                    [
-                      {
-                        text: 'Ok',
-                        onPress: () => console.log('Cancel Pressed'),
-                        style: 'cancel',
-                      },
-                    ],
-                  );
-
-                  return false;
-                } else if (min < dishItem.sets[i].options[j].min) {
-                  Alert.alert(
-                    'Warning!',
-                    dishItem.sets[i].options[j].name +
-                      ' minimum choice is ' +
-                      dishItem.sets[i].options[j].min,
-                    [
-                      {
-                        text: 'Ok',
-                        onPress: () => console.log('Cancel Pressed'),
-                        style: 'cancel',
-                      },
-                    ],
-                  );
-
-                  return false;
+              }
+              if (options[j].required === true && min === 0) {
+                Alert.alert('Warning!', options[j].name + ' is required');
+                return false;
+              } else if (min < options[j].min) {
+                Alert.alert(
+                  'Warning!',
+                  options[j].name + ' minimum choice is ' + options[j].min,
+                );
+                return false;
+              }
+            } else if (
+              options[j].required === true &&
+              options[j].type === 0
+            ) {
+              let min = 0;
+              if (Array.isArray(choices)) {
+                for (let k = 0; k < choices.length; k++) {
+                  if (choices[k].checked === true) min++;
                 }
-              } else if (
-                dishItem.sets[i].options[j].required === true &&
-                dishItem.sets[i].options[j].type === 0
-              ) {
-                let min = 0;
-                for (
-                  let k = 0;
-                  k < dishItem.sets[i].options[j].choice.length;
-                  k++
-                ) {
-                  if (dishItem.sets[i].options[j].choice[k].checked === true) {
-                    min++;
-                  }
-                }
-                if (min === 0) {
-                  Alert.alert(
-                    'Warning!',
-                    dishItem.sets[i].options[j].name + ' is required ',
-                    [
-                      {
-                        text: 'Ok',
-                        onPress: () => console.log('Cancel Pressed'),
-                        style: 'cancel',
-                      },
-                    ],
-                  );
-
-                  return false;
-                }
+              }
+              if (min === 0) {
+                Alert.alert('Warning!', options[j].name + ' is required ');
+                return false;
               }
             }
           }
         }
       }
     }
-    let dishTotal;
-    dishTotal = dishItem.price;
-    let business;
-    business = {
+
+    let dishTotal = dishItem.price;
+    let business = {
       id: activeBusiness.id,
       details: activeBusiness,
       dish: new Array(),
     };
-
-    let dish;
-    dish = {
-      id: dishItem.id,
-      quantity: 1,
-      data: new Array(),
-    };
-    let activeIngredients;
-    activeIngredients = new Array();
-    for (const ingre of dishItem.ingredientsarray) {
-      /*if (ingre.status === false) {*/
+    let dish = { id: dishItem.id, quantity: 1, data: new Array() };
+    let activeIngredients = new Array();
+    for (const ingre of dishItem.ingredientsarray || []) {
       activeIngredients.push(ingre);
-      /*}*/
     }
 
-    let data;
-    data = {
+    let data = {
       id: dishItem.id,
       name: dishItem.name,
       price: dishItem.price,
@@ -561,254 +665,212 @@ const Home = ({ props, route, navigation }) => {
       activeIngredientsText: activeIngredients.join(', '),
       quantity: 1,
       sets: new Array(),
-      relation: {
-        options: new Array(),
-        choices: new Array(),
-      },
+      relation: { options: new Array(), choices: new Array() },
+      isDealDish: dishItem.isDealDish || false,
+      dealOfferMeta: dishItem.dealOfferMeta || null,
+      isFreeReward: dishItem.isFreeReward || false,
+      offerBadge: dishItem.offerBadge || null,
+      // BOGO: carry the group id through if this dish was tagged as a
+      // BOGO main/companion before being added (see handleFreeItemChosen
+      // and any options-first flow that mints bogo_group_id up front).
+      // The rest start empty — is_bogo_free/price are only ever decided
+      // by syncBogoPricingInCart, never set directly here.
+      ...emptyBogoFields(),
+      bogo_group_id: dishItem.bogo_group_id || null,
+      is_bogo_main: dishItem.is_bogo_main || false,
     };
 
-    let optionsarray;
-    optionsarray = new Array();
-    let choicesarray;
-    choicesarray = new Array();
-    if (dishItem.sets !== undefined) {
-      if (dishItem.sets.length > 0) {
-        for (let i = 0; i < dishItem.sets.length; i++) {
-          for (let j = 0; j < dishItem.sets[i].options.length; j++) {
-            let options;
-            options = {
-              id: dishItem.sets[i].options[j].id,
-              name: dishItem.sets[i].options[j].name,
-              choice: new Array(),
-            };
-
-            for (
-              let k = 0;
-              k < dishItem.sets[i].options[j].choice.length;
-              k++
-            ) {
-              if (dishItem.sets[i].options[j].choice[k].checked === true) {
-                let choice;
-                choice = {
-                  id: dishItem.sets[i].options[j].choice[k].id,
-                  name: dishItem.sets[i].options[j].choice[k].name,
-                  price: dishItem.sets[i].options[j].choice[k].price,
+    let optionsarray = new Array();
+    let choicesarray = new Array();
+    if (dishItem.sets !== undefined && dishItem.sets.length > 0) {
+      for (let i = 0; i < dishItem.sets.length; i++) {
+        const rawOptions = dishItem.sets[i]?.options;
+        if (!Array.isArray(rawOptions)) continue;
+        for (let j = 0; j < rawOptions.length; j++) {
+          let options = {
+            id: rawOptions[j].id,
+            name: rawOptions[j].name,
+            choice: new Array(),
+          };
+          const choices = rawOptions[j]?.choice;
+          if (Array.isArray(choices)) {
+            for (let k = 0; k < choices.length; k++) {
+              if (choices[k].checked === true) {
+                let choice = {
+                  id: choices[k].id,
+                  name: choices[k].name,
+                  price: choices[k].price,
                 };
                 choicesarray.push(choice.id);
                 options.choice.push(choice);
               }
             }
-            if (options.choice.length > 0) {
-              optionsarray.push(options.id);
-              data.sets.push(options);
-            }
+          }
+          if (options.choice.length > 0) {
+            optionsarray.push(options.id);
+            data.sets.push(options);
           }
         }
       }
     }
     if (data.sets.length > 0) {
-      data.relation = {
-        options: optionsarray,
-        choices: choicesarray,
-      };
+      data.relation = { options: optionsarray, choices: choicesarray };
     }
 
-    let cart = JSON.parse(JSON.stringify(CartDish.list));
+    let newCart = JSON.parse(JSON.stringify(cart));
+    let parent_index = CheckBusinessAddtoCart(activeBusiness.id, newCart);
+    if (parent_index === -1) newCart.push(business);
+    parent_index = CheckBusinessAddtoCart(activeBusiness.id, newCart);
 
-    let parent_index = CheckBusinessAddtoCart(activeBusiness.id, cart);
-
-    if (parent_index === -1) {
-      cart.push(business);
-    }
-    parent_index = CheckBusinessAddtoCart(activeBusiness.id, cart);
-
-    let index = CheckAddtoCart(data.id, parent_index, cart);
+    let index = CheckAddtoCart(data.id, parent_index, newCart);
 
     if (index === -1) {
       dish.data.push(data);
-      cart[parent_index].dish.push(dish);
+      newCart[parent_index].dish.push(dish);
     } else {
-      cart[parent_index].dish[index].quantity =
-        parseInt(cart[parent_index].dish[index].quantity, 10) + 1;
-      if (data.sets.length === 0 && data.activeIngredients.length === 0) {
-        let index_data = CheckData(cart[parent_index].dish[index].data, data);
+      newCart[parent_index].dish[index].quantity =
+        parseInt(newCart[parent_index].dish[index].quantity, 10) + 1;
 
+      if (data.sets.length === 0 && data.activeIngredients.length === 0) {
+        let index_data = CheckData(
+          newCart[parent_index].dish[index].data,
+          data,
+        );
         if (index_data === -1) {
-          cart[parent_index].dish[index].data.push(data);
+          newCart[parent_index].dish[index].data.push(data);
         } else {
-          cart[parent_index].dish[index].data[index_data].notes =
-            dishItem.notes;
-          cart[parent_index].dish[index].data[index_data].quantity = parseInt(
-            cart[parent_index].dish[index].data[index_data].quantity + 1,
-          );
-          cart[parent_index].dish[index].data[index_data].total =
-            parseFloat(
-              cart[parent_index].dish[index].data[index_data].totalprice,
-            ) *
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            );
-          cart[parent_index].dish[index].data[index_data].total = parseFloat(
-            cart[parent_index].dish[index].data[index_data].total,
+          const d = newCart[parent_index].dish[index].data[index_data];
+          d.notes = dishItem.notes;
+          d.quantity = parseInt(d.quantity, 10) + 1;
+          d.total = (
+            parseFloat(d.totalprice) * parseInt(d.quantity, 10)
           ).toFixed(2);
         }
       } else if (
         data.sets.length === 0 &&
         data.activeIngredients.length !== 0
       ) {
-        let index_data;
-        index_data = CheckDataIngreExist(
-          cart[parent_index].dish[index].data,
+        let index_data = CheckDataIngreExist(
+          newCart[parent_index].dish[index].data,
           data,
         );
         if (index_data === -1) {
-          cart[parent_index].dish[index].data.push(data);
+          newCart[parent_index].dish[index].data.push(data);
         } else {
-          cart[parent_index].dish[index].data[index_data].notes =
-            dishItem.notes;
-          cart[parent_index].dish[index].data[index_data].quantity =
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            ) + 1;
-          cart[parent_index].dish[index].data[index_data].total =
-            parseFloat(
-              cart[parent_index].dish[index].data[index_data].totalprice,
-            ) *
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            );
-          cart[parent_index].dish[index].data[index_data].total = parseFloat(
-            cart[parent_index].dish[index].data[index_data].total,
+          const d = newCart[parent_index].dish[index].data[index_data];
+          d.notes = dishItem.notes;
+          d.quantity = parseInt(d.quantity, 10) + 1;
+          d.total = (
+            parseFloat(d.totalprice) * parseInt(d.quantity, 10)
           ).toFixed(2);
         }
       } else if (
         data.sets.length !== 0 &&
         data.activeIngredients.length === 0
       ) {
-        let index_data;
-        index_data = CheckDataSetExist(
-          cart[parent_index].dish[index].data,
+        let index_data = CheckDataSetExist(
+          newCart[parent_index].dish[index].data,
           data,
         );
         if (index_data === -1) {
-          cart[parent_index].dish[index].data.push(data);
+          newCart[parent_index].dish[index].data.push(data);
         } else {
-          cart[parent_index].dish[index].data[index_data].notes =
-            dishItem.notes;
-          cart[parent_index].dish[index].data[index_data].quantity =
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            ) + 1;
-          cart[parent_index].dish[index].data[index_data].total =
-            parseFloat(
-              cart[parent_index].dish[index].data[index_data].totalprice,
-            ) *
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            );
-          cart[parent_index].dish[index].data[index_data].total = parseFloat(
-            cart[parent_index].dish[index].data[index_data].total,
+          const d = newCart[parent_index].dish[index].data[index_data];
+          d.notes = dishItem.notes;
+          d.quantity = parseInt(d.quantity, 10) + 1;
+          d.total = (
+            parseFloat(d.totalprice) * parseInt(d.quantity, 10)
           ).toFixed(2);
         }
-      } else if (data.sets.length !== 0 && data.activeIngredients !== 0) {
-        let index_data;
-        index_data = CheckDataIngreSetsExist(
-          cart[parent_index].dish[index].data,
+      } else {
+        let index_data = CheckDataIngreSetsExist(
+          newCart[parent_index].dish[index].data,
           data,
         );
         if (index_data === -1) {
-          cart[parent_index].dish[index].data.push(data);
+          newCart[parent_index].dish[index].data.push(data);
         } else {
-          cart[parent_index].dish[index].data[index_data].notes =
-            dishItem.notes;
-          cart[parent_index].dish[index].data[index_data].quantity =
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            ) + 1;
-          cart[parent_index].dish[index].data[index_data].total =
-            parseFloat(
-              cart[parent_index].dish[index].data[index_data].totalprice,
-            ) *
-            parseInt(
-              cart[parent_index].dish[index].data[index_data].quantity,
-              10,
-            );
-          cart[parent_index].dish[index].data[index_data].total = parseFloat(
-            cart[parent_index].dish[index].data[index_data].total,
+          const d = newCart[parent_index].dish[index].data[index_data];
+          d.notes = dishItem.notes;
+          d.quantity = parseInt(d.quantity, 10) + 1;
+          d.total = (
+            parseFloat(d.totalprice) * parseInt(d.quantity, 10)
           ).toFixed(2);
         }
       }
     }
+
+    return newCart;
+  };
+
+  const commitCart = cart => {
     if (cart.length > 0) {
       setCartDish({ isLoading: false, list: cart });
       dispatch(setCartDetails(cart));
-
+      setData('cartDetails', JSON.stringify(cart));
       showToastMsg('Item added successfully.');
       let cartQty = 0;
       for (const cartDish of cart) {
-        for (const dish of cartDish.dish) {
-          cartQty += dish.quantity;
-        }
+        for (const dish of cartDish.dish) cartQty += dish.quantity;
       }
       setcartQuantity(cartQty);
       dispatch(setCartQuantity(cartQty));
     } else {
       setCartQuantity(0);
+      setData('cartDetails', JSON.stringify([]));
     }
   };
+
+  const addToCart = dishItem => {
+    const cart = JSON.parse(JSON.stringify(CartDish.list || []));
+    const result = addDishToCartArray(cart, dishItem);
+    if (result === false) return false;
+    commitCart(result);
+  };
+
   const CheckBusinessAddtoCart = (d, cDish) => {
-    let b;
-    b = cDish;
-    if (b === undefined) {
-      return -1;
-    }
+    let b = cDish;
+    if (b === undefined) return -1;
     for (let c = 0; c < b.length; c++) {
-      if (b[c].id === d) {
-        return c;
-      }
+      if (b[c].id === d) return c;
     }
     return -1;
   };
+
   const CheckAddtoCart = (d, index, cDish) => {
     let b;
     if (cDish[index]) {
       b = cDish[index].dish;
       for (let c = 0; c < b.length; c++) {
-        if (b[c].id === d) {
-          return c;
-        }
+        if (b[c].id === d) return c;
       }
-    } else {
-      return -1;
     }
     return -1;
   };
+
   const CheckData = (cartdata, data) => {
     if (data.sets.length === 0) {
       for (let i = 0; i < cartdata.length; i++) {
-        if (cartdata[i].sets.length === 0) {
+        // BOGO guard: never merge a BOGO row into a pre-existing plain
+        // row, and never merge two independent BOGO rounds together —
+        // only merge when both sides share the same bogo_group_id
+        // (including both being null, i.e. two ordinary lines).
+        if (cartdata[i].sets.length === 0 && sameBogoGroup(cartdata[i], data)) {
           return i;
         }
       }
       return -1;
     }
   };
+
   const CheckDataSetExist = (cartdata, data) => {
     for (let i = 0; i < cartdata.length; i++) {
-      if (cartdata[i].relation) {
-        let arrayDiffoptions;
-        arrayDiffoptions = arrayDiff(
+      if (cartdata[i].relation && sameBogoGroup(cartdata[i], data)) {
+        let arrayDiffoptions = arrayDiff(
           cartdata[i].relation.options,
           data.relation.options,
         );
-        let arrayDiffchoice;
-        arrayDiffchoice = arrayDiff(
+        let arrayDiffchoice = arrayDiff(
           cartdata[i].relation.choices,
           data.relation.choices,
         );
@@ -824,10 +886,11 @@ const Home = ({ props, route, navigation }) => {
     }
     return -1;
   };
+
   const CheckDataIngreExist = (cartdata, data) => {
     for (let i = 0; i < cartdata.length; i++) {
-      let arrayDiffIngre;
-      arrayDiffIngre = arrayDiff(
+      if (!sameBogoGroup(cartdata[i], data)) continue;
+      let arrayDiffIngre = arrayDiff(
         cartdata[i].activeIngredients,
         data.activeIngredients,
       );
@@ -840,22 +903,20 @@ const Home = ({ props, route, navigation }) => {
     }
     return -1;
   };
+
   const CheckDataIngreSetsExist = (cartdata, data) => {
     for (let i = 0; i < cartdata.length; i++) {
+      if (!sameBogoGroup(cartdata[i], data)) continue;
       if (cartdata[i].relation) {
-        let arrayDiffoptions;
-        arrayDiffoptions = arrayDiff(
+        let arrayDiffoptions = arrayDiff(
           cartdata[i].relation.options,
           data.relation.options,
         );
-        let arrayDiffchoice;
-        arrayDiffchoice = arrayDiff(
+        let arrayDiffchoice = arrayDiff(
           cartdata[i].relation.choices,
           data.relation.choices,
         );
-
-        let arrayDiffIngre;
-        arrayDiffIngre = arrayDiff(
+        let arrayDiffIngre = arrayDiff(
           cartdata[i].activeIngredients,
           data.activeIngredients,
         );
@@ -871,8 +932,7 @@ const Home = ({ props, route, navigation }) => {
           return i;
         }
       } else {
-        let arrayDiffIngre;
-        arrayDiffIngre = arrayDiff(
+        let arrayDiffIngre = arrayDiff(
           cartdata[i].activeIngredients,
           data.activeIngredients,
         );
@@ -886,35 +946,281 @@ const Home = ({ props, route, navigation }) => {
     }
     return -1;
   };
-  const arrayDiff = (arr1, arr2) => {
-    let diff;
-    diff = {
-      arr1: '',
-      arr2: '',
-      concat: '',
+
+  const getCartQtyForDish = dishId => {
+    if (!CartDish.list || CartDish.list.length === 0) return 0;
+    let qty = 0;
+    for (const business of CartDish.list) {
+      for (const d of business.dish) {
+        if (d.id === dishId) {
+          qty += d.quantity;
+        }
+      }
+    }
+    return qty;
+  };
+
+  const incrementProductQty = dish => {
+    addToCart(dish);
+  };
+
+  const incrementSameOptionsQty = dish => {
+    if (!activeBusiness) return;
+    let cart = JSON.parse(JSON.stringify(CartDish.list));
+    const parent_index = CheckBusinessAddtoCart(activeBusiness.id, cart);
+    if (parent_index === -1) return;
+
+    const index = CheckAddtoCart(dish.id, parent_index, cart);
+    if (index === -1) return;
+
+    cart[parent_index].dish[index].quantity =
+      parseInt(cart[parent_index].dish[index].quantity, 10) + 1;
+
+    const dataArr = cart[parent_index].dish[index].data;
+    if (dataArr.length > 0) {
+      const dataIndex = dataArr.length - 1;
+      dataArr[dataIndex].quantity =
+        parseInt(dataArr[dataIndex].quantity, 10) + 1;
+      dataArr[dataIndex].total = (
+        parseFloat(dataArr[dataIndex].totalprice) *
+        parseInt(dataArr[dataIndex].quantity, 10)
+      ).toFixed(2);
+    }
+
+    updateCartDetailsFromChild(cart);
+  };
+
+  const decrementProductQty = dish => {
+    if (!activeBusiness) return;
+    let cart = JSON.parse(JSON.stringify(CartDish.list));
+    const parent_index = CheckBusinessAddtoCart(activeBusiness.id, cart);
+    if (parent_index === -1) return;
+
+    const index = CheckAddtoCart(dish.id, parent_index, cart);
+    if (index === -1) return;
+
+    cart[parent_index].dish[index].quantity =
+      parseInt(cart[parent_index].dish[index].quantity, 10) - 1;
+
+    const dataArr = cart[parent_index].dish[index].data;
+    if (dataArr.length > 0) {
+      const dataIndex = dataArr.length - 1;
+      dataArr[dataIndex].quantity =
+        parseInt(dataArr[dataIndex].quantity, 10) - 1;
+      dataArr[dataIndex].total = (
+        parseFloat(dataArr[dataIndex].totalprice) *
+        parseInt(dataArr[dataIndex].quantity, 10)
+      ).toFixed(2);
+
+      if (dataArr[dataIndex].quantity <= 0) {
+        dataArr.splice(dataIndex, 1);
+      }
+    }
+
+    if (cart[parent_index].dish[index].data.length === 0) {
+      cart[parent_index].dish.splice(index, 1);
+    }
+    if (cart[parent_index].dish.length === 0) {
+      cart.splice(parent_index, 1);
+    }
+
+    updateCartDetailsFromChild(cart);
+  };
+
+  // const handleIncrementTap = dish => {
+  //   if (dish.isDealDish) {
+  //     if (dish.sets && dish.sets.length > 0) {
+  //       // Reopen the main dish's own options modal; when it's added,
+  //       // handleOptionModalAdded will reopen the free-item/companion
+  //       // picker automatically (same as the very first add).
+  //       productDetailsItem(dish);
+  //     } else {
+  //       // No options on the main dish itself — add straight to cart,
+  //       // then open the companion picker directly.
+  //       incrementProductQty(dish);
+  //       offerSectionRef.current?.openFreeItemModal(dish);
+  //     }
+  //   } else if (dish.sets && dish.sets.length > 0) {
+  //     incrementSameOptionsQty(dish);
+  //   } else {
+  //     incrementProductQty(dish);
+  //   }
+  //   setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+  //   startQtyCollapseTimer(dish.id);
+  // };
+  const handleIncrementTap = dish => {
+    const hasSets = dish.sets && dish.sets.length > 0;
+
+    if (hasSets) {
+      // Dish has options -> always open the options modal so the user
+      // can choose options again (works for deal and non-deal dishes).
+      // For deal dishes, productDetailsItem sets pendingOfferDish, and
+      // handleOptionModalAdded reopens the companion picker afterwards.
+      productDetailsItem(dish);
+    } else if (dish.isDealDish) {
+      // No options on the deal dish itself — add straight to cart,
+      // then open the companion picker directly.
+      incrementProductQty(dish);
+      offerSectionRef.current?.openFreeItemModal(dish);
+    } else {
+      incrementProductQty(dish);
+    }
+
+    setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+    startQtyCollapseTimer(dish.id);
+  };
+  const handleDecrementTap = dish => {
+    decrementProductQty(dish);
+    setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+    startQtyCollapseTimer(dish.id);
+  };
+
+  const handleQtyBadgeTap = dish => {
+    setExpandedQtyDishId(prev => ({ ...prev, [dish.id]: true }));
+    startQtyCollapseTimer(dish.id);
+  };
+
+  const handleOptionModalAdded = dishId => {
+    setExpandedQtyDishId(prev => ({ ...prev, [dishId]: true }));
+    startQtyCollapseTimer(dishId);
+
+    if (pendingOfferDish && pendingOfferDish.id === dishId) {
+      offerSectionRef.current?.openFreeItemModal(pendingOfferDish);
+      setPendingOfferDish(null);
+    }
+  };
+
+  // BOGO: replaces the old applyOfferDiscountToCartArray /
+  // getCartDishUnitPriceFromArray pair. Instead of guessing up front
+  // which of the two dishes is cheaper and hard-coding that one as the
+  // discounted line, we now:
+  //   1. tag the offer dish's existing line + every newly-added
+  //      companion line with a shared bogo_group_id, then
+  //   2. let syncBogoPricingInCart — the SAME single source of truth
+  //      used everywhere else BOGO pricing is decided — pick whichever
+  //      line actually has the lowest list price and discount only that
+  //      one. This also means picking a second, cheaper companion (when
+  //      maximum_item_select > 1) re-evaluates the winner correctly
+  //      instead of leaving a stale discount on the wrong line.
+  const handleFreeItemChosen = (offerDish, selections, offerMeta) => {
+    if (!activeBusiness || !selections || selections.length === 0) return;
+
+    let cart = JSON.parse(JSON.stringify(CartDish.list || []));
+    const discount = Number(offerMeta?.discount ?? 0);
+    const bogoGroupId = `bogo-${offerDish.id}-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 7)}`;
+
+    // Tag the offer dish's most-recently-added line as this group's main.
+    cart = tagLastDataEntryForDish(cart, activeBusiness.id, offerDish.id, {
+      bogo_group_id: bogoGroupId,
+      is_bogo_main: true,
+    });
+
+    // Add every chosen companion as a brand-new row, tagged into the
+    // same group. addDishToCartArray/CheckData* only merge rows that
+    // share a bogo_group_id (see sameBogoGroup), so this always creates
+    // fresh lines rather than bumping qty on an unrelated existing row.
+    selections.forEach(({ dish: freeDish, quantity }) => {
+      const normalizedFreeDish = normalizeDealDish(freeDish);
+      const qtyToAdd = Math.max(1, parseInt(quantity, 10) || 1);
+      const listPrice = Number(
+        freeDish.offerprice ?? freeDish.delprice ?? freeDish.price ?? 0,
+      );
+      const payload = {
+        ...normalizedFreeDish,
+        price: listPrice,
+        delprice: listPrice,
+        isDealDish: true,
+        bogo_group_id: bogoGroupId,
+      };
+      for (let i = 0; i < qtyToAdd; i++) {
+        const result = addDishToCartArray(cart, payload);
+        if (result !== false) cart = result;
+      }
+    });
+
+    // Single source of truth decides who actually gets the discount.
+    cart = syncBogoPricingInCart(
+      cart,
+      bogoGroupId,
+      discount,
+      offerMeta?.offer_name,
+    );
+
+    commitCart(cart);
+  };
+
+  // NEW — companion dish HAS real options, so instead of adding it
+  // directly (like handleFreeItemChosen does for option-less companions),
+  // we tag the main line now, stash what syncBogoPricingInCart will need
+  // once the companion actually lands in the cart, and open OptionModelAdd
+  // for the companion. The companion's own cart line gets created by
+  // OptionModelAdd.addToCart (it already carries bogo_group_id through —
+  // see emptyBogoFields() usage there); updateCartDetailsFromChild runs
+  // the pricing sync the instant that line comes back.
+  const handleConfigureFreeDish = (offerDish, freeDish, offerMeta) => {
+    if (!activeBusiness || !offerDish || !freeDish) return;
+
+    let cart = JSON.parse(JSON.stringify(CartDish.list || []));
+    const bogoGroupId = `bogo-${offerDish.id}-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 7)}`;
+
+    cart = tagLastDataEntryForDish(cart, activeBusiness.id, offerDish.id, {
+      bogo_group_id: bogoGroupId,
+      is_bogo_main: true,
+    });
+    updateCartDetailsFromChild(cart);
+
+    pendingBogoCompanionRef.current = {
+      groupId: bogoGroupId,
+      discount: Number(offerMeta?.discount ?? 0),
+      offerName: offerMeta?.offer_name,
     };
 
-    diff.arr1 = arr1.filter(function (value) {
-      if (arr2.indexOf(value) === -1) {
-        return value;
-      }
-    });
+    const normalizedFreeDish = normalizeDealDish(freeDish);
+    const listPrice = Number(
+      freeDish.offerprice ?? freeDish.delprice ?? freeDish.price ?? 0,
+    );
 
-    diff.arr2 = arr2.filter(function (value) {
-      if (arr1.indexOf(value) === -1) {
-        return value;
-      }
+    setOptionItem({
+      dish: {
+        ...normalizedFreeDish,
+        price: listPrice,
+        delprice: listPrice,
+        isDealDish: true,
+        bogo_group_id: bogoGroupId,
+        is_bogo_main: false,
+      },
+      CartDish: cart,
+      type: 0,
     });
+    setoptionModelAdd(true);
+  };
 
+  const arrayDiff = (arr1, arr2) => {
+    let diff = { arr1: '', arr2: '', concat: '' };
+    diff.arr1 = arr1.filter(v => arr2.indexOf(v) === -1);
+    diff.arr2 = arr2.filter(v => arr1.indexOf(v) === -1);
     diff.concat = diff.arr1.concat(diff.arr2);
-
     return diff;
   };
 
+  // UPDATED — if a BOGO companion configuration is pending (see
+  // handleConfigureFreeDish above), run the single-source-of-truth
+  // pricing sync on the incoming cart before committing it, using the
+  // freshly-built cart array itself rather than reading back from
+  // React/Redux state (which could still be stale at this exact point).
   const updateCartDetailsFromChild = cart => {
+    if (pendingBogoCompanionRef.current) {
+      const { groupId, discount, offerName } = pendingBogoCompanionRef.current;
+      pendingBogoCompanionRef.current = null;
+      cart = syncBogoPricingInCart(cart, groupId, discount, offerName);
+    }
     setCartDish({ isLoading: false, list: cart });
     dispatch(setCartDetails(cart));
-
+    setData('cartDetails', JSON.stringify(cart));
     let cartQty = 0;
     for (const cartDish of cart) {
       for (const dish of cartDish.dish) {
@@ -925,97 +1231,302 @@ const Home = ({ props, route, navigation }) => {
     dispatch(setCartQuantity(cartQty));
   };
 
-  const [CodeRun, setCodeRun] = useState('');
   const [visiblemodal, setvisiblemodal] = useState(false);
-  const [printerlist, setPrinterList] = useState([]);
-  const [SelectedUsb, setSelectedUsb] = useState(null);
+  const [cashDrawerLoading, setCashDrawerLoading] = useState(false);
 
-  const OpenCashDrawer = async () => {
-    console.log('openCashBox');
-    EbPrinter.openCashBox();
-    setCodeRun('Code Is Run');
-  };
-
-  const GetUsbDeviceList = async () => {
-    /*const usbdevicelist = await EbPrinter.getUsbDeviceList();
-
-    if (usbdevicelist) {
-      setPrinterList(usbdevicelist);
-      //setPrinterList(['Devin', 'Dan']);
-      setvisiblemodal(true);
-    }
-    console.log(usbdevicelist);*/
-  };
-
-  const selectDevice = item => {
-    setSelectedUsb(item);
-    //EbPrinter.selectUsbPrinter(item);
+  const printer_model_close = () => {
     setvisiblemodal(false);
   };
 
+  const OpenCashDrawer = async () => {
+    if (cashDrawerLoading) return;
+    setCashDrawerLoading(true);
+    try {
+      if (!EbPrinter || typeof EbPrinter.openCashBox !== 'function') {
+        throw new Error('Printer module unavailable.');
+      }
+      EbPrinter.selectUsbPrinter(0, UsbPrinter);
+      EbPrinter.openCashBox(0);
+    } catch (e) {
+      console.log('Error opening cash drawer:', e);
+      Alert.alert(
+        t('CASH_DRAWER_ERROR') || 'Cash Drawer Error',
+        (e && e.message) || 'Unable to open the cash drawer.',
+      );
+    } finally {
+      setCashDrawerLoading(false);
+    }
+  };
+
+  const handleCashDrawerPress = () => {
+    if (UsbPrinter == null) {
+      setvisiblemodal(true);
+    } else {
+      OpenCashDrawer();
+    }
+  };
+
   const [search_status, setSearchStatus] = useState(false);
+  const hasSubCategories = category_menu.list != null && category_menu.list.subCat && category_menu.list.subCat.length > 0;
+  const mainScrollRef = useRef(null);
+  const productSectionY = useRef(0);
+  const scrollViewHeight = useRef(0);
+  const scrollOffsetY = useRef(0);
+  const contentHeight = useRef(0);
+  const scrollToProducts = () => {
+    if (!mainScrollRef.current) return;
+
+    const targetY = Math.max(productSectionY.current - responsiveHeight(1), 0);
+    const viewportTop = scrollOffsetY.current;
+    const viewportBottom = scrollOffsetY.current + scrollViewHeight.current;
+
+    // Case 1: everything fits on screen already — nothing to scroll to.
+    if (contentHeight.current <= scrollViewHeight.current) return;
+
+    // Case 2: the target section is already visible within the current viewport — no need to scroll.
+    if (targetY >= viewportTop && targetY <= viewportBottom) return;
+
+    mainScrollRef.current.scrollTo({ y: targetY, animated: true });
+  };
 
   function search_category(val) {
-    /*if (val != '') {
-      const items = categoryDetails_temp.filter(
-        item => item.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
-      );
-
-      setCategoryDetails({isLoading: false, list: items});
-    } else {
-      setCategoryDetails({
-        isLoading: false,
-        list: categoryDetails_temp,
-      });
-    }*/
-
     if (val != '') {
-      setCategoryMenuSearch({
-        isLoading: true,
-        list: [],
-      });
-
-      /*const items_one = [];
-
-      category_menu_temp.map((item, item_index) => {
-        items_one.push(
-          item.filter(product => {
-            product.name.toLowerCase().indexOf(val.toLowerCase()) !== -1;
-          }),
-        );
-      });*/
-
-      /*const items_one = category_menu_temp.filter(obj => {
-        // Use .some() to check if ANY item in the 'tags' sub-array matches the condition
-        return obj.some(
-          tag => tag.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
-        );
-      });*/
-      console.log('Search');
-      console.log(category_menu_temp);
-
-      const items_one = category_menu_temp.filter(
+      setCategoryMenuSearch({ isLoading: true, list: [] });
+      const searchPool = [
+        ...(category_menu_temp || []),
+        ...(dealOffer.dishes || []),
+      ];
+      const items_one = searchPool.filter(
         item => item.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
       );
-
-      /*const items_two = category_menu_temp_subcat.filter(obj => {
-        // Use .some() to check if ANY item in the 'tags' sub-array matches the condition
-        return obj.some(
-          tag => tag.name.toLowerCase().indexOf(val.toLowerCase()) !== -1,
-        );
-      });*/
-
       setSearchStatus(true);
-
       setCategoryMenuSearch({ isLoading: false, list: items_one });
     } else {
       setSearchStatus(false);
-      setCategoryMenuSearch({
-        isLoading: false,
-        list: [],
-      });
+      setCategoryMenuSearch({ isLoading: false, list: [] });
     }
   }
+
+  const renderBadgeRow = dish => {
+    const hasVegMark = dish.veg || dish.nonveg;
+    if (!hasVegMark && !dish.spicy && !dish.feature && !dish.isDealDish) return null;
+    return (
+      <View style={styles.productBadgeRow}>
+        {hasVegMark ? (
+          <View
+            style={[
+              styles.vegNonVegBox,
+              dish.nonveg ? styles.nonVegBox : styles.vegBox,
+            ]}
+          >
+            <View
+              style={[
+                styles.vegNonVegDot,
+                dish.nonveg ? styles.nonVegDot : styles.vegDot,
+              ]}
+            />
+          </View>
+        ) : null}
+        {dish.spicy ? (
+          <Image source={Images.spicy} style={styles.spicyBadge} />
+        ) : null}
+
+        {dish.feature ? (
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>{t('FEATURED')}</Text>
+          </View>
+        ) : null}
+
+        {dish.isDealDish ? (
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>
+              {dish.dealOfferMeta?.discount
+                ? `${dish.dealOfferMeta.discount}% OFF`
+                : t('DEAL') || 'DEAL'}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
+  const renderProductCard = (dish, key, index = 0) => {
+    const isLastInRow = index % columns === columns - 1;
+    const hasSets = dish.sets && dish.sets.length > 0;
+    const qtyInCart = getCartQtyForDish(dish.id);
+    const isQtyExpanded = expandedQtyDishId[dish.id] === true;
+    const hasImage = !!dish?.is_img;
+    const hasBadges = !!(
+      dish.veg ||
+      dish.nonveg ||
+      dish.spicy ||
+      dish.feature ||
+      dish.isDealDish
+    );
+
+    return (
+      <TouchableOpacity
+        key={key}
+        onPress={() => productDetailsItem(dish)}
+        activeOpacity={hasSets || qtyInCart === 0 ? 0.7 : 1}
+        style={[
+          styles.productCard,
+          isLastInRow && styles.productCardLastInRow,
+        ]}
+      >
+        {hasImage ? (
+          <View style={styles.productImageWrap}>
+            <Image
+              source={{ uri: dish.is_img }}
+              style={styles.productImage}
+              resizeMode="cover"
+            />
+          </View>
+        ) : null}
+        <View
+          style={[
+            styles.productInfo,
+            !hasImage && styles.productInfoNoImage,
+            !(hasImage && hasBadges) && styles.productInfoCentered,
+          ]}
+        >
+          {hasBadges ? renderBadgeRow(dish) : null}
+          <View style={styles.productTextGroup}>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[styles.productName]}
+            >
+              {dish.name}
+            </Text>
+          </View>
+          <View style={styles.productFooterRow}>
+            <View style={styles.offerPriceRow}>
+              <Text numberOfLines={1} style={styles.productPrice}>
+                {activeBusiness.currency_symbol}
+                {Number(dish.price).toFixed(2)}
+              </Text>
+              {dish?.offerprice ? (
+                <Text numberOfLines={1} style={styles.productOfferPrice}>
+                  {activeBusiness.currency_symbol}
+                  {Number(dish.delprice).toFixed(2)}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+        <View style={styles.productQtyControlWrap}>
+          {renderQtyControl(dish, hasSets, qtyInCart, isQtyExpanded)}
+        </View>
+      </TouchableOpacity>
+    );
+  };;
+
+  const renderQtyControl = (dish, hasSets, qtyInCart, isQtyExpanded) => {
+    if (qtyInCart > 0) {
+      return isQtyExpanded ? (
+        <View style={styles.productQtyStepper}>
+          <TouchableOpacity
+            style={styles.productQtyBtn}
+            onPress={() => handleDecrementTap(dish)}
+          >
+            <Ionicons
+              name="remove"
+              size={responsiveFontSize(1)}
+              color={theme.primary}
+            />
+          </TouchableOpacity>
+          <View style={styles.productQtyValueWrap}>
+            <Text style={styles.productQtyValue}>{qtyInCart}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.productQtyBtn}
+            onPress={() => handleIncrementTap(dish)}
+          >
+            <Ionicons
+              name="add"
+              size={responsiveFontSize(1)}
+              color={theme.primary}
+            />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.productQtyBadge}
+          onPress={() => handleQtyBadgeTap(dish)}
+        >
+          <Text style={styles.productQtyBadgeText}>{qtyInCart}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    const forceModalForDeal = dish.isDealDish;
+
+    return (
+      <TouchableOpacity
+        style={styles.productAddBtn}
+        onPress={() => {
+          if (forceModalForDeal && hasSets) {
+            // Deal dish with its own options — open its options modal;
+            // handleOptionModalAdded reopens the companion picker once
+            // those options are added.
+            productDetailsItem(dish);
+          } else if (!forceModalForDeal && hasSets) {
+            // Regular (non-deal) dish with options.
+            productDetails(dish);
+          } else {
+            // No options on this dish — deal or not. handleIncrementTap
+            // already adds it directly and, for deal dishes, opens the
+            // companion picker immediately — no options modal involved.
+            handleIncrementTap(dish);
+          }
+        }}
+      >
+        <Ionicons name="add" size={responsiveFontSize(0.9)} color="#fff" />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderProductSkeletons = () => (
+    <View style={styles.productGrid}>
+      {Array.from({ length: 8 }).map((_, index) => {
+        const isLastInRow = index % columns === columns - 1;
+        return (
+          <View
+            key={'skeleton_lo_v' + index}
+            style={[
+              styles.productCard,
+              isLastInRow && styles.productCardLastInRow,
+            ]}
+          >
+            <ProductCardSkeleton key={'skeleton_lo_1' + index} />
+          </View>
+        );
+      })}
+    </View>
+  );
+
+  const buildFlatDishList = (categoryItem, subCatId = null) => {
+    if (categoryItem == null) return [];
+    if (subCatId != null) {
+      const subCat = (categoryItem.subCat || []).find(sc => sc.id === subCatId);
+      return subCat ? subCat.dish || [] : [];
+    }
+    if (categoryItem.isOfferCategory) {
+      return categoryItem.dish || [];
+    }
+
+    const flat = [];
+    (categoryItem.dish || []).forEach(dish => {
+      if (dish.subcategory == 0) flat.push(dish);
+    });
+    (categoryItem.subCat || []).forEach(subCat => {
+      (subCat.dish || []).forEach(dish => {
+        flat.push(dish);
+      });
+    });
+    return flat;
+  };
 
   return (
     <Container style={styles.container}>
@@ -1033,587 +1544,301 @@ const Home = ({ props, route, navigation }) => {
             zIndex: 1,
           }}
         >
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : null}
 
-      <Modal supportedOrientations={['landscape']} animationType="slide" transparent={true} visible={visiblemodal}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            position: 'relative',
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              setvisiblemodal(false);
-            }}
-            style={{
-              position: 'absolute',
-              right: responsiveWidth(1),
-              top: responsiveHeight(1.5),
-              zIndex: 1,
-            }}
-          >
-            <Icon
-              name="closecircleo"
-              type="AntDesign"
-              size={30}
-              color={Colors.red}
-            />
-          </TouchableOpacity>
-          <View
-            style={{
-              height: responsiveHeight(35),
-              width: responsiveWidth(35),
-              backgroundColor: '#ffffff',
-              borderRadius: 5,
-            }}
-          >
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.backgroundColor,
-                  position: 'relative',
-                }}
-              >
-                <View style={{}}>
-                  <FlatList
-                    data={printerlist}
-                    keyExtractor={(item, index) => item + index}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={{
-                          paddingVertical: 10,
-                          borderBottomWidth: 1,
-                          borderColor: '#ddd',
-                          paddingHorizontal: 10,
-                        }}
-                        onPress={() => selectDevice(item)}
-                      >
-                        <Text
-                          style={{
-                            fontSize: responsiveFontSize(1.8),
-                            color: Colors.blue,
-                          }}
-                        >
-                          {item}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                </View>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {visiblemodal === true && (
+        <SelectUsbPrinter printer_model_close={printer_model_close} />
+      )}
 
       <View style={styles.main}>
         <View style={styles.inner_left}>
-          {/*<View>
-            {SelectedUsb == null ? (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => GetUsbDeviceList()}>
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#fff',
-                    fontFamily: Inter.medium,
-                  }}>
-                  Select Usb Device
-                </Text>
+          {/* ---------- search row --------*/}
+          <View style={styles.searchRow}>
+            <View style={styles.searchBox}>
+              <Feather
+                name="search"
+                size={responsiveFontSize(1.5)}
+                color={theme.fontColorOnBackground}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={'Search for products...'}
+                placeholderTextColor={theme.fontColorOnBackground}
+                onChangeText={text => search_category(text)}
+              />
+              <TouchableOpacity style={styles.searchSortBtn}>
+                <Feather
+                  name="sliders"
+                  size={responsiveFontSize(1.5)}
+                  color={theme.fontColorOnBackground}
+                />
               </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => OpenCashDrawer()}>
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: responsiveFontSize(1.5),
-                    color: '#fff',
-                    fontFamily: Inter.medium,
-                  }}>
-                  Open Cash Box
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>*/}
-
-          <AppTextInput
-            inputStyle={{ paddingLeft: 10 }}
-            onChangeText={text => {
-              search_category(text);
-            }}
-            placeholder={'Search Here'}
-            leftIcon={{
-              name: 'search',
-              type: 'Feather',
-              color: Colors.black,
-            }}
-            inputContainerStyle={{
-              borderColor: Colors.grey,
-              marginBottom: responsiveHeight(1),
-            }}
-          />
+            </View>
+          </View>
 
           {search_status === false ? (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {categoryDetails.isLoading === false &&
-              categoryDetails.list.length > 0 ? (
-                <>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {categoryDetails.list.map((item, index) => {
-                      return (
-                        <TouchableOpacity
-                          key={'cat_' + index}
-                          onPress={() => {
-                            openProduct(item.id, item, index);
-                          }}
-                          style={{
-                            paddingHorizontal: responsiveWidth(0.5),
-                            paddingVertical: responsiveHeight(0.5),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderColor: Colors.buttonColor,
-                            borderWidth: 1.5,
-                            backgroundColor:
-                              selected_category == item.id
-                                ? Colors.white
-                                : Colors.primary,
-                            height: responsiveHeight(12),
-                            borderRadius: 10,
-                            marginHorizontal: responsiveWidth(0.5),
-                            marginVertical: responsiveHeight(1),
-                            width: responsiveWidth(14.5),
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontFamily: Inter.bold,
-                              fontSize: responsiveFontSize(1),
-                              color:
-                                selected_category == item.id
-                                  ? Colors.primaryFontColor
-                                  : Colors.white,
-                            }}
-                          >
-                            {item.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                      marginBottom: responsiveHeight(25),
-                    }}
-                  >
-                    {category_menu.isLoading === false &&
-                    category_menu.list != null
-                      ? category_menu.list.dish.map((dish, dish_index) => {
-                          return dish.subcategory == 0 ? (
-                            <TouchableOpacity
-                              key={'dish_' + dish_index}
-                              onPress={() => {
-                                productDetails(dish);
-                              }}
-                              style={{
-                                paddingHorizontal: responsiveWidth(0.5),
-                                paddingVertical: responsiveHeight(0.5),
-                                display: 'flex',
-                                borderColor: Colors.buttonColor,
-                                borderWidth: 1.5,
-                                backgroundColor: Colors.white,
-                                height: responsiveHeight(12),
-                                borderRadius: 10,
-                                marginHorizontal: responsiveWidth(0.5),
-                                marginVertical: responsiveHeight(1),
-                                width: responsiveWidth(14.5),
-                              }}
-                            >
-                              <Text
-                                numberOfLines={2}
-                                ellipsizeMode="tail"
-                                style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.black,
-                                  height: responsiveHeight(5.4),
-                                }}
-                              >
-                                {dish.name}
-                              </Text>
-                              <View
-                                style={{
-                                  marginTop: responsiveHeight(0.5),
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                }}
-                              >
-                                <View>
-                                  <Text
-                                    style={{
-                                      fontFamily: Inter.regular,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.primaryFontColor,
-                                    }}
-                                  >
-                                    {activeBusiness.currency_symbol}
-                                    {dish.price}
-                                  </Text>
-                                </View>
-                                <View>
-                                  <Icon
-                                    name="pluscircle"
-                                    type="AntDesign"
-                                    size={responsiveWidth(2)}
-                                    color={Colors.primaryFontColor}
-                                  />
-                                </View>
-                              </View>
-                            </TouchableOpacity>
-                          ) : null;
-                        })
-                      : null}
-                    {category_menu.isLoading === false &&
-                    category_menu.list != null
-                      ? category_menu.list.subCat.map((subCat, subindex) => {
-                          return subCat.dish.map((dish, dish_index) => {
-                            console.log(dish.name);
-                            return (
-                              <TouchableOpacity
-                                key={'sub_' + dish_index}
-                                onPress={() => {
-                                  productDetails(dish);
-                                }}
-                                style={{
-                                  paddingHorizontal: responsiveWidth(0.5),
-                                  paddingVertical: responsiveHeight(0.5),
-                                  display: 'flex',
-                                  borderColor: Colors.buttonColor,
-                                  borderWidth: 1.5,
-                                  backgroundColor: Colors.white,
-                                  height: responsiveHeight(12),
-                                  borderRadius: 10,
-                                  marginHorizontal: responsiveWidth(0.5),
-                                  marginVertical: responsiveHeight(1),
-                                  width: responsiveWidth(14.5),
-                                }}
-                              >
-                                <Text
-                                  numberOfLines={2}
-                                  ellipsizeMode="tail"
-                                  style={{
-                                    fontFamily: Inter.regular,
-                                    fontSize: responsiveFontSize(1),
-                                    color: Colors.black,
-                                    height: responsiveHeight(5.4),
-                                  }}
-                                >
-                                  {dish.name}
-                                </Text>
-                                <View
-                                  style={{
-                                    marginTop: responsiveHeight(0.5),
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                  }}
-                                >
-                                  <View>
-                                    <Text
-                                      style={{
-                                        fontFamily: Inter.regular,
-                                        fontSize: responsiveFontSize(1),
-                                        color: Colors.primaryFontColor,
-                                      }}
-                                    >
-                                      {activeBusiness.currency_symbol}
-                                      {dish.price}
-                                    </Text>
-                                  </View>
-                                  <View>
-                                    <Icon
-                                      name="pluscircle"
-                                      type="AntDesign"
-                                      size={responsiveWidth(2)}
-                                      color={Colors.primaryFontColor}
-                                    />
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                            );
-                          });
-                        })
-                      : null}
-                  </View>
-                </>
-              ) : categoryDetails.isLoading === false &&
-                categoryDetails.list.length == 0 ? (
-                <View>
-                  <Text
-                    style={{
-                      marginTop: responsiveHeight(10),
-                      alignSelf: 'center',
-                      fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2),
-                      color: Colors.red,
-                    }}
-                  >
-                    No Record Found
-                  </Text>
-                </View>
-              ) : (
-                <View
+            <ScrollView
+              ref={mainScrollRef}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              onLayout={e => {
+                scrollViewHeight.current = e.nativeEvent.layout.height;
+              }}
+              onContentSizeChange={(w, h) => {
+                contentHeight.current = h;
+              }}
+              onScroll={e => {
+                scrollOffsetY.current = e.nativeEvent.contentOffset.y;
+              }}
+              scrollEventThrottle={16}
+            >
+              <OfferDealSection
+                ref={offerSectionRef}
+                activeBusiness={activeBusiness}
+                orderType={orderType}
+                onDealDishesLoaded={handleDealDishesLoaded}
+                onRedeemedIdsChange={handleRedeemedIdsChange}
+                onFreeItemChosen={handleFreeItemChosen}
+                onConfigureFreeDish={handleConfigureFreeDish}
+              />
+
+              {/* ---------- open cash drawer button ---------- */}
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: theme.primary,
+                  borderRadius: 8,
+                  paddingVertical: responsiveHeight(1.3),
+                  marginBottom: responsiveHeight(2.2),
+                  opacity: cashDrawerLoading ? 0.6 : 1,
+                }}
+                disabled={cashDrawerLoading}
+                onPress={handleCashDrawerPress}
+              >
+                <Ionicons
+                  name="cash-outline"
+                  size={responsiveFontSize(1.6)}
+                  color={theme.fontColor}
+                  style={{ marginRight: 8 }}
+                />
+                <Text
                   style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
+                    fontFamily: Inter.semibold,
+                    fontSize: responsiveFontSize(1.4),
+                    color: theme.fontColor,
                   }}
                 >
-                  {Array.from({ length: 8 }).map((_, index) => (
-                    <View
-                      key={'skeleton_lo_v' + index}
-                      style={{
-                        paddingHorizontal: responsiveWidth(0.5),
-                        paddingVertical: responsiveHeight(0.5),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderColor: Colors.grey,
-                        borderWidth: 1.5,
-                        backgroundColor: Colors.white,
-                        height: responsiveHeight(12),
-                        borderRadius: 10,
-                        marginHorizontal: responsiveWidth(0.5),
-                        marginVertical: responsiveHeight(1),
-                        width: responsiveWidth(14.5),
-                      }}
-                    >
-                      <ProductCardSkeleton key={'skeleton_lo_1' + index} />
-                    </View>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-          ) : search_status === true ? (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  marginBottom: responsiveHeight(25),
-                }}
-              >
-                {category_menu_search.isLoading === false &&
-                category_menu_search.list.length > 0 ? (
-                  category_menu_search.list.map((dish, dish_index) => {
-                    console.log('in');
-                    console.log(dish.subcategory);
+                  {cashDrawerLoading
+                    ? t('OPENING')
+                    : t('OPEN_CASH_DRAWER')}
+                </Text>
+              </TouchableOpacity>
 
-                    return dish.subcategory == 0 ? (
+              {/* ---------- category grid ---------- */}
+              <View style={styles.categoryRow}>
+                {categoryDetails.isLoading === true ? (
+                  <CategoryRowSkeleton count={12} />
+                ) : (
+                  displayedCategoryList.map((item, index) => {
+                    const isSelected = selected_category == item.id;
+                    const isLastInRow = index % 4 === 3;
+                    return (
                       <TouchableOpacity
-                        key={'dish_' + dish_index}
-                        onPress={() => {
-                          productDetails(dish);
-                        }}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          borderColor: Colors.buttonColor,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          height: responsiveHeight(12),
-                          borderRadius: 10,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                          width: responsiveWidth(14.5),
-                        }}
+                        key={'cat_' + index}
+                        onPress={() => openProduct(item.id, item, index)}
+                        style={[
+                          styles.categoryPill,
+                          isLastInRow && styles.categoryPillLastInRow,
+                          isSelected && styles.categoryPillSelected,
+                          !item.icon && styles.categoryPillNoImage,
+                        ]}
                       >
-                        <Text
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                          style={{
-                            fontFamily: Inter.regular,
-                            fontSize: responsiveFontSize(1),
-                            color: Colors.black,
-                            height: responsiveHeight(5.4),
-                          }}
-                        >
-                          {dish.name}
-                        </Text>
-                        <View
-                          style={{
-                            marginTop: responsiveHeight(0.5),
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <View>
-                            <Text
-                              style={{
-                                fontFamily: Inter.regular,
-                                fontSize: responsiveFontSize(1),
-                                color: Colors.primaryFontColor,
-                              }}
-                            >
-                              {activeBusiness.currency_symbol}
-                              {dish.price}
-                            </Text>
-                          </View>
-                          <View>
-                            <Icon
-                              name="pluscircle"
-                              type="AntDesign"
-                              size={responsiveWidth(2)}
-                              color={Colors.primaryFontColor}
+                        {item.icon ? (
+                          <View style={styles.categoryPillImageWrap}>
+                            <Image
+                              source={{ uri: item.icon }}
+                              style={styles.categoryPillImage}
+                              resizeMode="contain"
                             />
                           </View>
+                        ) : null}
+                        <View
+                          style={[
+                            styles.categoryPillTextWrap,
+                            !item.icon && styles.categoryPillTextWrapCentered,
+                          ]}
+                        >
+                          <Text
+                            numberOfLines={2}
+                            style={[
+                              styles.categoryPillText,
+                              isSelected && styles.categoryPillTextSelected,
+                              !item.icon && styles.categoryPillTextCentered,
+                            ]}
+                          >
+                            {item.isOfferCategory
+                              ? item.name || t('SPECIAL_OFFER') || 'Special Offer'
+                              : item.name}
+                          </Text>
                         </View>
                       </TouchableOpacity>
-                    ) : null;
+                    );
                   })
-                ) : category_menu_search.isLoading === false &&
-                  category_menu_search.list.length == 0 ? (
-                  <View>
-                    <Text
-                      style={{
-                        marginTop: responsiveHeight(10),
-                        alignSelf: 'center',
-                        fontFamily: Inter.regular,
-                        fontSize: responsiveFontSize(2),
-                        color: Colors.red,
-                      }}
-                    >
-                      No Record Found
-                    </Text>
-                  </View>
-                ) : (
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {Array.from({ length: 8 }).map((_, index) => (
-                      <View
-                        key={'skeleton_lo_v' + index}
-                        style={{
-                          paddingHorizontal: responsiveWidth(0.5),
-                          paddingVertical: responsiveHeight(0.5),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderColor: Colors.buttonColor,
-                          borderWidth: 1.5,
-                          backgroundColor: Colors.white,
-                          height: responsiveHeight(12),
-                          borderRadius: 10,
-                          marginHorizontal: responsiveWidth(0.5),
-                          marginVertical: responsiveHeight(1),
-                          width: responsiveWidth(14.5),
-                        }}
-                      >
-                        <ProductCardSkeleton key={'skeleton_lo_1' + index} />
-                      </View>
-                    ))}
-                  </View>
                 )}
-                {/*category_menu.isLoading === false && category_menu.list != null
-                  ? category_menu.list.map((item, item_index) => {
-                      return item.subCat.map((subCat, subindex) => {
-                        return subCat.dish.map((dish, dish_index) => {
-                          console.log(dish.name);
-                          return (
-                            <TouchableOpacity
-                              key={'sub_' + dish_index}
-                              onPress={() => {
-                                productDetails(dish);
-                              }}
-                              style={{
-                                paddingHorizontal: responsiveWidth(0.5),
-                                paddingVertical: responsiveHeight(0.5),
-                                display: 'flex',
-                                borderColor: Colors.blue,
-                                borderWidth: 1.5,
-                                backgroundColor: Colors.white,
-                                height: responsiveHeight(12),
-                                borderRadius: 10,
-                                marginHorizontal: responsiveWidth(0.5),
-                                marginVertical: responsiveHeight(1),
-                                width: responsiveWidth(14.5),
-                              }}>
-                              <Text
-                                style={{
-                                  fontFamily: Inter.regular,
-                                  fontSize: responsiveFontSize(1),
-                                  color: Colors.black,
-                                }}>
-                                {dish.name}
-                              </Text>
-                              <View
-                                style={{
-                                  marginTop: responsiveHeight(0.5),
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                }}>
-                                <View>
-                                  <Text
-                                    style={{
-                                      fontFamily: Inter.regular,
-                                      fontSize: responsiveFontSize(1),
-                                      color: Colors.green,
-                                    }}>
-                                    {activeBusiness.currency_symbol}
-                                    {dish.price} {'sub'}
-                                  </Text>
-                                </View>
-                                <View>
-                                  <Icon
-                                    name="pluscircle"
-                                    type="AntDesign"
-                                    size={responsiveWidth(2)}
-                                    color={Colors.green}
-                                  />
-                                </View>
-                              </View>
-                            </TouchableOpacity>
-                          );
-                        });
-                      });
-                    })
-                  : null*/}
+              </View>
+
+
+              {/* ---------- subcategory pills ---------- */}
+              {category_menu.isLoading === true ? (
+                <View style={styles.subCategoryRow}>
+                  <SubCategoryRowSkeleton count={4} />
+                </View>
+              ) : category_menu.list != null &&
+                category_menu.list.subCat &&
+                category_menu.list.subCat.length > 0 ? (
+                <View style={styles.subCategoryRow}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.categoryScroll}
+                    contentContainerStyle={{
+                      paddingRight: responsiveWidth(3),
+                    }}
+                    scrollEventThrottle={16}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.subCategoryPill,
+                        selected_subcategory === null &&
+                        styles.subCategoryPillSelected,
+                      ]}
+                      onPress={() => setSelectedSubCategory(null)}
+                    >
+                      <Text
+                        style={[
+                          styles.subCategoryPillText,
+                          selected_subcategory === null &&
+                          styles.subCategoryPillTextSelected,
+                        ]}
+                      >
+                        All
+                      </Text>
+                    </TouchableOpacity>
+                    {category_menu.list.subCat.map(
+                      (subCatItem, subCatIndex) => {
+                        const isSelected =
+                          selected_subcategory === subCatItem.id;
+                        return (
+                          <TouchableOpacity
+                            key={'subcat_' + subCatIndex}
+                            style={[
+                              styles.subCategoryPill,
+                              isSelected && styles.subCategoryPillSelected,
+                            ]}
+                            onPress={() =>
+                              setSelectedSubCategory(subCatItem.id)
+                            }
+                          >
+                            <Text
+                              numberOfLines={1}
+                              style={[
+                                styles.subCategoryPillText,
+                                isSelected &&
+                                styles.subCategoryPillTextSelected,
+                              ]}
+                            >
+                              {subCatItem.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      },
+                    )}
+                  </ScrollView>
+                </View>
+              ) : null}
+
+              <View
+                style={{
+                  paddingTop: hasSubCategories
+                    ? responsiveHeight(1.6)
+                    : responsiveHeight(1),
+                  paddingBottom: responsiveHeight(1.6),
+                }}
+              >
+                <View
+                  style={{
+                    height: 1.2,
+                    backgroundColor: '#D9D6ED',
+                    width: '100%',
+                  }}
+                />
+              </View>
+
+              {/* ---------- product grid ---------- */}
+              <View
+                onLayout={e => {
+                  productSectionY.current = e.nativeEvent.layout.y;
+                }}
+              >
+                {categoryDetails.isLoading === false &&
+                  displayedCategoryList.length > 0 ? (
+                  <View style={styles.productGrid}>
+                    {category_menu.isLoading === false &&
+                      category_menu.list != null
+                      ? buildFlatDishList(
+                        category_menu.list,
+                        selected_subcategory,
+                      ).map((dish, dish_index) =>
+                        renderProductCard(
+                          dish,
+                          'prod_' + dish_index,
+                          dish_index,
+                        ),
+                      )
+                      : null}
+                  </View>
+                ) : categoryDetails.isLoading === false &&
+                  displayedCategoryList.length == 0 ? (
+                  <Text style={styles.noRecordText}>
+                    {t('NO_RECORD_FOUND')}
+                  </Text>
+                ) : (
+                  renderProductSkeletons()
+                )}
               </View>
             </ScrollView>
-          ) : null}
+          ) : (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.productGrid}>
+                {category_menu_search.isLoading === false &&
+                  category_menu_search.list.length > 0 ? (
+                  category_menu_search.list
+                    .filter(dish => dish.subcategory == 0 || dish.isDealDish)
+                    .map((dish, dish_index) =>
+                      renderProductCard(
+                        dish,
+                        'search_' + dish_index,
+                        dish_index,
+                      ),
+                    )
+                ) : category_menu_search.isLoading === false &&
+                  category_menu_search.list.length == 0 ? (
+                  <Text style={styles.noRecordText}>
+                    {t('NO_RECORD_FOUND')}
+                  </Text>
+                ) : (
+                  renderProductSkeletons()
+                )}
+              </View>
+            </ScrollView>
+          )}
         </View>
 
         <View style={styles.inner_right}>
@@ -1627,8 +1852,32 @@ const Home = ({ props, route, navigation }) => {
               activeBusiness={activeBusiness}
               updateCartDetails={updateCartDetailsFromChild}
               productDetailsEdit={productDetailsEdit}
+              updatePreorderDetails={setPreorderDetails}
+              noActiveMenu={noActiveMenu}
+              noActiveMenuSignal={noActiveMenuSignal}
+              onOrderTypeSelected={fetchBusinessMenu}
             />
-          ) : null}
+          ) : categoryDetails.isLoading === true ? (
+            <View style={styles.cartPanel}>
+              <EmptyCartSkeleton />
+            </View>
+          ) : (
+            <View style={styles.cartPanel}>
+              <View style={styles.cartIconCircle}>
+                <Ionicons
+                  name="cart-outline"
+                  size={responsiveFontSize(4)}
+                  color={theme.primary}
+                />
+              </View>
+              <Text style={styles.cartEmptyTitle}>
+                {t('NO_PRODUCTS_IN_YOUR_CART')}
+              </Text>
+              <Text style={styles.cartEmptySubtitle}>
+                {t('ADD_ITEMS_FROM_THE_MENU_TO_GET_STARTTED')}!
+              </Text>
+            </View>
+          )}
         </View>
 
         <Modal
@@ -1636,25 +1885,55 @@ const Home = ({ props, route, navigation }) => {
           transparent={true}
           visible={isOrderModel}
           animationType="slide"
-          onRequestClose={() => {
-            setNewOrderModel(false);
-          }}
+          onRequestClose={() => setNewOrderModel(false)}
         >
-          <View style={{ ...styles.upload_modal_main }}>
+          <View style={styles.upload_modal_main}>
             <View style={styles.upload_modal_inner_modalView}>
               <View
                 style={[
                   styles.upload_modal_view,
-                  { flexDirection: 'column', display: 'flex' },
+                  {
+                    flexDirection: 'column',
+                    display: 'flex',
+                    position: 'relative',
+                    overflow: 'visible',
+                  },
                 ]}
               >
+                <TouchableOpacity
+                  onPress={() => {
+                    setNewOrderModel(false);
+                    SoundPlayer.stop();
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: -14,
+                    right: -14,
+                    zIndex: 10,
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: theme.background,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    elevation: 4,
+                  }}
+                >
+                  <Ionicons
+                    name="close"
+                    size={responsiveFontSize(2.2)}
+                    color={theme.fontColorOnBackground}
+                  />
+                </TouchableOpacity>
+
                 <View
                   style={{
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     flexDirection: 'column',
-                    gap: 10,
-                    padding: 30,
+                    gap: 5,
+                    padding: 10,
                   }}
                 >
                   <Image
@@ -1663,25 +1942,25 @@ const Home = ({ props, route, navigation }) => {
                   />
                   <Text
                     style={{
-                      fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2.5),
-                      color: Colors.black,
+                      fontFamily: Inter.semibold,
+                      fontSize: responsiveFontSize(1.8),
+                      color: theme.fontColorOnBackground,
                     }}
                   >
-                    Received a New Order!
+                    {t('RECEIVED_A_NEW_ORDER')}!
                   </Text>
                   <Text
                     style={{
                       fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2),
-                      color: Colors.black,
+                      fontSize: responsiveFontSize(1.3),
+                      color: theme.fontColorOnBackground,
                     }}
                   >
-                    Order ID{' '}
+                    {t('ORDERID')}{' '}
                     <Text
                       style={{
                         fontFamily: Inter.regular,
-                        fontSize: responsiveFontSize(2.2),
+                        fontSize: responsiveFontSize(1.4),
                         color: 'red',
                       }}
                     >
@@ -1691,37 +1970,44 @@ const Home = ({ props, route, navigation }) => {
                   <Text
                     style={{
                       fontFamily: Inter.regular,
-                      fontSize: responsiveFontSize(2),
-                      color: Colors.black,
+                      fontSize: responsiveFontSize(1.5),
+                      color: theme.fontColorOnBackground,
                     }}
                   >
                     {order_data != null ? order_data.order_type : null}
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => {
+                    onPress={async () => {
                       setNewOrderModel(false);
                       SoundPlayer.stop();
 
+                      const orderId =
+                        order_data != null ? order_data.order_id : null;
+                      if (!orderId) {
+                        Alert.alert(
+                          'Error',
+                          'No order ID found in notification data.',
+                        );
+                        return;
+                      }
                       navigation.navigate('MyOrder_Tab', {
-                        screen: 'MyOrder',
-                        params: {
-                          id: order_data != null ? order_data.order_id : null,
-                        },
+                        screen: 'OrderDetailFromNotification',
+                        params: { orderId },
                       });
                     }}
                     style={{
                       ...styles.button_sty,
-                      backgroundColor: Colors.buttonColor,
+                      backgroundColor: theme.primary,
                     }}
                   >
                     <Text
                       style={{
                         ...styles.button_txt,
-                        color: '#fff',
+                        color: theme.fontColor,
                       }}
                     >
-                      OK
+                      {t('OK')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1739,6 +2025,7 @@ const Home = ({ props, route, navigation }) => {
           setoptionModelAdd={setoptionModelAdd}
           cartQty={cartQuantity}
           updateCartDetails={updateCartDetailsFromChild}
+          onAdded={handleOptionModalAdded}
         />
       ) : null}
     </Container>

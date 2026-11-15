@@ -16,6 +16,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useSelector } from 'react-redux';
 import LanguageSwitcher from '../Component/LanguageSwitcher';
 import { useAppTheme } from "../../Hooks/useAppTheme"
+import { Images } from '../../Constants/ImageIconContant';
 const { width, height } = Dimensions.get('window');
 const isTablet = width >= 768;
 const vh = height / 100;
@@ -108,12 +109,17 @@ export default function SplashScreen({ navigation }) {
             {/* Logo */}
             <View style={styles.logoRow}>
               <Image
-                source={require('../../assets/images/static_logo.png')}
+                // source={require('../../assets/images/static_logo.png')}
+                source={
+                  loginImages?.logo
+                    ? { uri: loginImages.logo }
+                    : Images.splash_logo
+                }
                 style={{
                   width: vh * 90,
-                  height: vh * 20,     
+                  height: vh * 20,
                 }}
-                resizeMode="cover"   
+                resizeMode="contain"
               />
             </View>
 
@@ -155,9 +161,9 @@ export default function SplashScreen({ navigation }) {
           {/* RIGHT ILLUSTRATION */}
           <View style={styles.rightPanel}>
             <Image
-              source={require('../../assets/images/1.png')}
+              source={require('../../assets/images/indus_right.png')}
               style={styles.posImage}
-              resizeMode="contain"
+              resizeMode="cover"
             />
           </View>
         </View>

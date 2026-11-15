@@ -496,6 +496,7 @@ const OrderDetailComplete = () => {
               </View>
             </View>
           </View>
+
           {/* -------- RIGHT: estimated time / archived notes, inside its own card -------- */}
           {(orderDetails.estimate_time || orderDetails.notes) ? (
             <View
@@ -510,7 +511,6 @@ const OrderDetailComplete = () => {
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.05,
                 shadowRadius: 4,
-                elevation: 1,
               }}
             >
               {orderDetails.estimate_time ? (

@@ -24,6 +24,7 @@ import OrderDetailSkeleton from './OrderDetailSkeleton';
 import useTranslation from '../../Hooks/useTranslation';
 import { getStatusLabelKey, isCancelledByRestaurant } from '../../utility/orderStatus';
 import { useAppTheme } from '../../Hooks/useAppTheme';
+import { printOrderReceipt } from '../../utility/printReceipt';
 
 const MIN_MINUTES = 10;
 const MAX_MINUTES = 60;
@@ -145,34 +146,64 @@ const OrderDetailScreen = () => {
   const [paymentMethodOverride, setPaymentMethodOverride] = useState(null); // { id, payment_method } once changed
   const [paymentUpdating, setPaymentUpdating] = useState(false);
 
-  const confirmAcceptWithTime = () => {
-    if (!orderDetails) return;
+  const printToKitchenPrinters = async () => {
+    try {
+      const res = await postWithToken(
+        baseUrl,
+        'get-printer-details',
+        { lang_id: langId },
+        userToken,
+      );
+      if (res?.status !== true || !res.data) return;
 
-    setTimeModalVisible(false);
-    setLoading(true);
+      const ip1 = res.data.printer_kitchen_ip_address;
+      const ip2 = res.data.printer_kitchen_ip_address_2;
 
-    postWithToken(
-      baseUrl,
-      'orders/status-change',
-      {
-        id: orderDetails.id,
-        estimate_time: formatMinutesForApi(draftMinutes),
-        notes: '',
-        status: 1,
-        lang_id: langId,
-      },
-      userToken,
-    )
-      .then(() => {
-        setLoading(false);
-        setMinutes(draftMinutes);
-        navigation.goBack();
-      })
-      .catch(error => {
-        setLoading(false);
-        console.log('Error : ', error);
+      const result = await printOrderReceipt({
+        response: orderDetails,
+        usbPrinter: null, // WiFi only
+        wifiPrinter: ip1 ? { ip: String(ip1) } : null,
+        wifiPrinter2: ip2 ? { ip: String(ip2) } : null,
       });
+
+      if (result?.errors?.length) {
+        console.log('Kitchen print errors:', result.errors);
+      }
+    } catch (e) {
+      console.log('Error printing kitchen tickets:', e);
+    }
   };
+
+const confirmAcceptWithTime = () => {
+  if (!orderDetails) return;
+
+  setTimeModalVisible(false);
+  setLoading(true);
+
+  postWithToken(
+    baseUrl,
+    'orders/status-change',
+    {
+      id: orderDetails.id,
+      estimate_time: formatMinutesForApi(draftMinutes),
+      notes: '',
+      status: 1,
+      lang_id: langId,
+    },
+    userToken,
+  )
+    .then(async () => {
+      setMinutes(draftMinutes);
+      await printToKitchenPrinters(); // both WiFi printers print here
+      setLoading(false);
+      navigation.goBack();
+    })
+    .catch(error => {
+      setLoading(false);
+      console.log('Error : ', error);
+    });
+};
+
 
   const FetchPaymentMothod = (bid, orderType_val) => {
     postWithToken(
@@ -435,7 +466,7 @@ const OrderDetailScreen = () => {
 
                 {buyerDetails?.delievryaddress && (
                   <Text style={infoLineStyle}>
-                    {t('APP_ADDRESS')}: {buyerDetails.delievryaddress}
+                    {t('ADDRESS')}: {buyerDetails.delievryaddress}
                   </Text>
                 )}
 
@@ -1009,7 +1040,7 @@ const OrderDetailScreen = () => {
           <View style={{ alignItems: 'center', marginBottom: 6 }}>
             <Text style={{ fontFamily: Inter.bold, fontSize: responsiveFontSize(1.5), textAlign: 'center' }}>
               <Text style={{ color: theme.primary }}>{t('CHANGE_THE_PAYMENT')} </Text>
-              <Text style={{ color:theme.secondary}}>{t('METHOD')}</Text>
+              <Text style={{ color: theme.secondary }}>{t('METHOD')}</Text>
             </Text>
             <View
               style={{

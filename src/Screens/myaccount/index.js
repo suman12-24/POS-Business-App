@@ -241,14 +241,14 @@ const MyAccount = ({ navigation }) => {
                                 <Text style={styles.field_label}>{t('NAME')}</Text>
                                 <View style={[styles.input_wrap, errors.first_name && localStyles.input_wrap_error]}>
                                     <View style={styles.input_icon_circle}>
-                                        <Feather name="user" size={responsiveFontSize(1.3)} color={Colors.buttonColor || '#7C3AED'} />
+                                        <Feather name="user" size={responsiveFontSize(1.3)} color={theme.primary} />
                                     </View>
                                     <TextInput
                                         style={styles.text_input}
                                         value={first_name}
                                         onChangeText={onChangeFirstName}
                                         placeholder="First Name"
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor={theme.fontColorOnBackground}
                                     />
                                 </View>
                                 {errors.first_name ? <Text style={localStyles.error_text}>{errors.first_name}</Text> : null}
@@ -259,14 +259,14 @@ const MyAccount = ({ navigation }) => {
                                 <Text style={styles.field_label}>{t('LAST_NAME')}</Text>
                                 <View style={[styles.input_wrap, errors.last_name && localStyles.input_wrap_error]}>
                                     <View style={styles.input_icon_circle}>
-                                        <Feather name="user" size={responsiveFontSize(1.3)} color={Colors.buttonColor || '#7C3AED'} />
+                                        <Feather name="user" size={responsiveFontSize(1.3)} color={theme.primary} />
                                     </View>
                                     <TextInput
                                         style={styles.text_input}
                                         value={last_name}
                                         onChangeText={onChangeLastName}
                                         placeholder="Last Name"
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor={theme.fontColorOnBackground}
                                     />
                                 </View>
                                 {errors.last_name ? <Text style={localStyles.error_text}>{errors.last_name}</Text> : null}
@@ -277,7 +277,7 @@ const MyAccount = ({ navigation }) => {
                                 <Text style={styles.field_label}>{t('PHONE_NUMBER')}</Text>
                                 <View style={[styles.input_wrap, errors.phone && localStyles.input_wrap_error]}>
                                     <View style={styles.input_icon_circle}>
-                                        <Feather name="phone" size={responsiveFontSize(1.3)} color={Colors.buttonColor || '#7C3AED'} />
+                                        <Feather name="phone" size={responsiveFontSize(1.3)} color={theme.primary} />
                                     </View>
                                     <TextInput
                                         style={styles.text_input}
@@ -286,7 +286,7 @@ const MyAccount = ({ navigation }) => {
                                         keyboardType="numeric"
                                         maxLength={12}
                                         placeholder="Phone"
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor={theme.fontColorOnBackground}
                                     />
                                 </View>
                                 {errors.phone ? <Text style={localStyles.error_text}>{errors.phone}</Text> : null}
@@ -297,14 +297,14 @@ const MyAccount = ({ navigation }) => {
                                 <Text style={styles.field_label}>{t('ADDRESS')}</Text>
                                 <View style={[styles.input_wrap, errors.address && localStyles.input_wrap_error]}>
                                     <View style={styles.input_icon_circle}>
-                                        <Feather name="map-pin" size={responsiveFontSize(1.3)} color={Colors.buttonColor || '#7C3AED'} />
+                                        <Feather name="map-pin" size={responsiveFontSize(1.3)} color={theme.primary} />
                                     </View>
                                     <TextInput
                                         style={styles.text_input}
                                         value={address}
                                         onChangeText={onChangeAddress}
                                         placeholder="Address"
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor={theme.fontColorOnBackground}
                                     />
                                 </View>
                                 {errors.address ? <Text style={localStyles.error_text}>{errors.address}</Text> : null}
@@ -315,14 +315,14 @@ const MyAccount = ({ navigation }) => {
                                 <Text style={styles.field_label}>{t('EMAIL')}</Text>
                                 <View style={[styles.input_wrap, errors.email && localStyles.input_wrap_error]}>
                                     <View style={styles.input_icon_circle}>
-                                        <Feather name="mail" size={responsiveFontSize(1.3)} color={Colors.buttonColor || '#7C3AED'} />
+                                        <Feather name="mail" size={responsiveFontSize(1.3)} color={theme.primary} />
                                     </View>
                                     <TextInput
                                         style={styles.text_input}
                                         value={email}
                                         editable={false}
                                         placeholder="Email"
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor={theme.fontColorOnBackground}
                                     />
                                 </View>
                                 {errors.email ? <Text style={localStyles.error_text}>{errors.email}</Text> : null}

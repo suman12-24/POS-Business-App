@@ -23,6 +23,8 @@ import OrderDetailSkeleton from './OrderDetailSkeleton';
 import useTranslation from '../../Hooks/useTranslation';
 import { getStatusLabelKey, isCancelledByRestaurant } from '../../utility/orderStatus';
 import { useAppTheme } from '../../Hooks/useAppTheme';
+import { printOrderReceipt } from '../../utility/printReceipt';
+
 const MIN_MINUTES = 10;
 const MAX_MINUTES = 60;
 const STEP_MINUTES = 10;
@@ -120,36 +122,62 @@ const OrderDetailFromNotification = () => {
         setDraftMinutes(m => Math.max(MIN_MINUTES, m - STEP_MINUTES));
     const incrementDraft = () =>
         setDraftMinutes(m => Math.min(MAX_MINUTES, m + STEP_MINUTES));
-
-    const confirmAcceptWithTime = () => {
-        if (!orderDetails) return;
-
-        setTimeModalVisible(false);
-        setActionLoading(true);
-
-        postWithToken(
+const printToKitchenPrinters = async () => {
+    try {
+        const res = await postWithToken(
             baseUrl,
-            'orders/status-change',
-            {
-                id: orderDetails.id,
-                estimate_time: formatMinutesForApi(draftMinutes),
-                notes: '',
-                status: 1,
-                lang_id: langId,
-            },
+            'get-printer-details',
+            { lang_id: langId },
             userToken,
-        )
-            .then(() => {
-                setActionLoading(false);
-                setMinutes(draftMinutes);
-                //navigation.goBack();
-                navigation.navigate('MyOrder')
-            })
-            .catch(error => {
-                setActionLoading(false);
-                console.log('Error : ', error);
-            });
-    };
+        );
+        if (res?.status !== true || !res.data) return;
+
+        const ip1 = res.data.printer_kitchen_ip_address;
+        const ip2 = res.data.printer_kitchen_ip_address_2;
+
+        const result = await printOrderReceipt({
+            response: orderDetails,
+            usbPrinter: null, // WiFi only
+            wifiPrinter: ip1 ? { ip: String(ip1) } : null,
+            wifiPrinter2: ip2 ? { ip: String(ip2) } : null,
+        });
+
+        if (result?.errors?.length) {
+            console.log('Kitchen print errors:', result.errors);
+        }
+    } catch (e) {
+        console.log('Error printing kitchen tickets:', e);
+    }
+};
+   const confirmAcceptWithTime = () => {
+    if (!orderDetails) return;
+
+    setTimeModalVisible(false);
+    setActionLoading(true);
+
+    postWithToken(
+        baseUrl,
+        'orders/status-change',
+        {
+            id: orderDetails.id,
+            estimate_time: formatMinutesForApi(draftMinutes),
+            notes: '',
+            status: 1,
+            lang_id: langId,
+        },
+        userToken,
+    )
+        .then(async () => {
+            setMinutes(draftMinutes);
+            await printToKitchenPrinters(); // both WiFi printers print here
+            setActionLoading(false);
+            navigation.navigate('MyOrder');
+        })
+        .catch(error => {
+            setActionLoading(false);
+            console.log('Error : ', error);
+        });
+};
 
     const confirmReject = () => {
         if (!orderDetails) return;
@@ -328,7 +356,7 @@ const OrderDetailFromNotification = () => {
 
                                 {buyerDetails?.delievryaddress && (
                                     <Text style={infoLineStyle}>
-                                        {t('APP_ADDRESS')}: {buyerDetails.delievryaddress}
+                                        {t('ADDRESS')}: {buyerDetails.delievryaddress}
                                     </Text>
                                 )}
 
